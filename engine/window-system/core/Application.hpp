@@ -18,6 +18,8 @@ namespace core {
         static bool isUpdating();
         static void runBeforeUpdate();
         static void runUpdate();
+        static bool isUpdateEnabled();
+        static void setUpdateEnabled(bool enabled);
         static bool isDelegateUpdateEnabled();
         static void setDelegateUpdateEnabled(bool enabled);
     };

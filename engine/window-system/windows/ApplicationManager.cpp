@@ -24,6 +24,7 @@ namespace {
     HANDLE g_main_thread{};
     DWORD g_main_thread_id{};
     bool is_updating{};
+    bool is_update_enabled{};
     bool is_delegate_update_enabled{};
 }
 
@@ -46,7 +47,7 @@ namespace core {
         bool running = true;
         MSG msg{};
         while (running) {
-            if (!is_updating) {
+            if (is_update_enabled && !is_updating) {
                 is_updating = true;
                 application->onBeforeUpdate();
                 is_updating = false;
@@ -66,7 +67,7 @@ namespace core {
                 break;
             }
 
-            if (!is_updating) {
+            if (is_update_enabled && !is_updating) {
                 is_updating = true;
                 const auto update_result = application->onUpdate();
                 is_updating = false;
@@ -97,18 +98,32 @@ namespace core {
     }
 
     void ApplicationManager::runBeforeUpdate() {
+        if (!is_updating) {
+            return;
+        }
         is_updating = true;
         g_application->onBeforeUpdate();
         is_updating = false;
     }
 
     void ApplicationManager::runUpdate() {
+        if (!is_updating) {
+            return;
+        }
         is_updating = true;
         const auto update_result = g_application->onUpdate();
         is_updating = false;
         if (!update_result) {
             requestExit();
         }
+    }
+
+    bool ApplicationManager::isUpdateEnabled() {
+        return is_update_enabled;
+    }
+
+    void ApplicationManager::setUpdateEnabled(const bool enabled) {
+        is_update_enabled = enabled;
     }
 
     bool ApplicationManager::isDelegateUpdateEnabled() {

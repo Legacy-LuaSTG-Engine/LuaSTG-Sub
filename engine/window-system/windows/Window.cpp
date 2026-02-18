@@ -315,7 +315,8 @@ namespace core {
         case LUASTG_WM_UPDATE:
             if (const auto application = core::ApplicationManager::getApplication(); application != nullptr) {
                 const auto frame_rate_controller = core::IFrameRateController::getInstance();
-                if (core::ApplicationManager::isDelegateUpdateEnabled() && !core::ApplicationManager::isUpdating() && frame_rate_controller->arrived()) {
+                const auto enabled = core::ApplicationManager::isUpdateEnabled() && core::ApplicationManager::isDelegateUpdateEnabled();
+                if (enabled && !core::ApplicationManager::isUpdating() && frame_rate_controller->arrived()) {
                     core::ApplicationManager::runBeforeUpdate();
                     core::ApplicationManager::runUpdate();
                 }
