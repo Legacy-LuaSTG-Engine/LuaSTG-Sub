@@ -131,7 +131,8 @@ namespace core {
         DXGI_SWAP_CHAIN_FULLSCREEN_DESC m_swap_chain_fullscreen_info{};
         bool m_allow_exclusive_fullscreen{};
         bool m_exclusive_fullscreen{};
-        bool m_resize_required{};
+        bool m_resize_to_window{};
+        bool m_resize_to_display_mode{};
 
         // frame latency waitable object
 

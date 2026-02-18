@@ -601,11 +601,27 @@ namespace core {
     bool SwapChain::present() {
         LOG_INFO("present");
 
-        if (m_resize_required) {
+        if (m_resize_to_window) {
+            RECT rect{};
+            if (!GetClientRect(static_cast<HWND>(m_window->getNativeHandle()), &rect)) {
+                win32::check_hresult(HRESULT_FROM_WIN32(GetLastError()), "GetClientRect"sv);
+                assert(false); return false;
+            }
+            if ((rect.right - rect.left) <= 0 || (rect.bottom - rect.top) <= 0) {
+                rect.right = std::max(rect.left + 1, rect.right);
+                rect.bottom = std::max(rect.top + 1, rect.bottom);
+            }
+            if (!resizeSwapChain(Vector2U(static_cast<uint32_t>(rect.right - rect.left), static_cast<uint32_t>(rect.bottom - rect.top)))) {
+                return false;
+            }
+            m_resize_to_window = false;
+            return true;
+        }
+        if (m_resize_to_display_mode) {
             if (!resizeSwapChain(Vector2U(m_swap_chain_fullscreen_display_mode.Width, m_swap_chain_fullscreen_display_mode.Height))) {
                 return false;
             }
-            m_resize_required = false;
+            m_resize_to_display_mode = false;
             return true;
         }
 
@@ -725,7 +741,10 @@ namespace core {
             return;
         }
         if (m_model == SwapChainModel::legacy || m_model == SwapChainModel::modern) {
-            resizeSwapChain(size);
+            if (resizeSwapChain(size)) {
+                m_resize_to_window = false;
+                m_resize_to_display_mode = false;
+            }
         }
         else if (m_model == SwapChainModel::composition) {
             updateCompositionTransform();
@@ -1160,7 +1179,8 @@ namespace core {
         if (!setFullscreenState(m_swap_chain.get(), TRUE)) {
             return false;
         }
-        m_resize_required = true;
+        m_resize_to_window = false;
+        m_resize_to_display_mode = true;
         return true;
     }
     bool SwapChain::leaveExclusiveFullscreenTemporarily() {
@@ -1173,6 +1193,8 @@ namespace core {
         Logger::info("[core] [SwapChain] leave exclusive fullscreen (temporarily)");
         const auto result = setFullscreenState(m_swap_chain.get(), FALSE);
         m_window->setLayer(WindowLayer::Normal); // 强制取消窗口置顶
+        m_resize_to_window = true;
+        m_resize_to_display_mode = false;
         return result;
     }
     bool SwapChain::enterExclusiveFullscreen() {
@@ -1211,7 +1233,8 @@ namespace core {
         if (!setFullscreenState(m_swap_chain.get(), TRUE)) {
             return false;
         }
-        m_resize_required = true;
+        m_resize_to_window = false;
+        m_resize_to_display_mode = true;
 
         dispatchEvent(Event::create);
 
@@ -1225,6 +1248,8 @@ namespace core {
         }
 
         setFullscreenState(m_swap_chain.get(), FALSE);
+        m_resize_to_window = true;
+        m_resize_to_display_mode = false;
 
         LOG_INFO("leaveExclusiveFullscreen");
 
