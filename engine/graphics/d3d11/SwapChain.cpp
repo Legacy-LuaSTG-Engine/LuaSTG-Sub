@@ -782,6 +782,14 @@ namespace core {
         if (!m_scaling_renderer.AttachDevice(device)) {
             return;
         }
+    #ifdef LUASTG_ENABLE_DIRECT2D
+        if (!static_cast<Window*>(m_window.get())->getTitleBarController().createResources(
+            static_cast<HWND>(m_window->getNativeHandle()),
+            static_cast<ID2D1DeviceContext*>(m_device->getNativeRendererHandle())
+        )) {
+            return;
+        }
+    #endif
         if (m_exclusive_fullscreen) {
             enterExclusiveFullscreen();
         }
@@ -790,6 +798,9 @@ namespace core {
         destroySwapChain();
         destroyCanvas();
         m_scaling_renderer.DetachDevice();
+    #ifdef LUASTG_ENABLE_DIRECT2D
+        static_cast<Window*>(m_window.get())->getTitleBarController().destroyResources();
+    #endif
     }
 
     // SwapChain
@@ -839,8 +850,12 @@ namespace core {
             return false;
         }
     #ifdef LUASTG_ENABLE_DIRECT2D
-        // static_cast<Window*>(m_window.get())->getTitleBarController().createResources(win, m_device->GetD2D1DeviceContext());
-        // static_cast<Window*>(m_window.get())->getTitleBarController().destroyResources();
+        if (!static_cast<Window*>(m_window.get())->getTitleBarController().createResources(
+            static_cast<HWND>(m_window->getNativeHandle()),
+            static_cast<ID2D1DeviceContext*>(m_device->getNativeRendererHandle())
+        )) {
+            return false;
+        }
     #endif
 
         m_window->addEventListener(this);
