@@ -538,6 +538,9 @@ namespace core {
             return false;
         }
 
+        if (!updateLetterBoxingTransform()) {
+            return false;
+        }
         if (m_model == SwapChainModel::composition) {
             if (!resizeSwapChain(size)) {
                 return false;
@@ -549,6 +552,7 @@ namespace core {
 
         dispatchEvent(Event::create);
 
+        // TODO: LuaSTG 那边会先调用 setCanvasSize 再调用 setWindowMode 触发两次交换链创建
         // update exclusive fullsceen display mode
         if (m_exclusive_fullscreen) {
             leaveExclusiveFullscreen();
@@ -563,6 +567,7 @@ namespace core {
 
     void SwapChain::setScalingMode(const SwapChainScalingMode mode) {
         m_scaling_mode = mode;
+        updateLetterBoxingTransform();
         updateCompositionTransform();
     }
     SwapChainScalingMode SwapChain::getScalingMode() {
@@ -638,14 +643,6 @@ namespace core {
         // scaling
 
         if (!isRenderTargetAndCanvasSizeEquals() && (m_model == SwapChainModel::legacy || m_model == SwapChainModel::modern)) {
-            if (!m_scaling_renderer.UpdateTransform(
-                m_canvas_srv.get(),
-                m_swap_chain_rtv.get(),
-                m_scaling_mode == SwapChainScalingMode::stretch
-            )) {
-                return false;
-            }
-
             if (!m_scaling_renderer.Draw(
                 m_canvas_srv.get(),
                 m_swap_chain_rtv.get(),
@@ -1053,6 +1050,12 @@ namespace core {
             }
         }
 
+        // transform
+
+        if (!updateLetterBoxingTransform()) {
+            return false;
+        }
+
         // log
 
         if (m_exclusive_fullscreen) {
@@ -1119,7 +1122,15 @@ namespace core {
             return false;
         }
 
-        return createRenderTarget();
+        if (!createRenderTarget()) {
+            return false;
+        }
+
+        if (!updateLetterBoxingTransform()) {
+            return false;
+        }
+
+        return true;
     }
     bool SwapChain::createRenderTarget() {
         LOG_INFO("createRenderTarget");
@@ -1396,6 +1407,17 @@ namespace core {
     }
     bool SwapChain::isRenderTargetAndCanvasSizeEquals() const noexcept {
         return m_swap_chain_info.Width == m_canvas_size.x && m_swap_chain_info.Height == m_canvas_size.y;
+    }
+    bool SwapChain::updateLetterBoxingTransform() {
+        if (!m_scaling_renderer.UpdateTransform(
+            m_canvas_srv.get(),
+            m_swap_chain_rtv.get(),
+            m_scaling_mode == SwapChainScalingMode::stretch
+        )) {
+            return false;
+        }
+
+        return true;
     }
 
     // DirectComposition

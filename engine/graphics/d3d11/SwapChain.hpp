@@ -92,6 +92,7 @@ namespace core {
         bool createCanvas();
         void destroyCanvas();
         bool isRenderTargetAndCanvasSizeEquals() const noexcept;
+        bool updateLetterBoxingTransform();
 
         // DirectComposition
 
