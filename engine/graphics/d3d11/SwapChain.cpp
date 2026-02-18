@@ -1250,8 +1250,6 @@ namespace core {
         }
 
         setFullscreenState(m_swap_chain.get(), FALSE);
-        m_resize_to_window = true;
-        m_resize_to_display_mode = false;
 
         LOG_INFO("leaveExclusiveFullscreen");
 
