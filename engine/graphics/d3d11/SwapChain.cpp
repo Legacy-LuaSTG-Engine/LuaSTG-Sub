@@ -892,7 +892,7 @@ namespace core {
 
     // basic
 
-    bool SwapChain::createSwapChain(const bool create_rtv) {
+    bool SwapChain::createSwapChain() {
         LOG_INFO("createSwapChain");
 
         // check
@@ -1044,10 +1044,8 @@ namespace core {
 
         // create render target
 
-        if (create_rtv) {
             if (!createRenderTarget()) {
                 return false;
-            }
         }
 
         // transform

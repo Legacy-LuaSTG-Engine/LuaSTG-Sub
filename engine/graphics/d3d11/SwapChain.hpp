@@ -74,7 +74,7 @@ namespace core {
 
         // basic
 
-        bool createSwapChain(bool create_rtv = true);
+        bool createSwapChain();
         void destroySwapChain();
         bool resizeSwapChain(Vector2U size);
         bool createRenderTarget();
