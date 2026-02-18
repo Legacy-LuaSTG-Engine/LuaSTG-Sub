@@ -820,7 +820,7 @@ namespace core {
         m_modern_swap_chain_available = checkModernSwapChainModelAvailable(d3d11_device);
         m_allow_exclusive_fullscreen = config.isAllowExclusiveFullscreen();
         m_allow_modern_swap_chain = config.isAllowModernSwapChain();
-        m_allow_composition = false; config.isAllowDirectComposition();
+        m_allow_composition = config.isAllowDirectComposition();
 
         const auto size{ Vector2U(config.getWidth(), config.getHeight()) };
         if (size.x == 0 || size.y == 0) {
