@@ -1270,11 +1270,11 @@ namespace core {
 		HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(d3d11_texture2d.get(), NULL, m_swap_chain_d3d11_rtv.put());
 		HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 		win32::com_ptr<IDXGISurface> dxgi_surface;
 		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(dxgi_surface.put()));
 		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer -> 0");
 
-#ifdef LUASTG_ENABLE_DIRECT2D
 		// TODO: 线性颜色空间
 		D2D1_BITMAP_PROPERTIES1 d2d1_bitmap_info{};
 		d2d1_bitmap_info.pixelFormat.format = COLOR_BUFFER_FORMAT;
