@@ -98,7 +98,7 @@ namespace core {
     }
 
     void ApplicationManager::runBeforeUpdate() {
-        if (!is_updating) {
+        if (!is_update_enabled || is_updating) {
             return;
         }
         is_updating = true;
@@ -107,7 +107,7 @@ namespace core {
     }
 
     void ApplicationManager::runUpdate() {
-        if (!is_updating) {
+        if (!is_update_enabled || is_updating) {
             return;
         }
         is_updating = true;
