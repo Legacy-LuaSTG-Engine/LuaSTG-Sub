@@ -24,8 +24,8 @@ namespace {
     HANDLE g_main_thread{};
     DWORD g_main_thread_id{};
     bool is_updating{};
-    bool is_update_enabled{};
-    bool is_delegate_update_enabled{};
+    bool is_update_enabled{ true };
+    bool is_delegate_update_enabled{ true };
 }
 
 namespace core {
