@@ -15,16 +15,13 @@
 
 #include "ScreenGrab11.h"
 
-//#define _log(x) core::Logger::info(x)
 //#define LOG_INFO(x) core::Logger::info(x)
-#define _log(x)
 #define LOG_INFO(x)
 
 #define HRNew HRESULT hr = S_OK;
 #define HRGet hr = gHR
 #define HRCheckCallReport(x) if (FAILED(hr)) { core::Logger::error("Windows API failed: " x); }
 #define HRCheckCallReturnBool(x) if (FAILED(hr)) { core::Logger::error("Windows API failed: " x); assert(false); return false; }
-#define HRCheckCallNoAssertReturnBool(x) if (FAILED(hr)) { core::Logger::error("Windows API failed: " x); return false; }
 
 #define NTNew NTSTATUS nt{};
 #define NTGet nt
@@ -33,8 +30,6 @@
 #define NTCheckCallReturnBool(x) if (nt != STATUS_SUCCESS) { core::Logger::error("Windows API failed: " x); assert(false); return false; }
 #define NTCheckCallNoAssertReturnBool(x) if (nt != STATUS_SUCCESS) { core::Logger::error("Windows API failed: " x); return false; }
 
-#define ReportError(x) core::Logger::error("Windows API failed: " x)
-
 namespace {
     using std::string_view_literals::operator ""sv;
     using std::string_literals::operator ""s;
@@ -42,30 +37,7 @@ namespace {
     constexpr DXGI_FORMAT const COLOR_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
     constexpr DXGI_FORMAT const DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-    bool makeLetterboxing(core::Vector2U rect, core::Vector2U inner_rect, DXGI_MATRIX_3X2_F& mat)
-    {
-        if (rect == inner_rect)
-        {
-            return false; // 不需要
-        }
-        else
-        {
-            double const hscale = (double)rect.x / (double)inner_rect.x;
-            double const vscale = (double)rect.y / (double)inner_rect.y;
-            double const scale = std::min(hscale, vscale);
-            double const width = scale * (double)inner_rect.x;
-            double const height = scale * (double)inner_rect.y;
-            double const x = ((double)rect.x - width) * 0.5;
-            double const y = ((double)rect.y - height) * 0.5;
-            mat = DXGI_MATRIX_3X2_F{
-                FLOAT(scale), 0.0f,
-                0.0f, FLOAT(scale),
-                FLOAT(x), FLOAT(y),
-            };
-            return true;
-        }
-    }
-    bool makeLetterboxing(core::Vector2U rect, core::Vector2U inner_rect, D2D1_MATRIX_3X2_F& mat)
+    bool makeLetterboxing(const core::Vector2U rect, const core::Vector2U inner_rect, D2D1_MATRIX_3X2_F& mat)
     {
         if (rect == inner_rect)
         {
@@ -88,46 +60,8 @@ namespace {
             return true;
         }
     }
-    DXGI_SWAP_CHAIN_DESC1 getDefaultSwapChainInfo7()
-    {
-        return DXGI_SWAP_CHAIN_DESC1{
-            .Width = 0,
-            .Height = 0,
-            .Format = COLOR_BUFFER_FORMAT,
-            .Stereo = FALSE,
-            .SampleDesc = DXGI_SAMPLE_DESC{
-                .Count = 1,
-                .Quality = 0,
-            },
-            .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-            .BufferCount = 1,
-            .Scaling = DXGI_SCALING_STRETCH,
-            .SwapEffect = DXGI_SWAP_EFFECT_DISCARD,
-            .AlphaMode = DXGI_ALPHA_MODE_IGNORE,
-            .Flags = 0,
-        };
-    }
-    DXGI_SWAP_CHAIN_DESC1 getDefaultSwapChainInfo10()
-    {
-        return DXGI_SWAP_CHAIN_DESC1{
-            .Width = 0,
-            .Height = 0,
-            .Format = COLOR_BUFFER_FORMAT,
-            .Stereo = FALSE,
-            .SampleDesc = DXGI_SAMPLE_DESC{
-                .Count = 1,
-                .Quality = 0,
-            },
-            .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-            .BufferCount = 3,
-            .Scaling = DXGI_SCALING_NONE,
-            .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
-            .AlphaMode = DXGI_ALPHA_MODE_IGNORE,
-            .Flags = 0,
-        };
-    }
 
-    bool checkModernSwapChainModelAvailable(ID3D11Device* device)
+    bool checkModernSwapChainModelAvailable(ID3D11Device* const device)
     {
         // 是否需要统一开启现代交换链模型
         // 我们划定一个红线，红线以下永远不开启，红线以上永远开启
@@ -236,7 +170,7 @@ namespace {
 
         return present_allow_tearing && direct_flip_caps.Supported && independent_flip_support.Supported;
     }
-    bool checkMultiPlaneOverlaySupport(ID3D11Device* device)
+    bool checkMultiPlaneOverlaySupport(ID3D11Device* const device)
     {
         // 是否有多平面叠加支持，如果有，就可以提供更好的性能
 
@@ -434,7 +368,7 @@ namespace {
 
         return true;
     }
-    bool isModernSwapChainModel(DXGI_SWAP_CHAIN_DESC1 const& info)
+    bool isModernSwapChainModel(const DXGI_SWAP_CHAIN_DESC1& info)
     {
         return info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
             || info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD
