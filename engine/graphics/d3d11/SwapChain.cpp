@@ -548,6 +548,13 @@ namespace core {
         }
 
         dispatchEvent(Event::create);
+
+        // update exclusive fullsceen display mode
+        if (m_exclusive_fullscreen) {
+            leaveExclusiveFullscreen();
+            enterExclusiveFullscreen();
+        }
+
         return true;
     }
     Vector2U SwapChain::getCanvasSize() {
