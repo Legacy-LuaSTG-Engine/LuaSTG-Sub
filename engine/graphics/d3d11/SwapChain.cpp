@@ -16,7 +16,9 @@
 #include "ScreenGrab11.h"
 
 //#define _log(x) core::Logger::info(x)
+//#define LOG_INFO(x) core::Logger::info(x)
 #define _log(x)
+#define LOG_INFO(x)
 
 #define HRNew HRESULT hr = S_OK;
 #define HRGet hr = gHR
@@ -597,6 +599,16 @@ namespace core {
         return m_vsync;
     }
     bool SwapChain::present() {
+        LOG_INFO("present");
+
+        if (m_resize_required) {
+            if (!resizeSwapChain(Vector2U(m_swap_chain_fullscreen_display_mode.Width, m_swap_chain_fullscreen_display_mode.Height))) {
+                return false;
+            }
+            m_resize_required = false;
+            return true;
+        }
+
         // scaling
 
         if (!isRenderTargetAndCanvasSizeEquals() && (m_model == SwapChainModel::legacy || m_model == SwapChainModel::modern)) {
@@ -838,6 +850,8 @@ namespace core {
     // basic
 
     bool SwapChain::createSwapChain(const bool create_rtv) {
+        LOG_INFO("createSwapChain");
+
         // check
 
         Logger::info("[core] [SwapChain] creating...");
@@ -1027,6 +1041,7 @@ namespace core {
         return true;
     }
     void SwapChain::destroySwapChain() {
+        LOG_INFO("destroySwapChain");
         destroyRenderTarget();
         destroyComposition();
         if (m_swap_chain) {
@@ -1036,6 +1051,8 @@ namespace core {
         m_frame_latency_event.reset();
     }
     bool SwapChain::resizeSwapChain(const Vector2U size) {
+        LOG_INFO("resizeSwapChain");
+
         if (size.x == 0 || size.y == 0) {
             assert(false); return false;
         }
@@ -1059,6 +1076,8 @@ namespace core {
         return createRenderTarget();
     }
     bool SwapChain::createRenderTarget() {
+        LOG_INFO("createRenderTarget");
+
         if (!m_swap_chain) {
             assert(false); return false;
         }
@@ -1114,6 +1133,7 @@ namespace core {
         return true;
     }
     void SwapChain::destroyRenderTarget() {
+        LOG_INFO("destroyRenderTarget");
     #ifdef LUASTG_ENABLE_DIRECT2D
         if (const auto ctx = static_cast<ID2D1DeviceContext*>(m_device->getNativeRendererHandle()); ctx != nullptr) {
             ctx->SetTarget(nullptr);
@@ -1137,7 +1157,11 @@ namespace core {
             assert(false); return false;
         }
         Logger::info("[core] [SwapChain] enter exclusive fullscreen (temporarily)");
-        return setFullscreenState(m_swap_chain.get(), TRUE);
+        if (!setFullscreenState(m_swap_chain.get(), TRUE)) {
+            return false;
+        }
+        m_resize_required = true;
+        return true;
     }
     bool SwapChain::leaveExclusiveFullscreenTemporarily() {
         if (!m_exclusive_fullscreen) {
@@ -1152,6 +1176,8 @@ namespace core {
         return result;
     }
     bool SwapChain::enterExclusiveFullscreen() {
+        LOG_INFO("enterExclusiveFullscreen...");
+
         if (!m_allow_exclusive_fullscreen) {
             return false;
         }
@@ -1167,6 +1193,8 @@ namespace core {
             return false;
         }
 
+        LOG_INFO("enterExclusiveFullscreen (display mode found)");
+
         dispatchEvent(Event::destroy);
         destroySwapChain();
 
@@ -1174,33 +1202,36 @@ namespace core {
         m_swap_chain_fullscreen_display_mode = display_mode;
         m_exclusive_fullscreen = true;
 
-        if (!createSwapChain(false)) {
+        if (!createSwapChain()) {
             return false;
         }
 
-        core::ApplicationManager::setDelegateUpdateEnabled(false);
+        LOG_INFO("enterExclusiveFullscreen (enter...)");
+
         if (!setFullscreenState(m_swap_chain.get(), TRUE)) {
             return false;
         }
-
-        if (!resizeSwapChain({ display_mode.Width, display_mode.Height })) {
-            return false;
-        }
+        m_resize_required = true;
 
         dispatchEvent(Event::create);
 
         return true;
     }
     bool SwapChain::leaveExclusiveFullscreen() {
+        LOG_INFO("leaveExclusiveFullscreen...");
+
         if (!m_swap_chain) {
             assert(false); return false;
         }
+
         setFullscreenState(m_swap_chain.get(), FALSE);
-        core::ApplicationManager::setDelegateUpdateEnabled(true);
+
+        LOG_INFO("leaveExclusiveFullscreen");
+
         if (m_exclusive_fullscreen) {
-            m_exclusive_fullscreen = false;
             dispatchEvent(Event::destroy);
             destroySwapChain();
+            m_exclusive_fullscreen = false;
             if (!createSwapChain()) {
                 return false;
             }
@@ -1508,6 +1539,8 @@ namespace core {
         return true;
     }
     bool SwapChain::updateCompositionTransform() {
+        LOG_INFO("updateCompositionTransform");
+
         if (m_window->getNativeHandle() == nullptr) {
             assert(false); return false;
         }
