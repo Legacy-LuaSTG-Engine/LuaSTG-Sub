@@ -46,9 +46,11 @@ namespace core {
         bool running = true;
         MSG msg{};
         while (running) {
-            is_updating = true;
-            application->onBeforeUpdate();
-            is_updating = false;
+            if (!is_updating) {
+                is_updating = true;
+                application->onBeforeUpdate();
+                is_updating = false;
+            }
 
             while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
                 if (msg.message == WM_QUIT) {
@@ -64,12 +66,14 @@ namespace core {
                 break;
             }
 
-            is_updating = true;
-            const auto update_result = application->onUpdate();
-            is_updating = false;
-            if (!update_result) {
-                running = false;
-                break;
+            if (!is_updating) {
+                is_updating = true;
+                const auto update_result = application->onUpdate();
+                is_updating = false;
+                if (!update_result) {
+                    running = false;
+                    break;
+                }
             }
         }
 
