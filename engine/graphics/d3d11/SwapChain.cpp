@@ -539,6 +539,9 @@ namespace core {
         }
 
         if (m_model == SwapChainModel::composition) {
+            if (!resizeSwapChain(size)) {
+                return false;
+            }
             if (!updateCompositionTransform()) {
                 return false;
             }
