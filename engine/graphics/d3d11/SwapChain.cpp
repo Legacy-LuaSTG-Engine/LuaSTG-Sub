@@ -779,7 +779,9 @@ namespace core {
         if (!m_scaling_renderer.AttachDevice(device)) {
             return;
         }
-        // TODO: enter exclusive fullscreen
+        if (m_exclusive_fullscreen) {
+            enterExclusiveFullscreen();
+        }
     }
     void SwapChain::onGraphicsDeviceDestroy() {
         destroySwapChain();
