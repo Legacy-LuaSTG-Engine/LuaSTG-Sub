@@ -46,6 +46,7 @@ namespace core {
 		win32::com_ptr<IDCompositionDesktopDevice> m_composition_device;
 		win32::com_ptr<IDCompositionTarget> m_composition_target;
 		win32::com_ptr<IDCompositionVisual2> m_composition_visual_root;
+		win32::com_ptr<IDCompositionVisual2> m_composition_visual_swap_chain;
 
 		// Direct2D
 
@@ -56,7 +57,6 @@ namespace core {
 		// custom title bar
 
 #ifdef LUASTG_ENABLE_DIRECT2D
-		win32::com_ptr<IDCompositionVisual2> m_composition_visual_swap_chain;
 		win32::com_ptr<IDCompositionVisual2> m_composition_visual_title_bar;
 		SecondarySwapChain m_swap_chain_title_bar;
 		bool m_is_title_bar_attached{};
