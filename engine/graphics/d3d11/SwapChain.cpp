@@ -449,19 +449,28 @@ namespace {
         return isModernSwapChainModel(info);
     }
 
-    HRESULT setFullscreenState(IDXGISwapChain* const swap_chain, const BOOL fullscreen) {
+    bool setFullscreenState(IDXGISwapChain* const swap_chain, const BOOL fullscreen) {
         BOOL current{};
-        if (const auto hr = swap_chain->GetFullscreenState(&current, nullptr); FAILED(hr)) {
-            return hr;
+        if (!win32::check_hresult_as_boolean(
+            swap_chain->GetFullscreenState(&current, nullptr),
+            "IDXGISwapChain::GetFullscreenState"sv
+        )) {
+            return false;
         }
         if (current == fullscreen) {
-            return S_OK;
+            return true;
         }
-        const auto old = core::ApplicationManager::isDelegateUpdateEnabled();
+        const auto old_update = core::ApplicationManager::isUpdateEnabled();
+        const auto old_delegate_update = core::ApplicationManager::isDelegateUpdateEnabled();
+        core::ApplicationManager::setUpdateEnabled(false);
         core::ApplicationManager::setDelegateUpdateEnabled(false);
         const HRESULT hr = swap_chain->SetFullscreenState(fullscreen, nullptr);
-        core::ApplicationManager::setDelegateUpdateEnabled(old);
-        return hr;
+        core::ApplicationManager::setUpdateEnabled(old_update);
+        core::ApplicationManager::setDelegateUpdateEnabled(old_delegate_update);
+        return win32::check_hresult_as_boolean(hr, fullscreen
+            ? "IDXGISwapChain::SetFullscreenState (TRUE)"sv
+            : "IDXGISwapChain::SetFullscreenState (FALSE)"sv
+        );
     }
 }
 
