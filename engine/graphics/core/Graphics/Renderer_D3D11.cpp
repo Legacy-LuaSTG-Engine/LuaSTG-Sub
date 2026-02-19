@@ -303,7 +303,9 @@ namespace core::Graphics {
 
 		if (discard) {
 			m_primitive_batch_renderer.discard();
-			m_primitive_batch_renderer.endBatch();
+			if (m_primitive_batch_renderer.isBatch()) {
+				m_primitive_batch_renderer.endBatch();
+			}
 			m_primitive_batch_renderer.setCycleOnNextBatch();
 			setTexture(_state_texture.get());
 			return true;

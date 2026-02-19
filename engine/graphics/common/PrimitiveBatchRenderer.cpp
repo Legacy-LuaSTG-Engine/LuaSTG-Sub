@@ -1,10 +1,27 @@
 #include "common/PrimitiveBatchRenderer.hpp"
 
 namespace core {
+    void PrimitiveBatchRenderer::onGraphicsDeviceCreate() {
+        // nothing
+    }
+    void PrimitiveBatchRenderer::onGraphicsDeviceDestroy() {
+        if (m_initialized && m_batch_scope) {
+            mapBuffers(false);
+        }
+    }
+
     PrimitiveBatchRenderer::PrimitiveBatchRenderer() = default;
-    PrimitiveBatchRenderer::~PrimitiveBatchRenderer() = default;
+    PrimitiveBatchRenderer::~PrimitiveBatchRenderer() {
+        if (m_initialized) {
+            m_device->removeEventListener(this);
+        }
+    }
 
     bool PrimitiveBatchRenderer::createResources(IGraphicsDevice* const device) {
+        if (m_initialized && m_device) {
+            m_device->removeEventListener(this);
+        }
+
         if (device == nullptr) {
             assert(false); return false;
         }
@@ -20,10 +37,14 @@ namespace core {
             return false;
         }
 
+        m_device->addEventListener(this);
         m_initialized = true;
         return true;
     }
 
+    bool PrimitiveBatchRenderer::isBatch() const noexcept {
+        return m_batch_scope;
+    }
     bool PrimitiveBatchRenderer::beginBatch(const bool auto_draw) {
         if (m_batch_scope) {
             assert(false); return false;

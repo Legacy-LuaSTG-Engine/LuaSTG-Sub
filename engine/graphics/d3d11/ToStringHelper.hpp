@@ -190,9 +190,19 @@ namespace {
 
     std::string_view toStringView(const DXGI_MODE_SCALING v) {
         switch (v) {
-        case DXGI_MODE_SCALING_UNSPECIFIED: return "UNSPECIFIED";
-        case DXGI_MODE_SCALING_CENTERED: return "CENTERED";
-        case DXGI_MODE_SCALING_STRETCHED: return "STRETCHED";
+        case DXGI_MODE_SCALING_UNSPECIFIED: return "UNSPECIFIED"sv;
+        case DXGI_MODE_SCALING_CENTERED: return "CENTERED"sv;
+        case DXGI_MODE_SCALING_STRETCHED: return "STRETCHED"sv;
+        default: return "unknown"sv;
+        }
+    }
+
+    std::string_view toStringView(const DXGI_SWAP_EFFECT v) {
+        switch (v) {
+        case DXGI_SWAP_EFFECT_DISCARD: return "DISCARD"sv;
+        case DXGI_SWAP_EFFECT_SEQUENTIAL: return "SEQUENTIAL"sv;
+        case DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL: return "FLIP_SEQUENTIAL"sv;
+        case DXGI_SWAP_EFFECT_FLIP_DISCARD: return "FLIP_DISCARD"sv;
         default: return "unknown"sv;
         }
     }

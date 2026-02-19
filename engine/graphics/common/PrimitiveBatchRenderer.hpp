@@ -4,10 +4,13 @@
 #include "core/SmartReference.hpp"
 
 namespace core {
-    class PrimitiveBatchRenderer {
+    class PrimitiveBatchRenderer : public IGraphicsDeviceEventListener {
     public:
         using DrawVertex = Graphics::IRenderer::DrawVertex;
         using DrawIndex = Graphics::IRenderer::DrawIndex;
+
+        void onGraphicsDeviceCreate() override;
+        void onGraphicsDeviceDestroy() override;
 
         PrimitiveBatchRenderer();
         PrimitiveBatchRenderer(const PrimitiveBatchRenderer&) = delete;
@@ -20,6 +23,8 @@ namespace core {
         // [free]
         bool createResources(IGraphicsDevice* device);
 
+        // [free]
+        bool isBatch() const noexcept;
         // [free]
         bool beginBatch(bool auto_draw);
         // [batch]

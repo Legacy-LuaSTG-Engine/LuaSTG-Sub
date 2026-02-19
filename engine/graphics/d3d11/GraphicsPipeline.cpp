@@ -290,7 +290,12 @@ namespace core {
         }
         m_device = device;
         m_graphics_pipeline_state_helper.save(create_info);
-        return createResources();
+        if (!createResources()) {
+            return false;
+        }
+        m_device->addEventListener(this);
+        m_initialized = true;
+        return true;
     }
     void GraphicsPipeline::apply() {
         const auto ctx = static_cast<ID3D11DeviceContext*>(m_device->getCommandbuffer()->getNativeHandle());
@@ -403,8 +408,6 @@ namespace core {
             return false;
         }
 
-        m_device->addEventListener(this);
-        m_initialized = true;
         return true;
     }
 }
