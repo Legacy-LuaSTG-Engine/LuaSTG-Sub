@@ -714,9 +714,6 @@ namespace core {
             assert(false); return;
         }
         m_modern_swap_chain_available = checkModernSwapChainModelAvailable(device);
-        if (!setWindowMode(m_canvas_size)) {
-            return;
-        }
         if (!m_scaling_renderer.AttachDevice(device)) {
             return;
         }
@@ -728,6 +725,9 @@ namespace core {
             return;
         }
     #endif
+        if (!setWindowMode(m_canvas_size)) {
+            return;
+        }
         if (m_exclusive_fullscreen) {
             enterExclusiveFullscreen();
         }
@@ -781,9 +781,6 @@ namespace core {
             assert(false); return false;
         }
 
-        if (!setWindowMode(size)) {
-            return false;
-        }
         if (!m_scaling_renderer.AttachDevice(d3d11_device)) {
             return false;
         }
@@ -795,6 +792,9 @@ namespace core {
             return false;
         }
     #endif
+        if (!setWindowMode(size)) {
+            return false;
+        }
 
         m_window->addEventListener(this);
         m_device->addEventListener(this);
