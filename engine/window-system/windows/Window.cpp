@@ -308,19 +308,28 @@ namespace core {
             return 0;
         case WM_PAINT:
             if (win32_window_is_sizemove || win32_window_is_menu_loop) {
-                
-            }
-            ValidateRect(window, nullptr);
-            return 0;
-        case LUASTG_WM_UPDATE:
-            if (const auto application = core::ApplicationManager::getApplication(); application != nullptr) {
-                const auto frame_rate_controller = core::IFrameRateController::getInstance();
-                const auto enabled = core::ApplicationManager::isUpdateEnabled() && core::ApplicationManager::isDelegateUpdateEnabled();
-                if (enabled && !core::ApplicationManager::isUpdating() && frame_rate_controller->arrived()) {
-                    core::ApplicationManager::runBeforeUpdate();
-                    core::ApplicationManager::runUpdate();
+                if (const auto application = core::ApplicationManager::getApplication(); application != nullptr) {
+                    const auto frame_rate_controller = core::IFrameRateController::getInstance();
+                    const auto enabled = core::ApplicationManager::isUpdateEnabled() && core::ApplicationManager::isDelegateUpdateEnabled();
+                    if (enabled && !core::ApplicationManager::isUpdating() && frame_rate_controller->arrived()) {
+                        core::ApplicationManager::runBeforeUpdate();
+                        core::ApplicationManager::runUpdate();
+                    }
                 }
             }
+            else {
+                ValidateRect(window, nullptr);
+            }
+            return 0;
+        case LUASTG_WM_UPDATE:
+            //if (const auto application = core::ApplicationManager::getApplication(); application != nullptr) {
+            //    const auto frame_rate_controller = core::IFrameRateController::getInstance();
+            //    const auto enabled = core::ApplicationManager::isUpdateEnabled() && core::ApplicationManager::isDelegateUpdateEnabled();
+            //    if (enabled && !core::ApplicationManager::isUpdating() && frame_rate_controller->arrived()) {
+            //        core::ApplicationManager::runBeforeUpdate();
+            //        core::ApplicationManager::runUpdate();
+            //    }
+            //}
             return 0;
         case WM_SYSKEYDOWN:
         case WM_KEYDOWN:
