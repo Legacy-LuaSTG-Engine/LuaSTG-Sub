@@ -227,6 +227,44 @@ namespace luastg
         return true;
     }
 
+    bool ResourcePool::LoadVideo(const char* name, const char* path) noexcept
+    {
+        if (m_TexturePool.find(std::string_view(name)) != m_TexturePool.end())
+        {
+            if (ResourceMgr::GetResourceLoadingLog())
+            {
+                spdlog::warn("[luastg] LoadVideo: 纹理 '{}' 已存在，加载操作已取消", name);
+            }
+            return true;
+        }
+    
+        core::SmartReference<core::ITexture2D> p_texture;
+        if (!LAPP.getGraphicsDevice()->createVideoTexture(path, p_texture.put()))
+        {
+            spdlog::error("[luastg] 从 '{}' 创建视频纹理 '{}' 失败", path, name);
+            return false;
+        }
+
+        try
+        {
+            core::SmartReference<IResourceTexture> tRes;
+            tRes.attach(new ResourceTextureImpl(name, p_texture.get()));
+            m_TexturePool.emplace(name, tRes);
+        }
+        catch (std::exception const& e)
+        {
+            spdlog::error("[luastg] LoadVideo: 创建视频纹理 '{}' 失败 ({})", name, e.what());
+            return false;
+        }
+    
+        if (ResourceMgr::GetResourceLoadingLog())
+        {
+            spdlog::info("[luastg] LoadVideo: 已从 '{}' 加载视频 '{}' ({})", path, name, getResourcePoolTypeName());
+        }
+    
+        return true;
+    }
+
     bool ResourcePool::CreateTexture(const char* name, int width, int height) noexcept
     {
         if (m_TexturePool.find(std::string_view(name)) != m_TexturePool.end())

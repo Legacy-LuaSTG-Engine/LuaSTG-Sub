@@ -98,6 +98,8 @@ namespace luastg
         // 纹理
         bool LoadTexture(const char* name, const char* path, bool mipmaps = true) noexcept;
         bool CreateTexture(const char* name, int width, int height) noexcept;
+        // 视频纹理
+        bool LoadVideo(const char* name, const char* path) noexcept;
         // 渲染目标
         bool CreateRenderTarget(const char* name, int width = 0, int height = 0, bool depth_buffer = false) noexcept;
         // 图片精灵

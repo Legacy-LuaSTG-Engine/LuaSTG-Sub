@@ -1,6 +1,8 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
 #include "AppFrame.h"
+#include "d3d11/VideoTexture.hpp"
+#include "core/VideoDecoder.hpp"
 
 void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 {
@@ -50,6 +52,18 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return luaL_error(L, "can't load resource at this time.");
 			if (!pActivedPool->LoadTexture(name, path, lua_toboolean(L, 3) == 0 ? false : true))
 				return luaL_error(L, "can't load texture from file '%s'.", path);
+			return 0;
+		}
+		static int LoadVideo(lua_State* L) noexcept
+		{
+			const char* name = luaL_checkstring(L, 1);
+			const char* path = luaL_checkstring(L, 2);
+
+			ResourcePool* pActivedPool = LRES.GetActivedPool();
+			if (!pActivedPool)
+				return luaL_error(L, "can't load resource at this time.");
+			if (!pActivedPool->LoadVideo(name, path))
+				return luaL_error(L, "can't load video from file '%s'.", path);
 			return 0;
 		}
 		static int LoadSprite(lua_State* L) noexcept
@@ -696,6 +710,78 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			LRES.CacheTTFFontString(luaL_checkstring(L, 1), str, len);
 			return 0;
 		}
+
+		// 视频控制函数
+		static core::IVideoDecoder* GetVideoDecoder(const char* name) noexcept {
+			auto tex = LRES.FindTexture(name);
+			if (!tex) return nullptr;
+			
+			auto texture2d = tex->GetTexture();
+			if (!texture2d) return nullptr;
+			
+			// 尝试转换为VideoTexture
+			auto video_texture = dynamic_cast<core::VideoTexture*>(texture2d);
+			if (!video_texture) return nullptr;
+			
+			return video_texture->getVideoDecoder();
+		}
+
+		static int VideoSeek(lua_State* L) noexcept {
+			const char* name = luaL_checkstring(L, 1);
+			double time = luaL_checknumber(L, 2);
+			auto decoder = GetVideoDecoder(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found.", name);
+			lua_pushboolean(L, decoder->seek(time));
+			return 1;
+		}
+
+		static int VideoSetLooping(lua_State* L) noexcept {
+			const char* name = luaL_checkstring(L, 1);
+			bool loop = lua_toboolean(L, 2) != 0;
+			auto decoder = GetVideoDecoder(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found.", name);
+			decoder->setLooping(loop);
+			return 0;
+		}
+
+		static int VideoUpdate(lua_State* L) noexcept {
+			const char* name = luaL_checkstring(L, 1);
+			double time = luaL_checknumber(L, 2);
+			auto decoder = GetVideoDecoder(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found.", name);
+			lua_pushboolean(L, decoder->updateToTime(time));
+			return 1;
+		}
+
+		static int VideoGetInfo(lua_State* L) noexcept {
+			const char* name = luaL_checkstring(L, 1);
+			auto decoder = GetVideoDecoder(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found.", name);
+			
+			lua_createtable(L, 0, 5);
+			
+			lua_pushnumber(L, decoder->getDuration());
+			lua_setfield(L, -2, "duration");
+			
+			lua_pushnumber(L, decoder->getCurrentTime());
+			lua_setfield(L, -2, "time");
+			
+			lua_pushboolean(L, decoder->isLooping());
+			lua_setfield(L, -2, "looping");
+			
+			auto size = decoder->getVideoSize();
+			lua_pushinteger(L, size.x);
+			lua_setfield(L, -2, "width");
+			
+			lua_pushinteger(L, size.y);
+			lua_setfield(L, -2, "height");
+			
+			return 1;
+		}
 	};
 
 	luaL_Reg const lib[] = {
@@ -703,6 +789,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "SetResourceStatus", &Wrapper::SetResourceStatus },
 		{ "GetResourceStatus", &Wrapper::GetResourceStatus },
 		{ "LoadTexture", &Wrapper::LoadTexture },
+		{ "LoadVideo", &Wrapper::LoadVideo },
 		{ "LoadImage", &Wrapper::LoadSprite },
 		{ "CopyImage", &Wrapper::CopySprite },
 		{ "LoadAnimation", &Wrapper::LoadAnimation },
@@ -737,6 +824,13 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "SetFontState", &Wrapper::SetFontState },
 
 		{ "CacheTTFString", &Wrapper::CacheTTFString },
+
+		// 视频控制函数
+		{ "VideoSeek", &Wrapper::VideoSeek },
+		{ "VideoSetLooping", &Wrapper::VideoSetLooping },
+		{ "VideoUpdate", &Wrapper::VideoUpdate },
+		{ "VideoGetInfo", &Wrapper::VideoGetInfo },
+
 		{ NULL, NULL },
 	};
 

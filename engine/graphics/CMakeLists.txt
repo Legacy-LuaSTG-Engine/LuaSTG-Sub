@@ -46,6 +46,10 @@ target_link_libraries(${lib_name} PUBLIC
     dxgi.lib
     d3d11.lib
     d2d1.lib
+    # media foundation (for video)
+    mfplat.lib
+    mfreadwrite.lib
+    mfuuid.lib
     Microsoft.Windows.ImplementationLibrary
     Microsoft::DirectXTexMini
     libqoi
