@@ -56,6 +56,7 @@ namespace core {
         m_frequency = queryPerformanceFrequency();
         m_last = queryPerformanceCounter();
         setFrameRate(frame_rate);
+        m_statistics.reset();
     }
 }
 
