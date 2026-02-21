@@ -59,6 +59,7 @@ namespace core {
         win32::com_ptr<ID3D11DeviceContext> m_device_context;
         
         win32::com_ptr<IMFSourceReader> m_source_reader;
+        win32::com_ptr<IMFByteStream> m_byte_stream;
         win32::com_ptr<IMFMediaType> m_media_type;
         
         Vector2U m_video_size{};
