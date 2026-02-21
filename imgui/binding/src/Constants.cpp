@@ -54,7 +54,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "NavFlattened"sv, ImGuiChildFlags_NavFlattened);
 	}
 	{
-		auto const e = ctx.create_map(7);
+		auto const e = ctx.create_map(8);
 		ctx.set_map_value(m, "ImGuiItemFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiItemFlags_None);
 		ctx.set_map_value(e, "NoTabStop"sv, ImGuiItemFlags_NoTabStop);
@@ -63,6 +63,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "ButtonRepeat"sv, ImGuiItemFlags_ButtonRepeat);
 		ctx.set_map_value(e, "AutoClosePopups"sv, ImGuiItemFlags_AutoClosePopups);
 		ctx.set_map_value(e, "AllowDuplicateId"sv, ImGuiItemFlags_AllowDuplicateId);
+		ctx.set_map_value(e, "Disabled"sv, ImGuiItemFlags_Disabled);
 	}
 	{
 		auto const e = ctx.create_map(26);
@@ -121,20 +122,21 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "DrawLinesToNodes"sv, ImGuiTreeNodeFlags_DrawLinesToNodes);
 	}
 	{
-		auto const e = ctx.create_map(12);
+		auto const e = ctx.create_map(13);
 		ctx.set_map_value(m, "ImGuiPopupFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiPopupFlags_None);
 		ctx.set_map_value(e, "MouseButtonLeft"sv, ImGuiPopupFlags_MouseButtonLeft);
 		ctx.set_map_value(e, "MouseButtonRight"sv, ImGuiPopupFlags_MouseButtonRight);
 		ctx.set_map_value(e, "MouseButtonMiddle"sv, ImGuiPopupFlags_MouseButtonMiddle);
-		ctx.set_map_value(e, "MouseButtonMask_"sv, ImGuiPopupFlags_MouseButtonMask_);
-		ctx.set_map_value(e, "MouseButtonDefault_"sv, ImGuiPopupFlags_MouseButtonDefault_);
 		ctx.set_map_value(e, "NoReopen"sv, ImGuiPopupFlags_NoReopen);
 		ctx.set_map_value(e, "NoOpenOverExistingPopup"sv, ImGuiPopupFlags_NoOpenOverExistingPopup);
 		ctx.set_map_value(e, "NoOpenOverItems"sv, ImGuiPopupFlags_NoOpenOverItems);
 		ctx.set_map_value(e, "AnyPopupId"sv, ImGuiPopupFlags_AnyPopupId);
 		ctx.set_map_value(e, "AnyPopupLevel"sv, ImGuiPopupFlags_AnyPopupLevel);
 		ctx.set_map_value(e, "AnyPopup"sv, ImGuiPopupFlags_AnyPopup);
+		ctx.set_map_value(e, "MouseButtonShift_"sv, ImGuiPopupFlags_MouseButtonShift_);
+		ctx.set_map_value(e, "MouseButtonMask_"sv, ImGuiPopupFlags_MouseButtonMask_);
+		ctx.set_map_value(e, "InvalidMask_"sv, ImGuiPopupFlags_InvalidMask_);
 	}
 	{
 		auto const e = ctx.create_map(9);
@@ -551,7 +553,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "COUNT"sv, ImGuiCol_COUNT);
 	}
 	{
-		auto const e = ctx.create_map(40);
+		auto const e = ctx.create_map(41);
 		ctx.set_map_value(m, "ImGuiStyleVar"sv, e);
 		ctx.set_map_value(e, "Alpha"sv, ImGuiStyleVar_Alpha);
 		ctx.set_map_value(e, "DisabledAlpha"sv, ImGuiStyleVar_DisabledAlpha);
@@ -576,6 +578,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "ScrollbarPadding"sv, ImGuiStyleVar_ScrollbarPadding);
 		ctx.set_map_value(e, "GrabMinSize"sv, ImGuiStyleVar_GrabMinSize);
 		ctx.set_map_value(e, "GrabRounding"sv, ImGuiStyleVar_GrabRounding);
+		ctx.set_map_value(e, "ImageRounding"sv, ImGuiStyleVar_ImageRounding);
 		ctx.set_map_value(e, "ImageBorderSize"sv, ImGuiStyleVar_ImageBorderSize);
 		ctx.set_map_value(e, "TabRounding"sv, ImGuiStyleVar_TabRounding);
 		ctx.set_map_value(e, "TabBorderSize"sv, ImGuiStyleVar_TabBorderSize);
@@ -605,7 +608,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "EnableNav"sv, ImGuiButtonFlags_EnableNav);
 	}
 	{
-		auto const e = ctx.create_map(32);
+		auto const e = ctx.create_map(33);
 		ctx.set_map_value(m, "ImGuiColorEditFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiColorEditFlags_None);
 		ctx.set_map_value(e, "NoAlpha"sv, ImGuiColorEditFlags_NoAlpha);
@@ -618,6 +621,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "NoSidePreview"sv, ImGuiColorEditFlags_NoSidePreview);
 		ctx.set_map_value(e, "NoDragDrop"sv, ImGuiColorEditFlags_NoDragDrop);
 		ctx.set_map_value(e, "NoBorder"sv, ImGuiColorEditFlags_NoBorder);
+		ctx.set_map_value(e, "NoColorMarkers"sv, ImGuiColorEditFlags_NoColorMarkers);
 		ctx.set_map_value(e, "AlphaOpaque"sv, ImGuiColorEditFlags_AlphaOpaque);
 		ctx.set_map_value(e, "AlphaNoBg"sv, ImGuiColorEditFlags_AlphaNoBg);
 		ctx.set_map_value(e, "AlphaPreviewHalf"sv, ImGuiColorEditFlags_AlphaPreviewHalf);
@@ -640,7 +644,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "InputMask_"sv, ImGuiColorEditFlags_InputMask_);
 	}
 	{
-		auto const e = ctx.create_map(10);
+		auto const e = ctx.create_map(11);
 		ctx.set_map_value(m, "ImGuiSliderFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiSliderFlags_None);
 		ctx.set_map_value(e, "Logarithmic"sv, ImGuiSliderFlags_Logarithmic);
@@ -650,6 +654,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "ClampOnInput"sv, ImGuiSliderFlags_ClampOnInput);
 		ctx.set_map_value(e, "ClampZeroRange"sv, ImGuiSliderFlags_ClampZeroRange);
 		ctx.set_map_value(e, "NoSpeedTweaks"sv, ImGuiSliderFlags_NoSpeedTweaks);
+		ctx.set_map_value(e, "ColorMarkers"sv, ImGuiSliderFlags_ColorMarkers);
 		ctx.set_map_value(e, "AlwaysClamp"sv, ImGuiSliderFlags_AlwaysClamp);
 		ctx.set_map_value(e, "InvalidMask_"sv, ImGuiSliderFlags_InvalidMask_);
 	}

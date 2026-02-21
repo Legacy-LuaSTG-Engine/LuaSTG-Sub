@@ -52,6 +52,12 @@ namespace {
 	GET_VEC2(GetItemRectMin)
 	GET_VEC2(GetItemRectMax)
 	GET_VEC2(GetItemRectSize)
+	int GetItemFlags(lua_State* const vm) {
+		lua::stack_t const ctx(vm);
+		auto const result = ImGui::GetItemFlags();
+		ctx.push_value(result);
+		return 1;
+	}
 }
 
 namespace imgui::binding {
@@ -77,5 +83,6 @@ namespace imgui::binding {
 		ctx.set_map_value(m, "GetItemRectMin"sv, &GetItemRectMin);
 		ctx.set_map_value(m, "GetItemRectMax"sv, &GetItemRectMax);
 		ctx.set_map_value(m, "GetItemRectSize"sv, &GetItemRectSize);
+		ctx.set_map_value(m, "GetItemFlags"sv, &GetItemFlags);
 	}
 }
