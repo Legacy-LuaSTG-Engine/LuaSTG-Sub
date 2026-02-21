@@ -12,7 +12,7 @@ namespace d3d11 {
         ID3D11Device** const device, ID3D11DeviceContext** const device_context, D3D_FEATURE_LEVEL* const feature_level
     ) {
 		const auto driver_type = (adapter != nullptr) ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE;
-		UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+		UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT | D3D11_CREATE_DEVICE_VIDEO_SUPPORT;
 	#if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
 		flags |= D3D11_CREATE_DEVICE_DEBUG;
 	#endif
@@ -49,7 +49,7 @@ namespace d3d11 {
 		std::vector<HRESULT>& results, const D3D_DRIVER_TYPE driver_type,
         ID3D11Device** const device, ID3D11DeviceContext** const device_context, D3D_FEATURE_LEVEL* const feature_level
     ) {
-		UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+		UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT | D3D11_CREATE_DEVICE_VIDEO_SUPPORT;
 	#if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
 		flags |= D3D11_CREATE_DEVICE_DEBUG;
 	#endif

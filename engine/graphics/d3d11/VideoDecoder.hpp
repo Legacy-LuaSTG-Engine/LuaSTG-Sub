@@ -49,7 +49,9 @@ namespace core {
         
     private:
         bool createTexture();
+        bool createVideoProcessor();
         bool updateTextureFromSample(IMFSample* sample);
+        bool updateTextureFromNV12Sample(IMFSample* sample);
         bool readNextFrame();
         bool readFrameAtTime(double time_in_seconds);
         
@@ -61,6 +63,13 @@ namespace core {
         win32::com_ptr<IMFSourceReader> m_source_reader;
         win32::com_ptr<IMFByteStream> m_byte_stream;
         win32::com_ptr<IMFMediaType> m_media_type;
+        
+        win32::com_ptr<ID3D11VideoDevice> m_video_device;
+        win32::com_ptr<ID3D11VideoContext> m_video_context;
+        win32::com_ptr<ID3D11VideoProcessor> m_video_processor;
+        win32::com_ptr<ID3D11VideoProcessorEnumerator> m_video_processor_enum;
+        
+        bool m_output_format_nv12{ false };
         
         Vector2U m_video_size{};
         Vector2U m_target_size{};
