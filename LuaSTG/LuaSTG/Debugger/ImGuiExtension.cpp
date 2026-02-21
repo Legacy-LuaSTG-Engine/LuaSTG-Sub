@@ -9,7 +9,7 @@
 #include "imgui.h"
 #include "imgui_stdlib.h"
 #include "imgui_freetype.h"
-#include "imgui_impl_win32ex.h"
+#include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 #include "implot.h"
 
@@ -718,7 +718,7 @@ namespace {
 
 // imgui backend binding
 
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace {
 	bool g_imgui_initialized = false;
@@ -748,17 +748,17 @@ namespace imgui {
 		// IWindowEventListener
 
 		void onWindowCreate() override {
-			ImGui_ImplWin32Ex_Init(LAPP.getWindow()->getNativeHandle());
+			ImGui_ImplWin32_Init(LAPP.getWindow()->getNativeHandle());
 		}
 		void onWindowDestroy() override {
-			ImGui_ImplWin32Ex_Shutdown();
+			ImGui_ImplWin32_Shutdown();
 			m_dpi_changed.store(0);
 		}
 		void onWindowDpiChange() override {
 			m_dpi_changed.fetch_or(0x1);
 		}
 		NativeWindowMessageResult onNativeWindowMessage(void* const window, uint32_t const message, uintptr_t const arg1, intptr_t const arg2) override {
-			if (auto const result = ImGui_ImplWin32Ex_WndProcHandler(static_cast<HWND>(window), message, arg1, arg2))
+			if (auto const result = ImGui_ImplWin32_WndProcHandler(static_cast<HWND>(window), message, arg1, arg2))
 				return { result, true };
 			return {};
 		}
@@ -921,14 +921,14 @@ namespace imgui {
 				tracy_zone_scoped_with_name("imgui.backend.NewFrame-WIN32");
 				auto const ws = LAPP.getSwapChain()->getCanvasSize();
 				auto const mt = LAPP.GetMousePositionTransformF();
-				ImGui_ImplWin32Ex_FrameData dt;
-				dt.view_size.x = static_cast<float>(ws.x);
-				dt.view_size.y = static_cast<float>(ws.y);
-				dt.mouse_offset.x = mt.x;
-				dt.mouse_offset.y = mt.y;
-				dt.mouse_scale.x = mt.z;
-				dt.mouse_scale.y = mt.w;
-				ImGui_ImplWin32Ex_NewFrame(&dt);
+				ImGui_ImplWin32_FrameOverride dt{};
+				dt.DisplaySize.x = static_cast<float>(ws.x);
+				dt.DisplaySize.y = static_cast<float>(ws.y);
+				dt.MouseOffset.x = mt.x;
+				dt.MouseOffset.y = mt.y;
+				dt.MouseScale.x = mt.z;
+				dt.MouseScale.y = mt.w;
+				ImGui_ImplWin32_NewFrame(&dt);
 			}
 
 			g_imgui_impl_dx11_initialized = true;

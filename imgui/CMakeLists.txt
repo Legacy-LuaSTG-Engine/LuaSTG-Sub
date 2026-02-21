@@ -89,8 +89,10 @@ target_include_directories(imgui_impl_win32ex PUBLIC
     backend
 )
 target_sources(imgui_impl_win32ex PRIVATE
-    backend/imgui_impl_win32ex.cpp
-    backend/imgui_impl_win32ex.h
+    #imgui/backends/imgui_impl_win32.h
+    #imgui/backends/imgui_impl_win32.cpp
+    backend/imgui_impl_win32.h
+    backend/imgui_impl_win32.cpp
 )
 target_link_libraries(imgui_impl_win32ex PUBLIC
     imgui
