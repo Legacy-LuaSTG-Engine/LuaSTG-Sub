@@ -1,12 +1,17 @@
 #include "d3d11/VideoDecoder.hpp"
+#include "core/FileSystem.hpp"
 #include "core/Logger.hpp"
 #include "utf8.hpp"
 #include <mferror.h>
 #include <mfobjects.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
+#include <shlwapi.h>
 
 #pragma comment(lib, "mfplat.lib")
 #pragma comment(lib, "mfreadwrite.lib")
 #pragma comment(lib, "mfuuid.lib")
+#pragma comment(lib, "shlwapi.lib")
 
 namespace {
     class MFInitializer {
@@ -73,9 +78,29 @@ namespace core {
         
         close();
         
-        HRESULT hr = S_OK;
+        SmartReference<IData> file_data;
+        if (!FileSystemManager::readFile(path, file_data.put())) {
+            Logger::error("[core] [VideoDecoder] Failed to read video file: {}", path);
+            return false;
+        }
         
-        std::wstring wide_path = utf8::to_wstring(path);
+        win32::com_ptr<IStream> mem_stream;
+        mem_stream.attach(static_cast<IStream*>(SHCreateMemStream(
+            static_cast<BYTE const*>(file_data->data()),
+            static_cast<UINT>(file_data->size()))));
+        if (!mem_stream) {
+            Logger::error("[core] [VideoDecoder] Failed to create memory stream");
+            return false;
+        }
+        
+        win32::com_ptr<IMFByteStream> byte_stream;
+        HRESULT hr = MFCreateMFByteStreamOnStream(mem_stream.get(), byte_stream.put());
+        if (FAILED(hr)) {
+            Logger::error("[core] [VideoDecoder] Failed to create byte stream, hr = {:#x}", (uint32_t)hr);
+            return false;
+        }
+        
+        m_byte_stream = std::move(byte_stream);
         
         win32::com_ptr<IMFAttributes> attributes;
         hr = MFCreateAttributes(attributes.put(), 1);
@@ -87,7 +112,7 @@ namespace core {
         hr = attributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, TRUE);
         hr = attributes->SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING, TRUE);
         
-        hr = MFCreateSourceReaderFromURL(wide_path.c_str(), attributes.get(), m_source_reader.put());
+        hr = MFCreateSourceReaderFromByteStream(m_byte_stream.get(), attributes.get(), m_source_reader.put());
         if (FAILED(hr)) {
             Logger::error("[core] [VideoDecoder] Failed to create source reader, hr = {:#x}", (uint32_t)hr);
             return false;
@@ -178,6 +203,7 @@ namespace core {
     
     void VideoDecoder::close() {
         m_source_reader.reset();
+        m_byte_stream.reset();
         m_media_type.reset();
         m_texture.reset();
         m_shader_resource_view.reset();
