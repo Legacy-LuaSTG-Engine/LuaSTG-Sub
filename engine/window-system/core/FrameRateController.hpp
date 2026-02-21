@@ -18,19 +18,25 @@ namespace core {
         }
 
         double getAverage(const size_t count) const noexcept {
-            if (count == 0) {
+            if (count == 0 || frame_count == 0) {
                 return 0.0;
             }
             double result = 0;
-            const auto n = count < durations.size() ? count : durations.size();
+            const auto m = count < frame_count ? count : static_cast<size_t>(frame_count);
+            const auto n = m < durations.size() ? m : durations.size();
+            size_t l{};
             for (size_t i = 0; i < n; i += 1) {
-                result += getDuration(i);
+                const auto t = getDuration(i);
+                if (t >= 0.0) {
+                    result += t;
+                    l += 1;
+                }
             }
-            return result / static_cast<double>(n);
+            return result / static_cast<double>(l);
         }
 
         void reset() noexcept {
-            durations.fill(0.0);
+            durations.fill(-1.0);
             duration_average = 0.0;
             duration_min = 0.0;
             duration_max = 0.0;
