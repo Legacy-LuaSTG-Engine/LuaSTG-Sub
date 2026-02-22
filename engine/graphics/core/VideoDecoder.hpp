@@ -18,6 +18,7 @@ namespace core {
         virtual Vector2U getVideoSize() const noexcept = 0;
         virtual double getDuration() const noexcept = 0;
         virtual double getCurrentTime() const noexcept = 0;  // 返回上次更新的帧时间
+        virtual double getFrameInterval() const noexcept = 0;  // 每帧时长（秒），用于 fps = 1/getFrameInterval()
         
         // 跳转到指定时间
         virtual bool seek(double time_in_seconds) = 0;

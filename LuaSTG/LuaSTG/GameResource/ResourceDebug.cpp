@@ -1,6 +1,7 @@
 #include "GameResource/ResourceManager.h"
 #ifdef USING_DEAR_IMGUI
 #include "imgui.h"
+#include "d3d11/VideoTexture.hpp"
 #endif
 
 static std::string bytes_count_to_string(unsigned long long size)
@@ -89,7 +90,8 @@ namespace luastg
 					char const* type_str = p_tex->isVideoTexture() ? "Video" : (p_res->IsRenderTarget() ? "RenderTarget" : "Texture");
 					ImGui::Text("Type: %s", type_str);
 					ImGui::Text("Dynamic: %s", p_tex->isDynamic() ? "Yes" : "Not");
-					unsigned long long mem_usage = size.x * size.y * 4;
+					unsigned long long display_mem = (unsigned long long)size.x * size.y * 4;
+					unsigned long long mem_usage = display_mem;
 					ImGui::Text("Adapter Memory Usage (Approximate): %s", bytes_count_to_string(mem_usage).c_str());
 				}
 				ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 1.0);

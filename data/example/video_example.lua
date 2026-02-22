@@ -21,6 +21,6 @@ end
 
 -- 可用控制：
 -- 1. VideoSetLooping(name, bool) -- 设置是否循环播放
--- 2. VideoSeek(name, time) -- 控制时间，但是不更新画面，适合进度条等场景，完成后需要调用 VideoUpdate 来刷新画面
--- 3. VideoUpdate(name, absolute_time) -- 根据绝对时间更新视频画面，适合与 StopWatch 结合使用，确保视频播放与游戏时间同步
--- 4. VideoGetInfo(name) -- 获取视频信息，如帧率、总时长等，返回一个表格
+-- 2. VideoSeek(name, time) -- 控制时间，不更新画面，适合进度条；完成后需 VideoUpdate 刷新
+-- 3. VideoUpdate(name, absolute_time) -- 按绝对时间更新画面；传入比上次小的时间可倒放/拖拽到该时刻
+-- 4. VideoGetInfo(name) -- 获取视频信息（时长、当前时间、尺寸等）

@@ -1,4 +1,5 @@
 #include "d3d11/VideoDecoder.hpp"
+#include "core/Configuration.hpp"
 #include "core/FileSystem.hpp"
 #include "core/Logger.hpp"
 #include "utf8.hpp"
@@ -140,11 +141,12 @@ namespace core {
         UINT dxgi_reset_token = 0;
         bool use_hardware_accel = false;
         
+        bool const hw_decode_disabled = core::ConfigurationLoader::getInstance().getGraphicsSystem().isDisableHardwareVideoDecode();
         hr = MFCreateDXGIDeviceManager(&dxgi_reset_token, dxgi_device_manager.put());
         if (SUCCEEDED(hr)) {
             hr = dxgi_device_manager->ResetDevice(d3d_device, dxgi_reset_token);
             if (SUCCEEDED(hr)) {
-                if (video_device) {
+                if (video_device && !hw_decode_disabled) {
                     hr = attributes->SetUnknown(MF_SOURCE_READER_D3D_MANAGER, dxgi_device_manager.get());
                     if (SUCCEEDED(hr)) {
                         use_hardware_accel = true;
@@ -152,6 +154,8 @@ namespace core {
                     } else {
                         Logger::warn("[core] [VideoDecoder] Failed to set D3D manager attribute, hr = {:#x}", (uint32_t)hr);
                     }
+                } else if (hw_decode_disabled) {
+                    Logger::info("[core] [VideoDecoder] Hardware video decode disabled by config");
                 } else {
                     Logger::warn("[core] [VideoDecoder] Skipping hardware acceleration - device does not support video");
                 }
@@ -353,13 +357,22 @@ namespace core {
         }
         
         UINT32 rate_num = 0, rate_den = 0;
-        hr = MFGetAttributeRatio(m_media_type.get(), MF_MT_FRAME_RATE, &rate_num, &rate_den);
-        if (SUCCEEDED(hr) && rate_den > 0 && rate_num > 0) {
+        for (DWORD i = 0; ; ++i) {
+            win32::com_ptr<IMFMediaType> mt;
+            hr = m_source_reader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, i, mt.put());
+            if (FAILED(hr)) break;
+            if (SUCCEEDED(MFGetAttributeRatio(mt.get(), MF_MT_FRAME_RATE, &rate_num, &rate_den)) && rate_den > 0 && rate_num > 0)
+                break;
+        }
+        if (rate_den == 0 || rate_num == 0) {
+            hr = MFGetAttributeRatio(m_media_type.get(), MF_MT_FRAME_RATE, &rate_num, &rate_den);
+        }
+        if (rate_den > 0 && rate_num > 0) {
             m_frame_interval = static_cast<double>(rate_den) / static_cast<double>(rate_num);
             Logger::info("[core] [VideoDecoder] Frame rate: {} / {} (= {:.2f} fps)", rate_num, rate_den, 1.0 / m_frame_interval);
         } else {
-            m_frame_interval = 1.0 / 30.0;
-            Logger::warn("[core] [VideoDecoder] MF_MT_FRAME_RATE not available, assuming 30 fps");
+            m_frame_interval = 1.0 / 60.0;
+            Logger::warn("[core] [VideoDecoder] MF_MT_FRAME_RATE not available, assuming 60 fps");
         }
         
         if (!createTexture()) {
@@ -458,13 +471,19 @@ namespace core {
                 return ok;
             }
         } else if (time_in_seconds < 0.0) {
-            time_in_seconds = 0.0;
+            if (m_looping) {
+                double t = std::fmod(time_in_seconds, m_duration);
+                if (t < 0.0) t += m_duration;
+                time_in_seconds = t;
+            } else {
+                time_in_seconds = 0.0;
+            }
         }
         
         constexpr double kTimeEpsilon = 1e-4;
         constexpr double kBackwardTolerance = 1.0 / 120.0;
         double const frame_tolerance = m_frame_interval * 0.5;
-        double const seek_threshold = (std::max)(0.1, 4.0 * m_frame_interval);
+        double const seek_threshold = (std::max)(0.1, 16.0 * m_frame_interval);
         int const max_catch_up_frames = (std::min)(16, (std::max)(1, static_cast<int>(0.2 / m_frame_interval)));
 
         bool const is_backward = (m_last_requested_time >= 0.0) && (time_in_seconds + kBackwardTolerance < m_last_requested_time);
@@ -491,7 +510,7 @@ namespace core {
 
         return readFrameAtTime(time_in_seconds);
     }
-
+    
     bool VideoDecoder::readNextFrame() {
         if (!hasVideo()) {
             return false;
@@ -683,7 +702,12 @@ namespace core {
     }
     
     bool VideoDecoder::updateTextureFromNV12Sample(IMFSample* sample) {
-        if (!m_texture || !sample || !m_device_context || !m_video_device || !m_video_context
+        if (!m_texture || !sample) return false;
+        return updateTextureFromNV12SampleTo(sample, m_texture.get());
+    }
+    
+    bool VideoDecoder::updateTextureFromNV12SampleTo(IMFSample* sample, ID3D11Texture2D* output_texture) {
+        if (!output_texture || !sample || !m_device_context || !m_video_device || !m_video_context
             || !m_video_processor || !m_video_processor_enum) {
             return false;
         }
@@ -748,7 +772,7 @@ namespace core {
         
         win32::com_ptr<ID3D11VideoProcessorOutputView> output_view;
         hr = m_video_device->CreateVideoProcessorOutputView(
-            m_texture.get(), m_video_processor_enum.get(), &output_view_desc, output_view.put());
+            output_texture, m_video_processor_enum.get(), &output_view_desc, output_view.put());
         if (FAILED(hr)) {
             Logger::error("[core] [VideoDecoder] Failed to create VideoProcessorOutputView, hr = {:#x}", (uint32_t)hr);
             return false;
@@ -775,9 +799,9 @@ namespace core {
         if (!m_texture || !sample || !m_device_context) {
             return false;
         }
-        
+        std::lock_guard<std::mutex> lock(m_device_context_mutex);
         if (m_output_format_nv12 && m_video_processor) {
-            return updateTextureFromNV12Sample(sample);
+            return updateTextureFromNV12SampleTo(sample, m_texture.get());
         }
         
         DWORD buffer_count = 0;

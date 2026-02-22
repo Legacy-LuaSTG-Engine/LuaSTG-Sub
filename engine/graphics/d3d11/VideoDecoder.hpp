@@ -7,7 +7,6 @@
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mfreadwrite.h>
-#include <vector>
 #include <mutex>
 
 namespace core {
@@ -25,6 +24,7 @@ namespace core {
         Vector2U getVideoSize() const noexcept override { return m_target_size; }
         double getDuration() const noexcept override { return m_duration; }
         double getCurrentTime() const noexcept override { return m_current_time; }
+        double getFrameInterval() const noexcept override { return m_frame_interval; }
         
         bool seek(double time_in_seconds) override;
         
@@ -52,9 +52,11 @@ namespace core {
         bool createVideoProcessor();
         bool updateTextureFromSample(IMFSample* sample);
         bool updateTextureFromNV12Sample(IMFSample* sample);
+        bool updateTextureFromNV12SampleTo(IMFSample* sample, ID3D11Texture2D* output_texture);
         bool readNextFrame();
         bool readFrameAtTime(double time_in_seconds);
         
+        std::mutex m_device_context_mutex;
         SmartReference<IGraphicsDevice> m_device;
         win32::com_ptr<ID3D11Texture2D> m_texture;
         win32::com_ptr<ID3D11ShaderResourceView> m_shader_resource_view;
@@ -74,9 +76,9 @@ namespace core {
         Vector2U m_video_size{};
         Vector2U m_target_size{};
         double m_duration{ 0.0 };
-        double m_current_time{ 0.0 };  // 当前帧 PTS（秒）
+        double m_current_time{ 0.0 };
         double m_last_requested_time{ -1.0 };
-        double m_frame_interval{ 1.0 / 30.0 };  // 每帧时长（秒），由 MF_MT_FRAME_RATE 解析，用于 tolerance/seek 阈值
+        double m_frame_interval{ 1.0 / 30.0 };
         bool m_looping{ false };
         
         uint32_t m_frame_pitch{ 0 };

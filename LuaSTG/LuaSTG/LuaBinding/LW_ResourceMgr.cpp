@@ -762,7 +762,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			if (!decoder)
 				return luaL_error(L, "video texture '%s' not found.", name);
 			
-			lua_createtable(L, 0, 5);
+			lua_createtable(L, 0, 7);
 			
 			lua_pushnumber(L, decoder->getDuration());
 			lua_setfield(L, -2, "duration");
@@ -779,6 +779,14 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			
 			lua_pushinteger(L, size.y);
 			lua_setfield(L, -2, "height");
+			
+			double fi = decoder->getFrameInterval();
+			lua_pushnumber(L, fi);
+			lua_setfield(L, -2, "frame_interval");
+			if (fi > 0.0) {
+				lua_pushnumber(L, 1.0 / fi);
+				lua_setfield(L, -2, "fps");
+			}
 			
 			return 1;
 		}
