@@ -74,8 +74,9 @@ namespace core {
         Vector2U m_video_size{};
         Vector2U m_target_size{};
         double m_duration{ 0.0 };
-        double m_current_time{ 0.0 };  // 当前帧时间
+        double m_current_time{ 0.0 };  // 当前帧 PTS（秒）
         double m_last_requested_time{ -1.0 };
+        double m_frame_interval{ 1.0 / 30.0 };  // 每帧时长（秒），由 MF_MT_FRAME_RATE 解析，用于 tolerance/seek 阈值
         bool m_looping{ false };
         
         uint32_t m_frame_pitch{ 0 };

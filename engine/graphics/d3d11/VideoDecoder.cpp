@@ -352,6 +352,16 @@ namespace core {
             PropVariantClear(&var);
         }
         
+        UINT32 rate_num = 0, rate_den = 0;
+        hr = MFGetAttributeRatio(m_media_type.get(), MF_MT_FRAME_RATE, &rate_num, &rate_den);
+        if (SUCCEEDED(hr) && rate_den > 0 && rate_num > 0) {
+            m_frame_interval = static_cast<double>(rate_den) / static_cast<double>(rate_num);
+            Logger::info("[core] [VideoDecoder] Frame rate: {} / {} (= {:.2f} fps)", rate_num, rate_den, 1.0 / m_frame_interval);
+        } else {
+            m_frame_interval = 1.0 / 30.0;
+            Logger::warn("[core] [VideoDecoder] MF_MT_FRAME_RATE not available, assuming 30 fps");
+        }
+        
         if (!createTexture()) {
             close();
             return false;
@@ -395,6 +405,7 @@ namespace core {
         m_duration = 0.0;
         m_current_time = 0.0;
         m_last_requested_time = -1.0;
+        m_frame_interval = 1.0 / 30.0;
         m_frame_pitch = 0;
     }
     
@@ -452,11 +463,12 @@ namespace core {
         
         constexpr double kTimeEpsilon = 1e-4;
         constexpr double kBackwardTolerance = 1.0 / 120.0;
-        constexpr double kFrameTolerance = 1.0 / 24.0;
-        constexpr double kSeekThreshold = 0.25;
+        double const frame_tolerance = m_frame_interval * 0.5;
+        double const seek_threshold = (std::max)(0.1, 4.0 * m_frame_interval);
+        int const max_catch_up_frames = (std::min)(16, (std::max)(1, static_cast<int>(0.2 / m_frame_interval)));
 
         bool const is_backward = (m_last_requested_time >= 0.0) && (time_in_seconds + kBackwardTolerance < m_last_requested_time);
-        bool const large_jump = (m_current_time + kSeekThreshold < time_in_seconds);
+        bool const large_jump = (m_current_time + seek_threshold < time_in_seconds);
 
         m_last_requested_time = time_in_seconds;
 
@@ -464,11 +476,11 @@ namespace core {
             return readFrameAtTime(time_in_seconds);
         }
 
-        if (m_current_time + kFrameTolerance >= time_in_seconds) {
+        if (m_current_time + frame_tolerance >= time_in_seconds) {
             return true;
         }
 
-        for (int i = 0; i < 4; ++i) {
+        for (int i = 0; i < max_catch_up_frames; ++i) {
             if (!readNextFrame()) {
                 return false;
             }
