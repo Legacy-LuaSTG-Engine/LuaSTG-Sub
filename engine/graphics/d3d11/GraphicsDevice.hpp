@@ -23,6 +23,7 @@ namespace core {
         bool createTexture(Vector2U size, ITexture2D** out_texture) override;
         bool createTextureFromImage(IImage* image, bool mipmap, ITexture2D** out_texture) override;
         bool createVideoTexture(StringView path, ITexture2D** out_texture) override;
+        bool createVideoTexture(StringView path, VideoOpenOptions const& options, ITexture2D** out_texture) override;
         bool createVideoDecoder(IVideoDecoder** out_decoder) override;
 
         bool createSampler(const GraphicsSamplerInfo& info, IGraphicsSampler** out_sampler) override;

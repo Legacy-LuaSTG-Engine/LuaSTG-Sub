@@ -8,6 +8,7 @@
 #include <mfidl.h>
 #include <mfreadwrite.h>
 #include <mutex>
+#include <string>
 
 namespace core {
     class VideoDecoder final :
@@ -17,6 +18,7 @@ namespace core {
         // IVideoDecoder
         
         bool open(StringView path) override;
+        bool open(StringView path, VideoOpenOptions const& options) override;
         void close() override;
         
         bool hasVideo() const noexcept override { return m_source_reader.get() != nullptr; }
@@ -30,11 +32,20 @@ namespace core {
         
         void setLooping(bool loop) override { m_looping = loop; }
         bool isLooping() const noexcept override { return m_looping; }
+        void setLoopRange(double end_sec, double duration_sec) override;
+        void getLoopRange(double* end_sec, double* duration_sec) const noexcept override;
         
         bool updateToTime(double time_in_seconds) override;
         void* getNativeTexture() const noexcept override { return m_texture.get(); }
         void* getNativeShaderResourceView() const noexcept override { return m_shader_resource_view.get(); }
-        
+
+        uint32_t getVideoStreamIndex() const noexcept override { return m_video_stream_index; }
+        void getVideoStreams(void (*callback)(VideoStreamInfo const&, void*), void* userdata) const override;
+        void getAudioStreams(void (*callback)(AudioStreamInfo const&, void*), void* userdata) const override;
+        bool reopen(VideoOpenOptions const& options) override;
+        VideoOpenOptions getLastOpenOptions() const noexcept override { return m_last_open_options; }
+        std::string_view getLastOpenPath() const noexcept override { return m_last_open_path; }
+
         // IGraphicsDeviceEventListener
         
         void onGraphicsDeviceCreate() override;
@@ -80,8 +91,16 @@ namespace core {
         double m_last_requested_time{ -1.0 };
         double m_frame_interval{ 1.0 / 30.0 };
         bool m_looping{ false };
-        
+        bool m_has_loop_range{ false };
+        double m_loop_start{ 0.0 };
+        double m_loop_end{ 0.0 };
+
         uint32_t m_frame_pitch{ 0 };
+
+        uint32_t m_video_stream_index{ 0 };
+
+        std::string m_last_open_path;
+        VideoOpenOptions m_last_open_options;
         
         bool m_initialized{ false };
     };

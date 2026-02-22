@@ -9,6 +9,8 @@
 #include "GameResource/Implement/ResourcePostEffectShaderImpl.hpp"
 #include "GameResource/Implement/ResourceModelImpl.hpp"
 #include "core/FileSystem.hpp"
+#include "core/AudioEngine.hpp"
+#include "d3d11/VideoTexture.hpp"
 #include "AppFrame.h"
 #include "lua/plus.hpp"
 
@@ -227,7 +229,7 @@ namespace luastg
         return true;
     }
 
-    bool ResourcePool::LoadVideo(const char* name, const char* path) noexcept
+    bool ResourcePool::LoadVideo(const char* name, const char* path, core::VideoOpenOptions const* options) noexcept
     {
         if (m_TexturePool.find(std::string_view(name)) != m_TexturePool.end())
         {
@@ -239,7 +241,10 @@ namespace luastg
         }
     
         core::SmartReference<core::ITexture2D> p_texture;
-        if (!LAPP.getGraphicsDevice()->createVideoTexture(path, p_texture.put()))
+        bool ok = options
+            ? LAPP.getGraphicsDevice()->createVideoTexture(path, *options, p_texture.put())
+            : LAPP.getGraphicsDevice()->createVideoTexture(path, p_texture.put());
+        if (!ok)
         {
             spdlog::error("[luastg] 从 '{}' 创建视频纹理 '{}' 失败", path, name);
             return false;

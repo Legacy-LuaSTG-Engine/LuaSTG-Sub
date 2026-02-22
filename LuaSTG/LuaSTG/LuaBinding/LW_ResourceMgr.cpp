@@ -3,6 +3,10 @@
 #include "AppFrame.h"
 #include "d3d11/VideoTexture.hpp"
 #include "core/VideoDecoder.hpp"
+#include "core/AudioEngine.hpp"
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 {
@@ -54,6 +58,30 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return luaL_error(L, "can't load texture from file '%s'.", path);
 			return 0;
 		}
+		static void ReadVideoOptions(lua_State* L, int index, core::VideoOpenOptions& opt) noexcept {
+			if (!lua_istable(L, index)) return;
+			lua_getfield(L, index, "video_stream");
+			if (lua_isnumber(L, -1)) opt.video_stream_index = (uint32_t)lua_tointeger(L, -1);
+			lua_pop(L, 1);
+			lua_getfield(L, index, "width");
+			if (lua_isnumber(L, -1)) opt.output_width = (uint32_t)lua_tointeger(L, -1);
+			lua_pop(L, 1);
+			lua_getfield(L, index, "height");
+			if (lua_isnumber(L, -1)) opt.output_height = (uint32_t)lua_tointeger(L, -1);
+			lua_pop(L, 1);
+			lua_getfield(L, index, "premultiplied_alpha");
+			if (lua_isboolean(L, -1)) opt.premultiplied_alpha = lua_toboolean(L, -1) != 0;
+			lua_pop(L, 1);
+			lua_getfield(L, index, "looping");
+			if (lua_isboolean(L, -1)) opt.looping = lua_toboolean(L, -1) != 0;
+			lua_pop(L, 1);
+			lua_getfield(L, index, "loop_end");
+			if (lua_isnumber(L, -1)) opt.loop_end = (double)lua_tonumber(L, -1);
+			lua_pop(L, 1);
+			lua_getfield(L, index, "loop_duration");
+			if (lua_isnumber(L, -1)) opt.loop_duration = (double)lua_tonumber(L, -1);
+			lua_pop(L, 1);
+		}
 		static int LoadVideo(lua_State* L) noexcept
 		{
 			const char* name = luaL_checkstring(L, 1);
@@ -62,7 +90,10 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			ResourcePool* pActivedPool = LRES.GetActivedPool();
 			if (!pActivedPool)
 				return luaL_error(L, "can't load resource at this time.");
-			if (!pActivedPool->LoadVideo(name, path))
+			core::VideoOpenOptions opt;
+			if (lua_gettop(L) >= 3 && lua_istable(L, 3))
+				ReadVideoOptions(L, 3, opt);
+			if (!pActivedPool->LoadVideo(name, path, lua_gettop(L) >= 3 && lua_istable(L, 3) ? &opt : nullptr))
 				return luaL_error(L, "can't load video from file '%s'.", path);
 			return 0;
 		}
@@ -729,10 +760,14 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		static int VideoSeek(lua_State* L) noexcept {
 			const char* name = luaL_checkstring(L, 1);
 			double time = luaL_checknumber(L, 2);
-			auto decoder = GetVideoDecoder(name);
-			if (!decoder)
+			auto tex = LRES.FindTexture(name);
+			if (!tex)
 				return luaL_error(L, "video texture '%s' not found.", name);
-			lua_pushboolean(L, decoder->seek(time));
+			auto* vt = dynamic_cast<core::VideoTexture*>(tex->GetTexture());
+			if (!vt)
+				return luaL_error(L, "texture '%s' is not a video texture.", name);
+			bool ok = vt->getVideoDecoder()->seek(time);
+			lua_pushboolean(L, ok);
 			return 1;
 		}
 
@@ -745,24 +780,37 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			decoder->setLooping(loop);
 			return 0;
 		}
-
-		static int VideoUpdate(lua_State* L) noexcept {
+		static int VideoSetLoopRange(lua_State* L) noexcept {
 			const char* name = luaL_checkstring(L, 1);
-			double time = luaL_checknumber(L, 2);
 			auto decoder = GetVideoDecoder(name);
 			if (!decoder)
 				return luaL_error(L, "video texture '%s' not found.", name);
-			lua_pushboolean(L, decoder->updateToTime(time));
+			double loop_end = luaL_checknumber(L, 2);
+			double loop_duration = luaL_checknumber(L, 3);
+			decoder->setLoopRange(loop_end, loop_duration);
+			return 0;
+		}
+		static int VideoUpdate(lua_State* L) noexcept {
+			const char* name = luaL_checkstring(L, 1);
+			double time = luaL_checknumber(L, 2);
+			auto tex = LRES.FindTexture(name);
+			if (!tex)
+				return luaL_error(L, "video texture '%s' not found.", name);
+			auto* vt = dynamic_cast<core::VideoTexture*>(tex->GetTexture());
+			if (!vt)
+				return luaL_error(L, "texture '%s' is not a video texture.", name);
+			auto decoder = vt->getVideoDecoder();
+			bool ok = decoder->updateToTime(time);
+			lua_pushboolean(L, ok);
 			return 1;
 		}
-
 		static int VideoGetInfo(lua_State* L) noexcept {
 			const char* name = luaL_checkstring(L, 1);
 			auto decoder = GetVideoDecoder(name);
 			if (!decoder)
 				return luaL_error(L, "video texture '%s' not found.", name);
 			
-			lua_createtable(L, 0, 7);
+			lua_createtable(L, 0, 8);
 			
 			lua_pushnumber(L, decoder->getDuration());
 			lua_setfield(L, -2, "duration");
@@ -772,6 +820,13 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			
 			lua_pushboolean(L, decoder->isLooping());
 			lua_setfield(L, -2, "looping");
+
+			double loop_end = 0.0, loop_duration = 0.0;
+			decoder->getLoopRange(&loop_end, &loop_duration);
+			lua_pushnumber(L, loop_end);
+			lua_setfield(L, -2, "loop_end");
+			lua_pushnumber(L, loop_duration);
+			lua_setfield(L, -2, "loop_duration");
 			
 			auto size = decoder->getVideoSize();
 			lua_pushinteger(L, size.x);
@@ -780,6 +835,9 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			lua_pushinteger(L, size.y);
 			lua_setfield(L, -2, "height");
 			
+			lua_pushinteger(L, (lua_Integer)decoder->getVideoStreamIndex());
+			lua_setfield(L, -2, "video_stream");
+			
 			double fi = decoder->getFrameInterval();
 			lua_pushnumber(L, fi);
 			lua_setfield(L, -2, "frame_interval");
@@ -787,7 +845,77 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				lua_pushnumber(L, 1.0 / fi);
 				lua_setfield(L, -2, "fps");
 			}
-			
+			return 1;
+		}
+		static int VideoGetVideoStreams(lua_State* L) noexcept {
+			const char* name = luaL_checkstring(L, 1);
+			auto decoder = GetVideoDecoder(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found.", name);
+			std::vector<core::VideoStreamInfo> list;
+			auto cb = [](core::VideoStreamInfo const& info, void* ud) {
+				static_cast<std::vector<core::VideoStreamInfo>*>(ud)->push_back(info);
+			};
+			decoder->getVideoStreams(cb, &list);
+			lua_createtable(L, (int)list.size(), 0);
+			for (size_t i = 0; i < list.size(); ++i) {
+				lua_createtable(L, 0, 5);
+				lua_pushinteger(L, (lua_Integer)list[i].index);
+				lua_setfield(L, -2, "index");
+				lua_pushinteger(L, (lua_Integer)list[i].width);
+				lua_setfield(L, -2, "width");
+				lua_pushinteger(L, (lua_Integer)list[i].height);
+				lua_setfield(L, -2, "height");
+				lua_pushnumber(L, list[i].fps);
+				lua_setfield(L, -2, "fps");
+				lua_pushnumber(L, list[i].duration_seconds);
+				lua_setfield(L, -2, "duration");
+				lua_rawseti(L, -2, (int)i + 1);
+			}
+			return 1;
+		}
+		static int VideoGetAudioStreams(lua_State* L) noexcept {
+			const char* name = luaL_checkstring(L, 1);
+			auto decoder = GetVideoDecoder(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found.", name);
+			std::vector<core::AudioStreamInfo> list;
+			auto cb = [](core::AudioStreamInfo const& info, void* ud) {
+				static_cast<std::vector<core::AudioStreamInfo>*>(ud)->push_back(info);
+			};
+			decoder->getAudioStreams(cb, &list);
+			lua_createtable(L, (int)list.size(), 0);
+			for (size_t i = 0; i < list.size(); ++i) {
+				lua_createtable(L, 0, 4);
+				lua_pushinteger(L, (lua_Integer)list[i].index);
+				lua_setfield(L, -2, "index");
+				lua_pushinteger(L, (lua_Integer)list[i].channels);
+				lua_setfield(L, -2, "channels");
+				lua_pushinteger(L, (lua_Integer)list[i].sample_rate);
+				lua_setfield(L, -2, "sample_rate");
+				lua_pushnumber(L, list[i].duration_seconds);
+				lua_setfield(L, -2, "duration");
+				lua_rawseti(L, -2, (int)i + 1);
+			}
+			return 1;
+		}
+		static int VideoReopen(lua_State* L) noexcept {
+			const char* name = luaL_checkstring(L, 1);
+			auto tex = LRES.FindTexture(name);
+			if (!tex)
+				return luaL_error(L, "texture '%s' not found.", name);
+			auto* vt = dynamic_cast<core::VideoTexture*>(tex->GetTexture());
+			if (!vt)
+				return luaL_error(L, "texture '%s' is not a video texture.", name);
+			core::IVideoDecoder* dec = vt->getVideoDecoder();
+			core::VideoOpenOptions opt = dec->getLastOpenOptions();
+			if (lua_gettop(L) >= 2 && lua_istable(L, 2))
+				ReadVideoOptions(L, 2, opt);
+			if (!dec->reopen(opt)) {
+				lua_pushboolean(L, false);
+				return 1;
+			}
+			lua_pushboolean(L, true);
 			return 1;
 		}
 	};
@@ -836,8 +964,12 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		// 视频控制函数
 		{ "VideoSeek", &Wrapper::VideoSeek },
 		{ "VideoSetLooping", &Wrapper::VideoSetLooping },
+		{ "VideoSetLoopRange", &Wrapper::VideoSetLoopRange },
 		{ "VideoUpdate", &Wrapper::VideoUpdate },
 		{ "VideoGetInfo", &Wrapper::VideoGetInfo },
+		{ "VideoGetVideoStreams", &Wrapper::VideoGetVideoStreams },
+		{ "VideoGetAudioStreams", &Wrapper::VideoGetAudioStreams },
+		{ "VideoReopen", &Wrapper::VideoReopen },
 
 		{ NULL, NULL },
 	};

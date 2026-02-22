@@ -14,6 +14,10 @@ namespace core {
     }
     
     bool VideoTexture::initialize(IGraphicsDevice* device, StringView path) {
+        return initialize(device, path, VideoOpenOptions{});
+    }
+
+    bool VideoTexture::initialize(IGraphicsDevice* device, StringView path, VideoOpenOptions const& options) {
         if (!device) {
             Logger::error("[core] [VideoTexture] Invalid device");
             return false;
@@ -21,7 +25,6 @@ namespace core {
         
         m_device = device;
         
-        // 创建视频解码器
         auto decoder = new VideoDecoder();
         if (!decoder->initialize(device)) {
             Logger::error("[core] [VideoTexture] Failed to initialize video decoder");
@@ -29,8 +32,7 @@ namespace core {
             return false;
         }
         
-        // 打开视频文件
-        if (!decoder->open(path)) {
+        if (!decoder->open(path, options)) {
             Logger::error("[core] [VideoTexture] Failed to open video file: {}", path);
             decoder->release();
             return false;
@@ -38,14 +40,14 @@ namespace core {
         
         m_decoder = decoder;
         decoder->release();
-        
+        m_premultiplied_alpha = options.premultiplied_alpha;
         m_initialized = true;
         m_device->addEventListener(this);
 
         Logger::info("[core] [VideoTexture] Created video texture from: {}", path);
-        
         return true;
     }
+
     
     void* VideoTexture::getNativeResource() const noexcept {
         if (m_decoder) {
@@ -75,12 +77,16 @@ namespace core {
     // GraphicsDevice 扩展：视频功能
     
     bool GraphicsDevice::createVideoTexture(StringView path, ITexture2D** out_texture) {
+        return createVideoTexture(path, VideoOpenOptions{}, out_texture);
+    }
+
+    bool GraphicsDevice::createVideoTexture(StringView path, VideoOpenOptions const& options, ITexture2D** out_texture) {
         if (out_texture == nullptr) {
             assert(false); return false;
         }
         SmartReference<VideoTexture> video_texture;
         video_texture.attach(new VideoTexture);
-        if (!video_texture->initialize(this, path)) {
+        if (!video_texture->initialize(this, path, options)) {
             return false;
         }
         *out_texture = video_texture.detach();

@@ -9,6 +9,7 @@
 #include <mfidl.h>
 #include <mfreadwrite.h>
 #include <shlwapi.h>
+#include <algorithm>
 
 #pragma comment(lib, "mfplat.lib")
 #pragma comment(lib, "mfreadwrite.lib")
@@ -73,6 +74,10 @@ namespace core {
     }
     
     bool VideoDecoder::open(StringView path) {
+        return open(path, VideoOpenOptions{});
+    }
+
+    bool VideoDecoder::open(StringView path, VideoOpenOptions const& options) {
         if (!m_initialized) {
             Logger::error("[core] [VideoDecoder] Not initialized");
             return false;
@@ -199,11 +204,34 @@ namespace core {
             Logger::info("[core] [VideoDecoder] Using D3D11 hardware acceleration (IMFDXGIDeviceManager)");
         }
         
+        m_video_stream_index = options.video_stream_index;
+        if (m_video_stream_index == static_cast<uint32_t>(-1)) {
+            for (DWORD i = 0; i < 16u; ++i) {
+                win32::com_ptr<IMFMediaType> mt;
+                if (FAILED(m_source_reader->GetNativeMediaType(i, 0, mt.put()))) continue;
+                GUID major = GUID_NULL;
+                if (FAILED(mt->GetGUID(MF_MT_MAJOR_TYPE, &major)) || major != MFMediaType_Video) continue;
+                m_video_stream_index = i;
+                Logger::info("[core] [VideoDecoder] Auto-selected video stream index {}", (unsigned)i);
+                break;
+            }
+            if (m_video_stream_index == static_cast<uint32_t>(-1)) {
+                Logger::error("[core] [VideoDecoder] No video stream found in file");
+                return false;
+            }
+        }
+        
+        // 流选择：仅启用指定的视频流
+        for (DWORD i = 0; i < 16u; ++i) {
+            BOOL const select = (i == m_video_stream_index);
+            m_source_reader->SetStreamSelection(i, select);
+        }
+        
         win32::com_ptr<IMFMediaType> partial_media_type;
-        hr = m_source_reader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, partial_media_type.put());
+        hr = m_source_reader->GetNativeMediaType((DWORD)m_video_stream_index, 0, partial_media_type.put());
         if (FAILED(hr)) {
             Logger::warn("[core] [VideoDecoder] Failed to get native media type, trying current type, hr = {:#x}", (uint32_t)hr);
-            hr = m_source_reader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, partial_media_type.put());
+            hr = m_source_reader->GetCurrentMediaType((DWORD)m_video_stream_index, partial_media_type.put());
             if (FAILED(hr)) {
                 Logger::warn("[core] [VideoDecoder] Failed to get current media type, hr = {:#x}", (uint32_t)hr);
             }
@@ -246,12 +274,11 @@ namespace core {
         if (use_hardware_accel && partial_media_type) {
             GUID native_subtype = GUID_NULL;
             if (SUCCEEDED(partial_media_type->GetGUID(MF_MT_SUBTYPE, &native_subtype))) {
-                constexpr GUID MFVideoFormat_H264 = { 0x34363248, 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71 } };
-                if (native_subtype == MFVideoFormat_H264 || native_subtype.Data1 == 0x34363248) {
+                if (native_subtype == MFVideoFormat_H264) {
                     Logger::info("[core] [VideoDecoder] Hardware decoder outputs compressed format, enumerating supported output formats");
                     for (DWORD i = 0; ; ++i) {
                         win32::com_ptr<IMFMediaType> output_type;
-                        hr = m_source_reader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, i, output_type.put());
+                        hr = m_source_reader->GetNativeMediaType((DWORD)m_video_stream_index, i, output_type.put());
                         if (FAILED(hr)) {
                             break;
                         }
@@ -271,9 +298,19 @@ namespace core {
         if (partial_media_type) {
             UINT32 width = 0, height = 0;
             if (SUCCEEDED(MFGetAttributeSize(partial_media_type.get(), MF_MT_FRAME_SIZE, &width, &height))) {
-                hr = MFSetAttributeSize(media_type.get(), MF_MT_FRAME_SIZE, width, height);
+                UINT32 out_w = options.output_width > 0 ? options.output_width : width;
+                UINT32 out_h = options.output_height > 0 ? options.output_height : height;
+                if (out_w != width || out_h != height) {
+                    Logger::info("[core] [VideoDecoder] Requesting output resolution: {}x{} (original: {}x{})", out_w, out_h, width, height);
+                }
+                hr = MFSetAttributeSize(media_type.get(), MF_MT_FRAME_SIZE, out_w, out_h);
                 if (FAILED(hr)) {
-                    Logger::warn("[core] [VideoDecoder] Failed to set frame size, hr = {:#x}", (uint32_t)hr);
+                    Logger::warn("[core] [VideoDecoder] Failed to set output resolution {}x{}, using original {}x{}, hr = {:#x}", 
+                        out_w, out_h, width, height, (uint32_t)hr);
+                    hr = MFSetAttributeSize(media_type.get(), MF_MT_FRAME_SIZE, width, height);
+                    if (FAILED(hr)) {
+                        Logger::error("[core] [VideoDecoder] Failed to set original frame size, hr = {:#x}", (uint32_t)hr);
+                    }
                 }
             }
             
@@ -289,7 +326,7 @@ namespace core {
             return false;
         }
         
-        hr = m_source_reader->SetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, media_type.get());
+        hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
         
         if (FAILED(hr)) {
             Logger::info("[core] [VideoDecoder] ARGB32 not supported (hr = {:#x}), trying RGB32", (uint32_t)hr);
@@ -298,7 +335,7 @@ namespace core {
                 Logger::error("[core] [VideoDecoder] Failed to set RGB32 subtype, hr = {:#x}", (uint32_t)hr);
                 return false;
             }
-            hr = m_source_reader->SetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, media_type.get());
+            hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
             
             if (FAILED(hr)) {
                 Logger::info("[core] [VideoDecoder] RGB32 not supported (hr = {:#x}), trying NV12 (hardware native)", (uint32_t)hr);
@@ -307,10 +344,14 @@ namespace core {
                     Logger::error("[core] [VideoDecoder] Failed to set NV12 subtype, hr = {:#x}", (uint32_t)hr);
                     return false;
                 }
-                hr = m_source_reader->SetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, media_type.get());
+                hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
                 
                 if (FAILED(hr)) {
-                    Logger::error("[core] [VideoDecoder] Failed to set media type (tried ARGB32, RGB32, NV12), hr = {:#x}", (uint32_t)hr);
+                    UINT32 req_w = 0, req_h = 0;
+                    MFGetAttributeSize(media_type.get(), MF_MT_FRAME_SIZE, &req_w, &req_h);
+                    Logger::error("[core] [VideoDecoder] Failed to set media type (tried ARGB32, RGB32, NV12) at resolution {}x{}, hr = {:#x} (MF_E_INVALIDMEDIATYPE)", 
+                        req_w, req_h, (uint32_t)hr);
+                    Logger::error("[core] [VideoDecoder] This may be due to unsupported output resolution or codec format");
                     return false;
                 }
                 m_output_format_nv12 = true;
@@ -318,7 +359,7 @@ namespace core {
             }
         }
         
-        hr = m_source_reader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, m_media_type.put());
+        hr = m_source_reader->GetCurrentMediaType((DWORD)m_video_stream_index, m_media_type.put());
         if (FAILED(hr)) {
             Logger::error("[core] [VideoDecoder] Failed to get current media type, hr = {:#x}", (uint32_t)hr);
             return false;
@@ -359,7 +400,7 @@ namespace core {
         UINT32 rate_num = 0, rate_den = 0;
         for (DWORD i = 0; ; ++i) {
             win32::com_ptr<IMFMediaType> mt;
-            hr = m_source_reader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, i, mt.put());
+            hr = m_source_reader->GetNativeMediaType((DWORD)m_video_stream_index, i, mt.put());
             if (FAILED(hr)) break;
             if (SUCCEEDED(MFGetAttributeRatio(mt.get(), MF_MT_FRAME_RATE, &rate_num, &rate_den)) && rate_den > 0 && rate_num > 0)
                 break;
@@ -396,8 +437,76 @@ namespace core {
         
         Logger::info("[core] [VideoDecoder] Opened video: {}x{}, duration: {:.2f}s", 
                     m_target_size.x, m_target_size.y, m_duration);
-        
+
+        m_last_open_path.assign(path.data(), path.size());
+        m_last_open_options = options;
+
+        setLooping(options.looping);
+        if (options.loop_duration > 0.0) {
+            setLoopRange(options.loop_end, options.loop_duration);
+        }
+
         return true;
+    }
+
+    void VideoDecoder::getVideoStreams(void (*callback)(VideoStreamInfo const&, void*), void* userdata) const {
+        if (!m_source_reader || !callback) return;
+        PROPVARIANT var;
+        PropVariantInit(&var);
+        double duration_sec = 0.0;
+        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &var))) {
+            duration_sec = var.hVal.QuadPart / 10000000.0;
+            PropVariantClear(&var);
+        }
+        for (DWORD si = 0; si < 16u; ++si) {
+            win32::com_ptr<IMFMediaType> mt;
+            if (FAILED(m_source_reader->GetNativeMediaType(si, 0, mt.put()))) continue;
+            GUID major = GUID_NULL;
+            if (FAILED(mt->GetGUID(MF_MT_MAJOR_TYPE, &major)) || major != MFMediaType_Video) continue;
+            VideoStreamInfo info{};
+            info.index = si;
+            info.duration_seconds = duration_sec;
+            UINT32 w = 0, h = 0;
+            if (SUCCEEDED(MFGetAttributeSize(mt.get(), MF_MT_FRAME_SIZE, &w, &h))) {
+                info.width = w;
+                info.height = h;
+            }
+            UINT32 num = 0, den = 0;
+            if (SUCCEEDED(MFGetAttributeRatio(mt.get(), MF_MT_FRAME_RATE, &num, &den)) && den > 0)
+                info.fps = static_cast<double>(num) / static_cast<double>(den);
+            callback(info, userdata);
+        }
+    }
+
+    void VideoDecoder::getAudioStreams(void (*callback)(AudioStreamInfo const&, void*), void* userdata) const {
+        if (!m_source_reader || !callback) return;
+        PROPVARIANT var;
+        PropVariantInit(&var);
+        double duration_sec = 0.0;
+        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &var))) {
+            duration_sec = var.hVal.QuadPart / 10000000.0;
+            PropVariantClear(&var);
+        }
+        for (DWORD si = 0; si < 16u; ++si) {
+            win32::com_ptr<IMFMediaType> mt;
+            if (FAILED(m_source_reader->GetNativeMediaType(si, 0, mt.put()))) continue;
+            GUID major = GUID_NULL;
+            if (FAILED(mt->GetGUID(MF_MT_MAJOR_TYPE, &major)) || major != MFMediaType_Audio) continue;
+            AudioStreamInfo info{};
+            info.index = si;
+            info.duration_seconds = duration_sec;
+            info.channels = (UINT32)MFGetAttributeUINT32(mt.get(), MF_MT_AUDIO_NUM_CHANNELS, 0);
+            info.sample_rate = MFGetAttributeUINT32(mt.get(), MF_MT_AUDIO_SAMPLES_PER_SECOND, 0);
+            callback(info, userdata);
+        }
+    }
+
+    bool VideoDecoder::reopen(VideoOpenOptions const& options) {
+        if (m_last_open_path.empty()) {
+            Logger::error("[core] [VideoDecoder] reopen: no previous path (open was never successful)");
+            return false;
+        }
+        return open(StringView(m_last_open_path), options);
     }
     
     void VideoDecoder::close() {
@@ -420,6 +529,29 @@ namespace core {
         m_last_requested_time = -1.0;
         m_frame_interval = 1.0 / 30.0;
         m_frame_pitch = 0;
+        m_video_stream_index = 0;
+        m_has_loop_range = false;
+        m_loop_start = 0.0;
+        m_loop_end = 0.0;
+    }
+
+    void VideoDecoder::setLoopRange(double end_sec, double duration_sec) {
+        if (duration_sec > 0.0 && end_sec >= duration_sec) {
+            m_loop_start = end_sec - duration_sec;
+            double cap = m_duration > 0.0 ? m_duration : end_sec;
+            m_loop_end = (std::min)(end_sec, cap);
+            m_has_loop_range = (m_loop_end > m_loop_start);
+            if (!m_has_loop_range) { m_loop_start = 0.0; m_loop_end = m_duration; }
+        } else {
+            m_has_loop_range = false;
+            m_loop_start = 0.0;
+            m_loop_end = m_duration;
+        }
+    }
+
+    void VideoDecoder::getLoopRange(double* end_sec, double* duration_sec) const noexcept {
+        if (end_sec) *end_sec = m_has_loop_range ? m_loop_end : m_duration;
+        if (duration_sec) *duration_sec = m_has_loop_range ? (m_loop_end - m_loop_start) : m_duration;
     }
     
     bool VideoDecoder::seek(double time_in_seconds) {
@@ -461,20 +593,57 @@ namespace core {
             return false;
         }
         
+        auto const loop_begin = m_has_loop_range ? m_loop_start : 0.0;
+        auto const loop_end = m_has_loop_range ? m_loop_end : m_duration;
+        auto const loop_len = loop_end - loop_begin;
+
         if (time_in_seconds >= m_duration) {
             if (m_looping) {
-                time_in_seconds = fmod(time_in_seconds, m_duration);
+                if (loop_end > m_duration && time_in_seconds < loop_end) {
+                    constexpr double kEndEpsilon = 1e-6;
+                    if (m_current_time < m_duration - kEndEpsilon) {
+                        double const last_frame_time = std::max(0.0, m_duration - kEndEpsilon);
+                        readFrameAtTime(last_frame_time);
+                        m_current_time = m_duration;
+                    }
+                    return true;
+                }
+                if (loop_len > 0.0)
+                    time_in_seconds = loop_begin + std::fmod(time_in_seconds - loop_begin, loop_len);
+                else
+                    time_in_seconds = std::fmod(time_in_seconds, m_duration);
             } else {
-                double const last_frame_time = std::max(0.0, m_duration - 1e-6);
+                constexpr double kEndEpsilon = 1e-6;
+                if (m_current_time >= m_duration - kEndEpsilon) {
+                    return true;
+                }
+                double const last_frame_time = std::max(0.0, m_duration - kEndEpsilon);
                 bool const ok = readFrameAtTime(last_frame_time);
                 m_current_time = m_duration;
                 return ok;
             }
+        } else if (time_in_seconds >= loop_end && m_looping && loop_len > 0.0) {
+            time_in_seconds = loop_begin + std::fmod(time_in_seconds - loop_begin, loop_len);
+        } else if (time_in_seconds < loop_begin) {
+            if (m_looping && loop_len > 0.0) {
+                double t = time_in_seconds - loop_begin;
+                t = loop_begin + std::fmod(t, loop_len);
+                if (t < loop_begin) t += loop_len;
+                time_in_seconds = t;
+            } else {
+                time_in_seconds = loop_begin;
+            }
         } else if (time_in_seconds < 0.0) {
             if (m_looping) {
-                double t = std::fmod(time_in_seconds, m_duration);
-                if (t < 0.0) t += m_duration;
-                time_in_seconds = t;
+                if (loop_len > 0.0) {
+                    double t = std::fmod(time_in_seconds - loop_begin, loop_len);
+                    if (t < 0.0) t += loop_len;
+                    time_in_seconds = loop_begin + t;
+                } else {
+                    double t = std::fmod(time_in_seconds, m_duration);
+                    if (t < 0.0) t += m_duration;
+                    time_in_seconds = t;
+                }
             } else {
                 time_in_seconds = 0.0;
             }
@@ -522,7 +691,7 @@ namespace core {
         LONGLONG timestamp = 0;
 
         hr = m_source_reader->ReadSample(
-            (DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+            (DWORD)m_video_stream_index,
             0,
             nullptr,
             &stream_flags,
@@ -592,7 +761,7 @@ namespace core {
         m_video_device.reset();
         close();
     }
-    
+
     bool VideoDecoder::createTexture() {
         if (!m_device || m_target_size.x == 0 || m_target_size.y == 0) {
             return false;
@@ -922,5 +1091,4 @@ namespace core {
         
         return true;
     }
-    
 }

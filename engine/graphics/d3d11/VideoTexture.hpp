@@ -20,15 +20,15 @@ namespace core {
         
         bool isDynamic() const noexcept override { return true; }
         bool isVideoTexture() const noexcept override { return true; }
-        bool isPremultipliedAlpha() const noexcept override { return false; }
-        void setPremultipliedAlpha(bool v) override {}
+        bool isPremultipliedAlpha() const noexcept override { return m_premultiplied_alpha; }
+        void setPremultipliedAlpha(bool v) override { m_premultiplied_alpha = v; }
         Vector2U getSize() const noexcept override;
         
-        bool setSize(Vector2U size) override { return false; }
-        bool update(RectU rect, void const* data, uint32_t row_pitch_in_bytes) override { return false; }
-        void setImage(IImage* image) override {}
+        bool setSize(Vector2U /* size */) override { return false; }
+        bool update(RectU /* rect */, void const* /* data */, uint32_t /* row_pitch_in_bytes */) override { return false; }
+        void setImage(IImage* /* image */) override {}
         
-        bool saveToFile(StringView path) override { return false; }
+        bool saveToFile(StringView /* path */) override { return false; }
         
         void setSamplerState(IGraphicsSampler* sampler) override { m_sampler = sampler; }
         IGraphicsSampler* getSamplerState() const noexcept override { return m_sampler.get(); }
@@ -44,7 +44,8 @@ namespace core {
         ~VideoTexture();
         
         bool initialize(IGraphicsDevice* device, StringView path);
-        
+        bool initialize(IGraphicsDevice* device, StringView path, VideoOpenOptions const& options);
+
         // 获取内部的视频解码器（用于控制播放等）
         IVideoDecoder* getVideoDecoder() const noexcept { return m_decoder.get(); }
         
@@ -52,6 +53,7 @@ namespace core {
         SmartReference<IGraphicsDevice> m_device;
         SmartReference<IVideoDecoder> m_decoder;
         SmartReference<IGraphicsSampler> m_sampler;
+        bool m_premultiplied_alpha{ false };
         bool m_initialized{ false };
     };
 }

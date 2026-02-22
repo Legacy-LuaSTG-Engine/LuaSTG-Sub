@@ -1,5 +1,6 @@
 #pragma once
 #include "core/SmartReference.hpp"
+#include "core/VideoDecoder.hpp"
 #include "GameResource/ResourceTexture.hpp"
 #include "GameResource/ResourceSprite.hpp"
 #include "GameResource/ResourceAnimation.hpp"
@@ -98,8 +99,8 @@ namespace luastg
         // 纹理
         bool LoadTexture(const char* name, const char* path, bool mipmaps = true) noexcept;
         bool CreateTexture(const char* name, int width, int height) noexcept;
-        // 视频纹理
-        bool LoadVideo(const char* name, const char* path) noexcept;
+        // 视频纹理（options 为 nullptr 时使用默认选项）
+        bool LoadVideo(const char* name, const char* path, core::VideoOpenOptions const* options = nullptr) noexcept;
         // 渲染目标
         bool CreateRenderTarget(const char* name, int width = 0, int height = 0, bool depth_buffer = false) noexcept;
         // 图片精灵
