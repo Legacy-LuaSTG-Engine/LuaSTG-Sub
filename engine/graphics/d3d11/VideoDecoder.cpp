@@ -345,17 +345,56 @@ namespace core {
                     return false;
                 }
                 hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
-                
+                bool succeeded_via_retry = false;
                 if (FAILED(hr)) {
                     UINT32 req_w = 0, req_h = 0;
                     MFGetAttributeSize(media_type.get(), MF_MT_FRAME_SIZE, &req_w, &req_h);
-                    Logger::error("[core] [VideoDecoder] Failed to set media type (tried ARGB32, RGB32, NV12) at resolution {}x{}, hr = {:#x} (MF_E_INVALIDMEDIATYPE)", 
-                        req_w, req_h, (uint32_t)hr);
-                    Logger::error("[core] [VideoDecoder] This may be due to unsupported output resolution or codec format");
-                    return false;
+                    UINT32 orig_w = 0, orig_h = 0;
+                    bool can_retry_original = partial_media_type
+                        && SUCCEEDED(MFGetAttributeSize(partial_media_type.get(), MF_MT_FRAME_SIZE, &orig_w, &orig_h))
+                        && (req_w != orig_w || req_h != orig_h);
+                    if (can_retry_original) {
+                        Logger::info("[core] [VideoDecoder] Scaled resolution {}x{} not supported by decoder, retrying with original {}x{}",
+                            req_w, req_h, orig_w, orig_h);
+                        hr = MFSetAttributeSize(media_type.get(), MF_MT_FRAME_SIZE, orig_w, orig_h);
+                        if (SUCCEEDED(hr)) {
+                            hr = media_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_ARGB32);
+                            if (SUCCEEDED(hr)) {
+                                hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
+                            }
+                            if (FAILED(hr)) {
+                                hr = media_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
+                                if (SUCCEEDED(hr)) {
+                                    hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
+                                }
+                            }
+                            if (FAILED(hr)) {
+                                hr = media_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_NV12);
+                                if (SUCCEEDED(hr)) {
+                                    hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
+                                }
+                                if (SUCCEEDED(hr)) {
+                                    m_output_format_nv12 = true;
+                                    Logger::info("[core] [VideoDecoder] Using NV12 output (original resolution), will convert to BGRA via Video Processor");
+                                }
+                            }
+                            if (SUCCEEDED(hr)) {
+                                succeeded_via_retry = true;
+                            }
+                        }
+                    }
+                    if (FAILED(hr)) {
+                        UINT32 err_w = 0, err_h = 0;
+                        MFGetAttributeSize(media_type.get(), MF_MT_FRAME_SIZE, &err_w, &err_h);
+                        Logger::error("[core] [VideoDecoder] Failed to set media type (tried ARGB32, RGB32, NV12) at resolution {}x{}, hr = {:#x} (MF_E_INVALIDMEDIATYPE)",
+                            err_w, err_h, (uint32_t)hr);
+                        Logger::error("[core] [VideoDecoder] This may be due to unsupported output resolution or codec format");
+                        return false;
+                    }
+                } else if (!succeeded_via_retry) {
+                    m_output_format_nv12 = true;
+                    Logger::info("[core] [VideoDecoder] Using NV12 output, will convert to BGRA via Video Processor");
                 }
-                m_output_format_nv12 = true;
-                Logger::info("[core] [VideoDecoder] Using NV12 output, will convert to BGRA via Video Processor");
             }
         }
         
@@ -387,7 +426,10 @@ namespace core {
         }
         
         m_video_size = Vector2U{ width, height };
-        m_target_size = m_video_size;
+        m_target_size = Vector2U{
+            options.output_width > 0 ? options.output_width : width,
+            options.output_height > 0 ? options.output_height : height
+        };
         
         PROPVARIANT var;
         PropVariantInit(&var);
@@ -427,7 +469,7 @@ namespace core {
             return false;
         }
         
-        m_frame_pitch = m_target_size.x * 4;
+        m_frame_pitch = m_video_size.x * 4;
         
         m_current_time = 0.0;
         m_last_requested_time = -1.0;
@@ -846,8 +888,8 @@ namespace core {
         content_desc.InputFrameFormat = D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE;
         content_desc.InputFrameRate.Numerator = 30;
         content_desc.InputFrameRate.Denominator = 1;
-        content_desc.InputWidth = m_target_size.x;
-        content_desc.InputHeight = m_target_size.y;
+        content_desc.InputWidth = m_video_size.x;
+        content_desc.InputHeight = m_video_size.y;
         content_desc.OutputFrameRate.Numerator = 30;
         content_desc.OutputFrameRate.Denominator = 1;
         content_desc.OutputWidth = m_target_size.x;
@@ -1039,7 +1081,11 @@ namespace core {
         
         uint8_t* dst = static_cast<uint8_t*>(mapped.pData);
         const uint8_t* src = src_data;
-        const size_t copy_size = m_frame_pitch;
+        const uint32_t src_w = m_video_size.x;
+        const uint32_t src_h = m_video_size.y;
+        const uint32_t dst_w = m_target_size.x;
+        const uint32_t dst_h = m_target_size.y;
+        const bool need_scale = (src_w != dst_w || src_h != dst_h);
         
         GUID format = GUID_NULL;
         bool force_opaque_alpha = false;
@@ -1051,33 +1097,45 @@ namespace core {
         
         static bool first_copy = true;
         if (first_copy) {
-            Logger::info("[core] [VideoDecoder] Texture update: source_pitch={}, mapped.RowPitch={}, copy_size={}, height={}, force_alpha={}",
-                        source_pitch, mapped.RowPitch, copy_size, m_target_size.y, force_opaque_alpha);
-            bool all_zero = true;
-            for (size_t i = 0; i < std::min<size_t>(16, copy_size); ++i) {
-                if (src[i] != 0) {
-                    all_zero = false;
-                    break;
-                }
-            }
-            Logger::info("[core] [VideoDecoder] First 16 bytes all zero: {}", all_zero);
+            Logger::info("[core] [VideoDecoder] Texture update: source={}x{} pitch={}, dest={}x{} pitch={}, force_alpha={}, scale={}",
+                        src_w, src_h, source_pitch, dst_w, dst_h, mapped.RowPitch, force_opaque_alpha, need_scale);
             first_copy = false;
         }
         
-        if (!force_opaque_alpha) {
-            for (uint32_t y = 0; y < m_target_size.y; ++y) {
-                memcpy(dst, src, copy_size);
-                dst += mapped.RowPitch;
-                src += source_pitch;
+        if (!need_scale) {
+            const size_t copy_size = m_frame_pitch;
+            if (!force_opaque_alpha) {
+                for (uint32_t y = 0; y < dst_h; ++y) {
+                    memcpy(dst, src, copy_size);
+                    dst += mapped.RowPitch;
+                    src += source_pitch;
+                }
+            } else {
+                for (uint32_t y = 0; y < dst_h; ++y) {
+                    memcpy(dst, src, copy_size);
+                    for (uint32_t x = 0; x < dst_w; ++x) {
+                        dst[x * 4 + 3] = 0xFF;
+                    }
+                    dst += mapped.RowPitch;
+                    src += source_pitch;
+                }
             }
         } else {
-            for (uint32_t y = 0; y < m_target_size.y; ++y) {
-                memcpy(dst, src, copy_size);
-                for (uint32_t x = 0; x < m_target_size.x; ++x) {
-                    dst[x * 4 + 3] = 0xFF;
+            for (uint32_t y_dst = 0; y_dst < dst_h; ++y_dst) {
+                uint32_t y_src = (src_h > 1) ? (y_dst * src_h / dst_h) : 0;
+                if (y_src >= src_h) y_src = src_h - 1;
+                const uint8_t* row_src = src + static_cast<size_t>(y_src) * source_pitch;
+                for (uint32_t x_dst = 0; x_dst < dst_w; ++x_dst) {
+                    uint32_t x_src = (src_w > 1) ? (x_dst * src_w / dst_w) : 0;
+                    if (x_src >= src_w) x_src = src_w - 1;
+                    const uint8_t* px = row_src + static_cast<size_t>(x_src) * 4;
+                    dst[0] = px[0];
+                    dst[1] = px[1];
+                    dst[2] = px[2];
+                    dst[3] = force_opaque_alpha ? 0xFF : px[3];
+                    dst += 4;
                 }
-                dst += mapped.RowPitch;
-                src += source_pitch;
+                dst += mapped.RowPitch - static_cast<size_t>(dst_w) * 4;
             }
         }
         
