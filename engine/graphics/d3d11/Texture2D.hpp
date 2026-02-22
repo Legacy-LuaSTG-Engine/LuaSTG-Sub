@@ -15,6 +15,7 @@ namespace core {
         void* getNativeView() const noexcept override { return m_view.get(); }
 
         bool isDynamic() const noexcept override { return m_dynamic; }
+        bool isVideoTexture() const noexcept override { return false; }
         bool isPremultipliedAlpha() const noexcept override { return m_pre_mul_alpha; }
         void setPremultipliedAlpha(bool const v) override { m_pre_mul_alpha = v; }
         Vector2U getSize() const noexcept override { return m_size; }

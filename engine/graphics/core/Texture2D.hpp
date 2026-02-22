@@ -27,6 +27,7 @@ namespace core {
         virtual void* getNativeView() const noexcept = 0;
 
         virtual bool isDynamic() const noexcept = 0;
+        virtual bool isVideoTexture() const noexcept = 0;
         virtual bool isPremultipliedAlpha() const noexcept = 0;
         virtual void setPremultipliedAlpha(bool v) = 0;
         virtual Vector2U getSize() const noexcept = 0;
