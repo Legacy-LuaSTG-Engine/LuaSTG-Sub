@@ -33,6 +33,8 @@ namespace core {
         void setSamplerState(IGraphicsSampler* sampler) override { m_sampler = sampler; }
         IGraphicsSampler* getSamplerState() const noexcept override { return m_sampler.get(); }
         
+        IVideoDecoder* getVideoDecoder() const noexcept override { return m_decoder.get(); }
+        
         // IGraphicsDeviceEventListener
         
         void onGraphicsDeviceCreate() override;
@@ -45,9 +47,6 @@ namespace core {
         
         bool initialize(IGraphicsDevice* device, StringView path);
         bool initialize(IGraphicsDevice* device, StringView path, VideoOpenOptions const& options);
-
-        // 获取内部的视频解码器（用于控制播放等）
-        IVideoDecoder* getVideoDecoder() const noexcept { return m_decoder.get(); }
         
     private:
         SmartReference<IGraphicsDevice> m_device;
