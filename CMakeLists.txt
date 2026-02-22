@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.31)
 project(LuaSTGSub)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
