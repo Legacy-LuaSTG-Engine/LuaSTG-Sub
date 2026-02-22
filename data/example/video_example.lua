@@ -5,7 +5,7 @@
 -- lstg.LoadVideo(name, path) 或 lstg.LoadVideo(name, path, options)
 -- options 表可选：video_stream, width, height, premultiplied_alpha, looping, loop_end, loop_duration
 lstg.LoadVideo('video1', 'test_video.mp4')
--- 示例：带选项加载（输出尺寸、预乘 Alpha、循环）
+-- 示例：带选项加载（输出尺寸、循环）
 -- lstg.LoadVideo('video1', 'test_video.mp4', { width = 1280, height = 720, looping = true })
 -- 示例：带循环区间 [end-duration, end)
 -- lstg.LoadVideo('video1', 'test_video.mp4', { looping = true, loop_end = 10, loop_duration = 5 })
