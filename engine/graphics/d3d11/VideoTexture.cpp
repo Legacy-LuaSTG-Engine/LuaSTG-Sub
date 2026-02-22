@@ -70,6 +70,25 @@ namespace core {
         return Vector2U{};
     }
     
+    bool VideoTexture::setSize(Vector2U /* size */) {
+        Logger::warn("[core] [VideoTexture] setSize() is not supported on video textures");
+        return false;
+    }
+    
+    bool VideoTexture::update(RectU /* rect */, void const* /* data */, uint32_t /* row_pitch_in_bytes */) {
+        Logger::warn("[core] [VideoTexture] update() is not supported on video textures");
+        return false;
+    }
+    
+    void VideoTexture::setImage(IImage* /* image */) {
+        Logger::warn("[core] [VideoTexture] setImage() is not supported on video textures");
+    }
+    
+    bool VideoTexture::saveToFile(StringView /* path */) {
+        Logger::warn("[core] [VideoTexture] saveToFile() is not supported on video textures");
+        return false;
+    }
+    
     void VideoTexture::onGraphicsDeviceCreate() {}
     
     void VideoTexture::onGraphicsDeviceDestroy() {}

@@ -47,6 +47,55 @@ namespace luastg::binding {
 			return texture->getVideoDecoder();
 		}
 
+		// helper: parse VideoOpenOptions from Lua table at given stack index
+		static void parseVideoOptions(lua_State* vm, int table_index, core::VideoOpenOptions& opt) {
+			if (!lua_istable(vm, table_index)) {
+				return;
+			}
+			
+			lua_getfield(vm, table_index, "video_stream");
+			if (lua_isnumber(vm, -1)) {
+				opt.video_stream_index = static_cast<uint32_t>(lua_tointeger(vm, -1));
+			}
+			lua_pop(vm, 1);
+			
+			lua_getfield(vm, table_index, "width");
+			if (lua_isnumber(vm, -1)) {
+				opt.output_width = static_cast<uint32_t>(lua_tointeger(vm, -1));
+			}
+			lua_pop(vm, 1);
+			
+			lua_getfield(vm, table_index, "height");
+			if (lua_isnumber(vm, -1)) {
+				opt.output_height = static_cast<uint32_t>(lua_tointeger(vm, -1));
+			}
+			lua_pop(vm, 1);
+			
+			lua_getfield(vm, table_index, "premultiplied_alpha");
+			if (lua_isboolean(vm, -1)) {
+				opt.premultiplied_alpha = lua_toboolean(vm, -1);
+			}
+			lua_pop(vm, 1);
+			
+			lua_getfield(vm, table_index, "looping");
+			if (lua_isboolean(vm, -1)) {
+				opt.looping = lua_toboolean(vm, -1);
+			}
+			lua_pop(vm, 1);
+			
+			lua_getfield(vm, table_index, "loop_end");
+			if (lua_isnumber(vm, -1)) {
+				opt.loop_end = lua_tonumber(vm, -1);
+			}
+			lua_pop(vm, 1);
+			
+			lua_getfield(vm, table_index, "loop_duration");
+			if (lua_isnumber(vm, -1)) {
+				opt.loop_duration = lua_tonumber(vm, -1);
+			}
+			lua_pop(vm, 1);
+		}
+
 		// method - video info
 
 		static int getWidth(lua_State* vm) {
@@ -242,48 +291,8 @@ namespace luastg::binding {
 			if (auto decoder = getDecoder(self->data)) {
 				core::VideoOpenOptions opt = decoder->getLastOpenOptions();
 				// 读取 options 表
-				if (lua_gettop(vm) >= 2 && lua_istable(vm, 2)) {
-					lua_getfield(vm, 2, "video_stream");
-					if (lua_isnumber(vm, -1)) {
-						opt.video_stream_index = static_cast<uint32_t>(lua_tointeger(vm, -1));
-					}
-					lua_pop(vm, 1);
-					
-					lua_getfield(vm, 2, "width");
-					if (lua_isnumber(vm, -1)) {
-						opt.output_width = static_cast<uint32_t>(lua_tointeger(vm, -1));
-					}
-					lua_pop(vm, 1);
-					
-					lua_getfield(vm, 2, "height");
-					if (lua_isnumber(vm, -1)) {
-						opt.output_height = static_cast<uint32_t>(lua_tointeger(vm, -1));
-					}
-					lua_pop(vm, 1);
-					
-					lua_getfield(vm, 2, "premultiplied_alpha");
-					if (lua_isboolean(vm, -1)) {
-						opt.premultiplied_alpha = lua_toboolean(vm, -1);
-					}
-					lua_pop(vm, 1);
-					
-					lua_getfield(vm, 2, "looping");
-					if (lua_isboolean(vm, -1)) {
-						opt.looping = lua_toboolean(vm, -1);
-					}
-					lua_pop(vm, 1);
-					
-					lua_getfield(vm, 2, "loop_end");
-					if (lua_isnumber(vm, -1)) {
-						opt.loop_end = lua_tonumber(vm, -1);
-					}
-					lua_pop(vm, 1);
-					
-					lua_getfield(vm, 2, "loop_duration");
-					if (lua_isnumber(vm, -1)) {
-						opt.loop_duration = lua_tonumber(vm, -1);
-					}
-					lua_pop(vm, 1);
+				if (lua_gettop(vm) >= 2) {
+					parseVideoOptions(vm, 2, opt);
 				}
 				ctx.push_value(decoder->reopen(opt));
 			} else {
@@ -300,48 +309,8 @@ namespace luastg::binding {
 			
 			core::VideoOpenOptions opt{};
 			// 读取 options 表
-			if (lua_gettop(vm) >= 2 && lua_istable(vm, 2)) {
-				lua_getfield(vm, 2, "video_stream");
-				if (lua_isnumber(vm, -1)) {
-					opt.video_stream_index = static_cast<uint32_t>(lua_tointeger(vm, -1));
-				}
-				lua_pop(vm, 1);
-				
-				lua_getfield(vm, 2, "width");
-				if (lua_isnumber(vm, -1)) {
-					opt.output_width = static_cast<uint32_t>(lua_tointeger(vm, -1));
-				}
-				lua_pop(vm, 1);
-				
-				lua_getfield(vm, 2, "height");
-				if (lua_isnumber(vm, -1)) {
-					opt.output_height = static_cast<uint32_t>(lua_tointeger(vm, -1));
-				}
-				lua_pop(vm, 1);
-				
-				lua_getfield(vm, 2, "premultiplied_alpha");
-				if (lua_isboolean(vm, -1)) {
-					opt.premultiplied_alpha = lua_toboolean(vm, -1);
-				}
-				lua_pop(vm, 1);
-				
-				lua_getfield(vm, 2, "looping");
-				if (lua_isboolean(vm, -1)) {
-					opt.looping = lua_toboolean(vm, -1);
-				}
-				lua_pop(vm, 1);
-				
-				lua_getfield(vm, 2, "loop_end");
-				if (lua_isnumber(vm, -1)) {
-					opt.loop_end = lua_tonumber(vm, -1);
-				}
-				lua_pop(vm, 1);
-				
-				lua_getfield(vm, 2, "loop_duration");
-				if (lua_isnumber(vm, -1)) {
-					opt.loop_duration = lua_tonumber(vm, -1);
-				}
-				lua_pop(vm, 1);
+			if (lua_gettop(vm) >= 2) {
+				parseVideoOptions(vm, 2, opt);
 			}
 
 			core::SmartReference<core::ITexture2D> texture;

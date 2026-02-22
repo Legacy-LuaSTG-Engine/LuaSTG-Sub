@@ -15,6 +15,12 @@ namespace core {
         public implement::ReferenceCounted<IVideoDecoder>,
         public IGraphicsDeviceEventListener {
     public:
+        enum class OutputFormat {
+            ARGB32,  // Default format (BGRA in memory)
+            RGB32,   // RGB format
+            NV12     // Hardware native format, requires Video Processor conversion
+        };
+        
         // IVideoDecoder
         
         bool open(StringView path) override;
@@ -82,7 +88,7 @@ namespace core {
         win32::com_ptr<ID3D11VideoProcessor> m_video_processor;
         win32::com_ptr<ID3D11VideoProcessorEnumerator> m_video_processor_enum;
         
-        bool m_output_format_nv12{ false };
+        OutputFormat m_output_format{ OutputFormat::ARGB32 };
         
         Vector2U m_video_size{};
         Vector2U m_target_size{};

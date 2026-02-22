@@ -766,7 +766,10 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			auto* vt = dynamic_cast<core::VideoTexture*>(tex->GetTexture());
 			if (!vt)
 				return luaL_error(L, "texture '%s' is not a video texture.", name);
-			bool ok = vt->getVideoDecoder()->seek(time);
+			auto* decoder = vt->getVideoDecoder();
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' has no video decoder.", name);
+			bool ok = decoder->seek(time);
 			lua_pushboolean(L, ok);
 			return 1;
 		}
@@ -799,7 +802,9 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			auto* vt = dynamic_cast<core::VideoTexture*>(tex->GetTexture());
 			if (!vt)
 				return luaL_error(L, "texture '%s' is not a video texture.", name);
-			auto decoder = vt->getVideoDecoder();
+			auto* decoder = vt->getVideoDecoder();
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' has no video decoder.", name);
 			bool ok = decoder->updateToTime(time);
 			lua_pushboolean(L, ok);
 			return 1;
@@ -908,6 +913,8 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			if (!vt)
 				return luaL_error(L, "texture '%s' is not a video texture.", name);
 			core::IVideoDecoder* dec = vt->getVideoDecoder();
+			if (!dec)
+				return luaL_error(L, "texture '%s' does not have a valid video decoder.", name);
 			core::VideoOpenOptions opt = dec->getLastOpenOptions();
 			if (lua_gettop(L) >= 2 && lua_istable(L, 2))
 				ReadVideoOptions(L, 2, opt);

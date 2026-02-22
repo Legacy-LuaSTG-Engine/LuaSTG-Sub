@@ -24,11 +24,11 @@ namespace core {
         void setPremultipliedAlpha(bool v) override { m_premultiplied_alpha = v; }
         Vector2U getSize() const noexcept override;
         
-        bool setSize(Vector2U /* size */) override { return false; }
-        bool update(RectU /* rect */, void const* /* data */, uint32_t /* row_pitch_in_bytes */) override { return false; }
-        void setImage(IImage* /* image */) override {}
+        bool setSize(Vector2U /* size */) override;
+        bool update(RectU /* rect */, void const* /* data */, uint32_t /* row_pitch_in_bytes */) override;
+        void setImage(IImage* /* image */) override;
         
-        bool saveToFile(StringView /* path */) override { return false; }
+        bool saveToFile(StringView /* path */) override;
         
         void setSamplerState(IGraphicsSampler* sampler) override { m_sampler = sampler; }
         IGraphicsSampler* getSamplerState() const noexcept override { return m_sampler.get(); }

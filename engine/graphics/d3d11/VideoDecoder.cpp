@@ -43,6 +43,12 @@ namespace {
         
         bool m_initialized{ false };
     };
+    
+    // Maximum number of streams to enumerate (video/audio)
+    constexpr DWORD kMaxStreams = 16;
+    
+    // Maximum number of frames to decode after seeking to reach the requested timestamp
+    constexpr int kMaxDecodeFramesAfterSeek = 360;
 }
 
 namespace core {
@@ -206,7 +212,7 @@ namespace core {
         
         m_video_stream_index = options.video_stream_index;
         if (m_video_stream_index == static_cast<uint32_t>(-1)) {
-            for (DWORD i = 0; i < 16u; ++i) {
+            for (DWORD i = 0; i < kMaxStreams; ++i) {
                 win32::com_ptr<IMFMediaType> mt;
                 if (FAILED(m_source_reader->GetNativeMediaType(i, 0, mt.put()))) continue;
                 GUID major = GUID_NULL;
@@ -222,7 +228,7 @@ namespace core {
         }
         
         // 流选择：仅启用指定的视频流
-        for (DWORD i = 0; i < 16u; ++i) {
+        for (DWORD i = 0; i < kMaxStreams; ++i) {
             BOOL const select = (i == m_video_stream_index);
             m_source_reader->SetStreamSelection(i, select);
         }
@@ -374,7 +380,7 @@ namespace core {
                                     hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
                                 }
                                 if (SUCCEEDED(hr)) {
-                                    m_output_format_nv12 = true;
+                                    m_output_format = OutputFormat::NV12;
                                     Logger::info("[core] [VideoDecoder] Using NV12 output (original resolution), will convert to BGRA via Video Processor");
                                 }
                             }
@@ -392,7 +398,7 @@ namespace core {
                         return false;
                     }
                 } else if (!succeeded_via_retry) {
-                    m_output_format_nv12 = true;
+                    m_output_format = OutputFormat::NV12;
                     Logger::info("[core] [VideoDecoder] Using NV12 output, will convert to BGRA via Video Processor");
                 }
             }
@@ -463,7 +469,7 @@ namespace core {
             return false;
         }
         
-        if (m_output_format_nv12 && !createVideoProcessor()) {
+        if (m_output_format == OutputFormat::NV12 && !createVideoProcessor()) {
             Logger::error("[core] [VideoDecoder] Failed to create Video Processor for NV12 conversion");
             close();
             return false;
@@ -500,7 +506,7 @@ namespace core {
             duration_sec = var.hVal.QuadPart / 10000000.0;
             PropVariantClear(&var);
         }
-        for (DWORD si = 0; si < 16u; ++si) {
+        for (DWORD si = 0; si < kMaxStreams; ++si) {
             win32::com_ptr<IMFMediaType> mt;
             if (FAILED(m_source_reader->GetNativeMediaType(si, 0, mt.put()))) continue;
             GUID major = GUID_NULL;
@@ -529,7 +535,7 @@ namespace core {
             duration_sec = var.hVal.QuadPart / 10000000.0;
             PropVariantClear(&var);
         }
-        for (DWORD si = 0; si < 16u; ++si) {
+        for (DWORD si = 0; si < kMaxStreams; ++si) {
             win32::com_ptr<IMFMediaType> mt;
             if (FAILED(m_source_reader->GetNativeMediaType(si, 0, mt.put()))) continue;
             GUID major = GUID_NULL;
@@ -562,7 +568,7 @@ namespace core {
         m_video_processor_enum.reset();
         m_video_context.reset();
         m_video_device.reset();
-        m_output_format_nv12 = false;
+        m_output_format = OutputFormat::ARGB32;
         
         m_video_size = Vector2U{};
         m_target_size = Vector2U{};
@@ -773,9 +779,8 @@ namespace core {
         }
 
         constexpr double kTimeEpsilon = 1e-4;
-        constexpr int kMaxDecodeAfterSeek = 360;
 
-        for (int i = 0; i < kMaxDecodeAfterSeek; ++i) {
+        for (int i = 0; i < kMaxDecodeFramesAfterSeek; ++i) {
             if (!readNextFrame()) {
                 return false;
             }
@@ -790,7 +795,7 @@ namespace core {
     void VideoDecoder::onGraphicsDeviceCreate() {
         if (hasVideo()) {
             createTexture();
-            if (m_output_format_nv12) {
+            if (m_output_format == OutputFormat::NV12) {
                 createVideoProcessor();
             }
         }
@@ -822,7 +827,7 @@ namespace core {
         desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
         desc.SampleDesc.Count = 1;
         desc.SampleDesc.Quality = 0;
-        if (m_output_format_nv12) {
+        if (m_output_format == OutputFormat::NV12) {
             desc.Usage = D3D11_USAGE_DEFAULT;
             desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
             desc.CPUAccessFlags = 0;
@@ -1011,7 +1016,7 @@ namespace core {
             return false;
         }
         std::lock_guard<std::mutex> lock(m_device_context_mutex);
-        if (m_output_format_nv12 && m_video_processor) {
+        if (m_output_format == OutputFormat::NV12 && m_video_processor) {
             return updateTextureFromNV12SampleTo(sample, m_texture.get());
         }
         
@@ -1095,7 +1100,7 @@ namespace core {
             }
         }
         
-        static bool first_copy = true;
+        thread_local bool first_copy = true;
         if (first_copy) {
             Logger::info("[core] [VideoDecoder] Texture update: source={}x{} pitch={}, dest={}x{} pitch={}, force_alpha={}, scale={}",
                         src_w, src_h, source_pitch, dst_w, dst_h, mapped.RowPitch, force_opaque_alpha, need_scale);
