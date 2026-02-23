@@ -1,6 +1,7 @@
 require("test.graphics.Texture2D")
 require("test.graphics.RenderTarget")
 require("test.graphics.SpriteRenderer")
+require("test.graphics.SpriteCenter")
 require("test.graphics.Mesh")
 require("test.graphics.MeshRenderer")
 require("test.graphics.LegacyFontRenderer")

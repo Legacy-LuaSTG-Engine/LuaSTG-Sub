@@ -6,16 +6,16 @@ namespace core::Graphics
 {
 	struct ISprite : IReferenceCounted {
 		virtual ITexture2D* getTexture() = 0;
-		virtual void setTexture(ITexture2D* p_texture) = 0;
+		virtual void setTexture(ITexture2D* texture) = 0;
 		virtual void setTextureRect(RectF const& rc) = 0;
 		virtual RectF getTextureRect() = 0;
 		virtual void setTextureCenter(Vector2F const& pt) = 0;
 		virtual Vector2F getTextureCenter() = 0;
 		virtual void setUnitsPerPixel(float v) = 0;
 		virtual float getUnitsPerPixel() = 0;
-		virtual bool clone(ISprite** pp_sprite) = 0;
+		virtual bool clone(ISprite** out_sprite) = 0;
 
-		static bool create(ITexture2D* p_texture, ISprite** pp_sprite);
+		static bool create(ITexture2D* texture, ISprite** out_sprite);
 	};
 
 	struct ISpriteRenderer : IReferenceCounted {

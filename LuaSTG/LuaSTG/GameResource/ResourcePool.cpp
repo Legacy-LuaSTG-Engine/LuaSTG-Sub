@@ -345,7 +345,7 @@ namespace luastg
             return false;
         }
         p_sprite->setTextureRect(core::RectF((float)x, (float)y, (float)(x + w), (float)(y + h)));
-        p_sprite->setTextureCenter(core::Vector2F((float)(x + w * 0.5), (float)(y + h * 0.5)));
+        p_sprite->setTextureCenter(core::Vector2F((float)(w * 0.5), (float)(h * 0.5)));
     
         try
         {

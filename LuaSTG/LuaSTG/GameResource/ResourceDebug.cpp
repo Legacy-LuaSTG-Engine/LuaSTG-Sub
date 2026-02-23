@@ -107,7 +107,7 @@ namespace luastg
 				auto* p_tex = p_res->getTexture();
 				auto tex_size = p_tex->getSize();
 				auto rc = p_res->getTextureRect();
-				auto cp = p_res->getTextureCenter() - rc.a;
+				auto cp = p_res->getTextureCenter();
 				if (show_info)
 				{
 					ImGui::Text("Pos: %.2f x %.2f", rc.a.x, rc.a.y);
