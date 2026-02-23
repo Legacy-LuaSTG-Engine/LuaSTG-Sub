@@ -49,6 +49,11 @@ namespace core {
         bool createResource();
 
     private:
+        bool createTextureAndView();
+        bool createFromProvidedPath();
+        bool createFromImage(IData* data);
+        bool createFromImage(IImage* image);
+
         SmartReference<IGraphicsDevice> m_device;
         SmartReference<IGraphicsSampler> m_sampler;
         SmartReference<IImage> m_image;

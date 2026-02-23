@@ -1,13 +1,15 @@
 #include "d3d11/Texture2D.hpp"
 #include "core/Logger.hpp"
 #include "core/FileSystem.hpp"
+#include "core/Image.hpp"
 #include "utf8.hpp"
 #include "WICTextureLoader11.h"
 #include "DDSTextureLoader11.h"
-#include "QOITextureLoader11.h"
 #include "ScreenGrab11.h"
 
 namespace {
+    using std::string_view_literals::operator ""sv;
+
     IWICImagingFactory* getWIC(core::IGraphicsDevice* device);
 }
 
@@ -135,182 +137,259 @@ namespace core {
         return true;
     }
     bool Texture2D::createResource() {
-        HRESULT hr = S_OK;
-
-        const auto d3d11_device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
-        if (!d3d11_device)
-            return false;
-        win32::com_ptr<ID3D11DeviceContext> d3d11_devctx;
-        d3d11_device->GetImmediateContext(d3d11_devctx.put());
-        if (!d3d11_devctx)
-            return false;
-
         if (m_image) {
-            D3D11_TEXTURE2D_DESC tex2d_desc = {
-                .Width = m_size.x,
-                .Height = m_size.y,
-                .MipLevels = 1,
-                .ArraySize = 1,
-                .Format = DXGI_FORMAT_B8G8R8A8_UNORM,
-                .SampleDesc = {
-                    .Count = 1,
-                    .Quality = 0,
-                },
-                .Usage = D3D11_USAGE_DEFAULT,
-                .BindFlags = D3D11_BIND_SHADER_RESOURCE,
-                .CPUAccessFlags = 0,
-                .MiscFlags = 0,
-            };
-            
-            switch (m_image->getFormat()) {
-            case ImageFormat::r8g8b8a8_normalized:
-                tex2d_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-                break;
-            case ImageFormat::b8g8r8a8_normalized:
-                tex2d_desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-                break;
-            case ImageFormat::r16g16b16a16_float:
-                tex2d_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-                break;
-            case ImageFormat::r32g32b32a32_float:
-                tex2d_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-                break;
-            default:
-                return false;
-            }
-            
-            ScopedImageMappedBuffer buffer;
-            if (!m_image->createScopedMap(buffer)) {
-                return false;
-            }
+            // from in memory image
+            return createFromImage(m_image.get());
+        }
+        else if (!m_source_path.empty()) {
+            // from file
+            return createFromProvidedPath();
+        }
+        else {
+            // dynamic texture / render target
+            return createTextureAndView();
+        }
+    }
 
-            D3D11_SUBRESOURCE_DATA subres_data = {
-                .pSysMem = buffer.data,
-                .SysMemPitch = buffer.stride,
-                .SysMemSlicePitch = buffer.size,
-            };
+    bool Texture2D::createTextureAndView() {
+        const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        if (device == nullptr) {
+            assert(false); return false;
+        }
 
-            hr = gHR = d3d11_device->CreateTexture2D(&tex2d_desc, &subres_data, m_texture.put());
-            if (FAILED(hr)) {
-                Logger::error("Windows API failed: ID3D11Device::CreateTexture2D");
-                return false;
-            }
+        D3D11_TEXTURE2D_DESC texture_info{};
+        texture_info.Width = m_size.x;
+        texture_info.Height = m_size.y;
+        texture_info.MipLevels = 1;
+        texture_info.ArraySize = 1;
+        texture_info.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        texture_info.SampleDesc.Count = 1;
+        texture_info.Usage = D3D11_USAGE_DEFAULT;
+        texture_info.BindFlags = D3D11_BIND_SHADER_RESOURCE | (m_is_render_target ? D3D11_BIND_RENDER_TARGET : 0u);
 
-            D3D11_SHADER_RESOURCE_VIEW_DESC view_desc = {
-                .Format = tex2d_desc.Format,
-                .ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
-                .Texture2D = {
-                    .MostDetailedMip = 0,
-                    .MipLevels = 1,
-                },
-            };
-            hr = gHR = d3d11_device->CreateShaderResourceView(m_texture.get(), &view_desc, m_view.put());
-            if (FAILED(hr)) {
-                Logger::error("Windows API failed: ID3D11Device::CreateShaderResourceView");
+        if (!win32::check_hresult_as_boolean(
+            device->CreateTexture2D(&texture_info, nullptr, m_texture.put()),
+            "ID3D11Device::CreateTexture2D"sv
+        )) {
+            return false;
+        }
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC srv_info{};
+        srv_info.Format = texture_info.Format;
+        srv_info.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srv_info.Texture2D.MipLevels = texture_info.MipLevels;
+
+        if (!win32::check_hresult_as_boolean(
+            device->CreateShaderResourceView(m_texture.get(), &srv_info, m_view.put()),
+            "ID3D11Device::CreateTexture2D"sv
+        )) {
+            return false;
+        }
+
+        return true;
+    }
+    bool Texture2D::createFromProvidedPath() {
+        const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        if (device == nullptr) {
+            assert(false); return false;
+        }
+
+        const auto ctx = static_cast<ID3D11DeviceContext*>(m_device->getCommandbuffer()->getNativeHandle());
+        if (ctx == nullptr) {
+            assert(false); return false;
+        }
+
+        SmartReference<IData> data;
+        if (!FileSystemManager::readFile(m_source_path, data.put())) {
+            Logger::error("[core] [Texture2D] read file '{}' failed", m_source_path);
+            return false;
+        }
+
+        win32::com_ptr<ID3D11Resource> resource;
+
+        // DDS
+
+        DirectX::DDS_ALPHA_MODE dds_alpha_mode = DirectX::DDS_ALPHA_MODE_UNKNOWN;
+        const HRESULT dds_result = DirectX::CreateDDSTextureFromMemoryEx(
+            device, m_mipmap ? ctx : nullptr,
+            static_cast<uint8_t const*>(data->data()), data->size(),
+            0,
+            D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
+            DirectX::DDS_LOADER_IGNORE_SRGB, // TODO: linear color space
+            resource.put(), m_view.put(),
+            &dds_alpha_mode
+        );
+        if (SUCCEEDED(dds_result)) {
+            m_pre_mul_alpha = dds_alpha_mode == DirectX::DDS_ALPHA_MODE_PREMULTIPLIED;
+        }
+
+        // WIC
+
+        HRESULT wic_result = E_FAIL;
+        if (FAILED(dds_result)) {
+            wic_result = DirectX::CreateWICTextureFromMemoryEx(
+                device, m_mipmap ? ctx : nullptr,
+                static_cast<uint8_t const*>(data->data()), data->size(),
+                0,
+                D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
+                DirectX::WIC_LOADER_DEFAULT | DirectX::WIC_LOADER_IGNORE_SRGB, // TODO: linear color space
+                resource.put(), m_view.put()
+            );
+        }
+
+        // info
+
+        if (m_view && !m_texture) {
+            if (!win32::check_hresult_as_boolean(
+                m_view->QueryInterface(m_texture.put()),
+                "ID3D11Resource::QueryInterface (ID3D11Texture2D)"sv
+            )) {
                 return false;
             }
         }
-        else if (!m_source_path.empty()) {
-            SmartReference<IData> src;
-            if (!FileSystemManager::readFile(m_source_path, src.put())) {
-                Logger::error("[core] [Texture2D] read file '{}' failed", m_source_path);
-                return false;
-            }
 
-            // 加载图片
-            win32::com_ptr<ID3D11Resource> res;
-            // 先尝试以 DDS 格式加载
-            DirectX::DDS_ALPHA_MODE dds_alpha_mode = DirectX::DDS_ALPHA_MODE_UNKNOWN;
-            HRESULT const hr1 = DirectX::CreateDDSTextureFromMemoryEx(
-                d3d11_device, m_mipmap ? d3d11_devctx.get() : nullptr,
-                static_cast<uint8_t const*>(src->data()), src->size(),
-                0,
-                D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
-                DirectX::DDS_LOADER_IGNORE_SRGB, // TODO: 这里也同样忽略了 sRGB，看以后渲染管线颜色空间怎么改
-                res.put(), m_view.put(),
-                &dds_alpha_mode);
-            if (FAILED(hr1)) {
-                // 尝试以普通图片格式加载
-                HRESULT const hr2 = DirectX::CreateWICTextureFromMemoryEx(
-                    d3d11_device, m_mipmap ? d3d11_devctx.get() : nullptr,
-                    static_cast<uint8_t const*>(src->data()), src->size(),
-                    0,
-                    D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
-                    DirectX::WIC_LOADER_DEFAULT | DirectX::WIC_LOADER_IGNORE_SRGB,
-                    // TODO: 渲染管线目前是在 sRGB 下计算的，也就是心理视觉色彩，将错就错吧……
-                    //DirectX::WIC_LOADER_DEFAULT | DirectX::WIC_LOADER_SRGB_DEFAULT,
-                    res.put(), m_view.put());
-                if (FAILED(hr2)) {
-                    // 尝试以 QOI 图片格式加载
-                    HRESULT const hr3 = DirectX::CreateQOITextureFromMemoryEx(
-                        d3d11_device, m_mipmap ? d3d11_devctx.get() : nullptr, getWIC(m_device.get()),
-                        static_cast<uint8_t const*>(src->data()), src->size(),
-                        0,
-                        D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
-                        DirectX::QOI_LOADER_DEFAULT | DirectX::QOI_LOADER_IGNORE_SRGB,
-                        // TODO: 渲染管线目前是在 sRGB 下计算的，也就是心理视觉色彩，将错就错吧……
-                        //DirectX::QOI_LOADER_DEFAULT | DirectX::QOI_LOADER_SRGB_DEFAULT,
-                        res.put(), m_view.put());
-                    if (FAILED(hr3)) {
-                        // 在这里一起报告，不然 log 文件里遍地都是 error
-                        gHR = hr1;
-                        Logger::error("Windows API failed: DirectX::CreateDDSTextureFromMemoryEx");
-                        gHR = hr2;
-                        Logger::error("Windows API failed: DirectX::CreateWICTextureFromMemoryEx");
-                        gHR = hr3;
-                        Logger::error("Windows API failed: DirectX::CreateQOITextureFromMemoryEx");
-                        return false;
-                    }
-                }
-            }
-            if (dds_alpha_mode == DirectX::DDS_ALPHA_MODE_PREMULTIPLIED) {
-                m_pre_mul_alpha = true; // 您小子预乘了 alpha 通道是吧，行
-            }
-
-            // 转换类型
-            hr = gHR = res->QueryInterface(m_texture.put());
-            if (FAILED(hr)) {
-                Logger::error("Windows API failed: ID3D11Resource::QueryInterface -> ID3D11Texture2D");
-                return false;
-            }
-
-            // 获取图片尺寸
+        if (m_texture) {
             D3D11_TEXTURE2D_DESC texture_info{};
             m_texture->GetDesc(&texture_info);
             m_size.x = texture_info.Width;
             m_size.y = texture_info.Height;
         }
-        else {
-            D3D11_TEXTURE2D_DESC texdef = {
-                .Width = m_size.x,
-                .Height = m_size.y,
-                .MipLevels = 1,
-                .ArraySize = 1,
-                .Format = DXGI_FORMAT_B8G8R8A8_UNORM,
-                .SampleDesc = DXGI_SAMPLE_DESC{.Count = 1,.Quality = 0},
-                .Usage = D3D11_USAGE_DEFAULT,
-                .BindFlags = D3D11_BIND_SHADER_RESOURCE | (m_is_render_target ? D3D11_BIND_RENDER_TARGET : 0u),
-                .CPUAccessFlags = 0,
-                .MiscFlags = 0,
-            };
-            hr = gHR = d3d11_device->CreateTexture2D(&texdef, nullptr, m_texture.put());
-            if (FAILED(hr)) {
-                Logger::error("Windows API failed: ID3D11Device::CreateTexture2D");
-                return false;
-            }
 
-            D3D11_SHADER_RESOURCE_VIEW_DESC viewdef = {
-                .Format = texdef.Format,
-                .ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
-                .Texture2D = D3D11_TEX2D_SRV{.MostDetailedMip = 0,.MipLevels = 1,},
-            };
-            hr = gHR = d3d11_device->CreateShaderResourceView(m_texture.get(), &viewdef, m_view.put());
-            if (FAILED(hr)) {
-                Logger::error("Windows API failed: ID3D11Device::CreateShaderResourceView");
-                return false;
-            }
+        // Image
+
+        bool image_result = false;
+        if (FAILED(dds_result) && FAILED(wic_result)) {
+            image_result = createFromImage(data.get());
         }
 
+        // summary
+
+        if (FAILED(dds_result) && FAILED(wic_result) && !image_result) {
+            Logger::error("[core] [Texture2D] load from file '{}' failed, not a valid JPEG, PNG, WebP, QOI, BMP or DDS format.", m_source_path);
+            return false;
+        }
+
+        return true;
+    }
+    bool Texture2D::createFromImage(IData* const data) {
+        if (data == nullptr) {
+            assert(false); return false;
+        }
+
+        SmartReference<IImage> image;
+        if (!ImageFactory::createFromData(data, image.put())) {
+            return false;
+        }
+
+        return createFromImage(image.get());
+    }
+    bool Texture2D::createFromImage(IImage* const image) {
+        if (image == nullptr) {
+            assert(false); return false;
+        }
+        if (const auto size = image->getSize(); size.x > D3D10_REQ_TEXTURE2D_U_OR_V_DIMENSION || size.y > D3D10_REQ_TEXTURE2D_U_OR_V_DIMENSION) {
+            if (!m_source_path.empty()) {
+                Logger::error("[core] [Texture2D] load from file '{}' failed, image size ({}x{}) exceeds the size limit ({}x{})",
+                    m_source_path,
+                    size.x, size.y,
+                    D3D10_REQ_TEXTURE2D_U_OR_V_DIMENSION, D3D10_REQ_TEXTURE2D_U_OR_V_DIMENSION
+                );
+            }
+            else {
+                Logger::error("[core] [Texture2D] image size ({}x{}) exceeds the size limit ({}x{})",
+                    size.x, size.y,
+                    D3D10_REQ_TEXTURE2D_U_OR_V_DIMENSION, D3D10_REQ_TEXTURE2D_U_OR_V_DIMENSION
+                );
+            }
+            assert(false); return false;
+        }
+
+        const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        if (device == nullptr) {
+            assert(false); return false;
+        }
+
+        const auto ctx = static_cast<ID3D11DeviceContext*>(m_device->getCommandbuffer()->getNativeHandle());
+        if (ctx == nullptr) {
+            assert(false); return false;
+        }
+
+        // TODO: handle sRGB
+        // TODO: generate mipmap
+
+        D3D11_TEXTURE2D_DESC texture_info{};
+        texture_info.Width = image->getSize().x;
+        texture_info.Height = image->getSize().y;
+        texture_info.MipLevels = 1;
+        texture_info.ArraySize = 1;
+        switch (image->getFormat()) {
+        case ImageFormat::r8g8b8a8_normalized:
+            texture_info.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            break;
+        case ImageFormat::b8g8r8a8_normalized:
+            texture_info.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+            break;
+        case ImageFormat::r16g16b16a16_float:
+            texture_info.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+            break;
+        case ImageFormat::r32g32b32a32_float:
+            texture_info.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+            break;
+        }
+        texture_info.SampleDesc.Count = 1;
+        texture_info.Usage = D3D11_USAGE_DEFAULT;
+        texture_info.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        if (m_mipmap) {
+            texture_info.MipLevels = 0;
+            texture_info.BindFlags |= D3D11_BIND_RENDER_TARGET;
+            texture_info.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
+        }
+
+        core::ScopedImageMappedBuffer image_buffer{};
+        if (!image->createScopedMap(image_buffer)) {
+            assert(false); return false;
+        }
+
+        D3D11_SUBRESOURCE_DATA texture_data{};
+        texture_data.pSysMem = image_buffer.data;
+        texture_data.SysMemPitch = image_buffer.stride;
+        texture_data.SysMemSlicePitch = image_buffer.size;
+
+        if (!win32::check_hresult_as_boolean(
+            device->CreateTexture2D(&texture_info, m_mipmap ? nullptr : &texture_data, m_texture.put()),
+            "ID3D11Device::CreateTexture2D"sv
+        )) {
+            return false;
+        }
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC srv_info{};
+        srv_info.Format = texture_info.Format;
+        srv_info.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srv_info.Texture2D.MipLevels = texture_info.MipLevels;
+        if (m_mipmap) {
+            srv_info.Texture2D.MipLevels = -1;
+        }
+
+        if (!win32::check_hresult_as_boolean(
+            device->CreateShaderResourceView(m_texture.get(), &srv_info, m_view.put()),
+            "ID3D11Device::CreateTexture2D"sv
+        )) {
+            return false;
+        }
+
+        if (m_mipmap) {
+            D3D11_BOX box{};
+            box.right = texture_info.Width;
+            box.bottom = texture_info.Height;
+            box.back = 1;
+            ctx->UpdateSubresource(m_texture.get(), 0, &box, image_buffer.data, image_buffer.stride, image_buffer.size);
+            ctx->GenerateMips(m_view.get());
+            ctx->Flush();
+        }
+
+        m_size.x = texture_info.Width;
+        m_size.y = texture_info.Height;
+        m_pre_mul_alpha = image->getAlphaMode() == ImageAlphaMode::premultiplied;
         return true;
     }
 }
