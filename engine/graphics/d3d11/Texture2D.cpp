@@ -239,9 +239,9 @@ namespace core {
 
         // info
 
-        if (m_view && !m_texture) {
+        if (resource && !m_texture) {
             if (!win32::check_hresult_as_boolean(
-                m_view->QueryInterface(m_texture.put()),
+                resource->QueryInterface(m_texture.put()),
                 "ID3D11Resource::QueryInterface (ID3D11Texture2D)"sv
             )) {
                 return false;
