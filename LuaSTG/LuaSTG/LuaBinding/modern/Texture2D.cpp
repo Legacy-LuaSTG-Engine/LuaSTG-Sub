@@ -51,6 +51,21 @@ namespace luastg::binding {
 			ctx.push_value(self->data->getSize().y);
 			return 1;
 		}
+		static int setDefaultSampler(lua_State* const vm) {
+			const lua::stack_t ctx(vm);
+			const auto self = as(vm, 1);
+			const auto default_sampler = ctx.get_value<std::string_view>(1 + 1);
+
+			core::Graphics::IRenderer::SamplerState known_sampler = core::Graphics::IRenderer::SamplerState::LinearClamp;
+			if (default_sampler == "point+wrap") known_sampler = core::Graphics::IRenderer::SamplerState::PointWrap;
+			else if (default_sampler == "point+clamp") known_sampler = core::Graphics::IRenderer::SamplerState::PointClamp;
+			else if (default_sampler == "linear+wrap") known_sampler = core::Graphics::IRenderer::SamplerState::LinearWrap;
+			else if (default_sampler == "" || default_sampler == "linear+clamp") known_sampler = core::Graphics::IRenderer::SamplerState::LinearClamp;
+			else return luaL_error(vm, "unknown sampler '%s'", default_sampler.data());
+
+			self->data->setSamplerState(LAPP.getRenderer2D()->getKnownSamplerState(known_sampler));
+			return 0;
+		}
 
 		// static method
 
@@ -95,6 +110,7 @@ namespace luastg::binding {
 		auto const method_table = ctx.create_module(class_name);
 		ctx.set_map_value(method_table, "getWidth", &Texture2DBinding::getWidth);
 		ctx.set_map_value(method_table, "getHeight", &Texture2DBinding::getHeight);
+		ctx.set_map_value(method_table, "setDefaultSampler", &Texture2DBinding::setDefaultSampler);
 		ctx.set_map_value(method_table, "createFromFile", &Texture2DBinding::createFromFile);
 
 		// metatable

@@ -29,7 +29,7 @@ function M:update1()
     local h_2 = window.height / 2
     local y = h_2 + h_2 * math.sin(self.timer / 120)
     self.sprite_renderer:setPosition(w_2, y)
-    local s = 1.0 + 0.5 * math.sin(self.timer / 30)
+    local s = 2.0 + 1.0 * math.sin(self.timer / 30)
     self.sprite_renderer:setScale(s)
     self.sprite_renderer:setRotation(self.timer / 60)
     local a = 0.5 + 0.5 * math.sin(self.timer / 20)
@@ -40,6 +40,11 @@ function M:update1()
         self.sprite_renderer:setLegacyBlendState("")
     else
         self.sprite_renderer:setLegacyBlendState("mul+add")
+    end
+    if (self.timer % 360) < 180 then
+        self.texture:setDefaultSampler("")
+    else
+        self.texture:setDefaultSampler("point+clamp")
     end
 end
 
