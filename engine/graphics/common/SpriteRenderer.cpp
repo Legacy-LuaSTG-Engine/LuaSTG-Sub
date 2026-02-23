@@ -36,8 +36,9 @@ namespace core {
 		m_vertex[3].z = p4.z;
 	}
 	void SpriteRenderer::setTransform(Vector2F const& position, Vector2F const& scale) {
-		auto const rect0 = m_sprite->getTextureRect() - m_sprite->getTextureCenter();
-		auto const scale0 = Vector2F(m_sprite->getUnitsPerPixel(), -m_sprite->getUnitsPerPixel()); // Y 轴朝上
+		const auto center0 = m_sprite->getTextureRect().a + m_sprite->getTextureCenter();
+		auto const rect0 = m_sprite->getTextureRect() - center0;
+		auto const scale0 = Vector2F(m_sprite->getUnitsPerPixel(), -m_sprite->getUnitsPerPixel()); // Y up
 		auto const rect = RectF(rect0.a * scale0 * scale, rect0.b * scale0 * scale);
 		m_vertex[0].x = position.x + rect.a.x;
 		m_vertex[0].y = position.y + rect.a.y;
@@ -53,8 +54,9 @@ namespace core {
 			setTransform(position, scale);
 			return;
 		}
-		auto const rect0 = m_sprite->getTextureRect() - m_sprite->getTextureCenter();
-		auto const scale0 = Vector2F(m_sprite->getUnitsPerPixel(), -m_sprite->getUnitsPerPixel()); // Y 轴朝上
+		const auto center0 = m_sprite->getTextureRect().a + m_sprite->getTextureCenter();
+		auto const rect0 = m_sprite->getTextureRect() - center0;
+		auto const scale0 = Vector2F(m_sprite->getUnitsPerPixel(), -m_sprite->getUnitsPerPixel()); // Y up
 		auto const rect = RectF(rect0.a * scale0 * scale, rect0.b * scale0 * scale);
 		m_vertex[0].x = rect.a.x;
 		m_vertex[0].y = rect.a.y;

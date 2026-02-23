@@ -40,8 +40,8 @@ namespace luastg
 				);
 				p_sprite_core->setTextureRect(rc);
 				p_sprite_core->setTextureCenter(core::Vector2F(
-					(rc.a.x + rc.b.x) * 0.5f,
-					(rc.a.y + rc.b.y) * 0.5f
+					(rc.b.x - rc.a.x) * 0.5f,
+					(rc.b.y - rc.a.y) * 0.5f
 				));
 				core::SmartReference<IResourceSprite> p_sprite;
 				p_sprite.attach(new ResourceSpriteImpl("", p_sprite_core.get(), a, b, rect));

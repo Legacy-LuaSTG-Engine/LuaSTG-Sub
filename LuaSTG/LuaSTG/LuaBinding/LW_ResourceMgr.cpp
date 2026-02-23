@@ -583,8 +583,8 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			if (!p)
 				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
 			p->GetSprite()->setTextureCenter(core::Vector2F(
-				static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite()->getTextureRect().a.x),
-				static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite()->getTextureRect().a.y))
+				static_cast<float>(luaL_checknumber(L, 2)),
+				static_cast<float>(luaL_checknumber(L, 3)))
 			);
 			return 0;
 		}
@@ -644,8 +644,8 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			for (size_t i = 0; i < p->GetCount(); ++i)
 			{
 				p->GetSprite((uint32_t)i)->GetSprite()->setTextureCenter(core::Vector2F(
-					static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite((uint32_t)i)->GetSprite()->getTextureRect().a.x),
-					static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite((uint32_t)i)->GetSprite()->getTextureRect().a.y)
+					static_cast<float>(luaL_checknumber(L, 2)),
+					static_cast<float>(luaL_checknumber(L, 3))
 				));
 			}
 			return 0;
