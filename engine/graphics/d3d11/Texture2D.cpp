@@ -367,7 +367,8 @@ namespace core {
         srv_info.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
         srv_info.Texture2D.MipLevels = texture_info.MipLevels;
         if (m_mipmap) {
-            srv_info.Texture2D.MipLevels = -1;
+            // See: https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ns-d3d11-d3d11_tex2d_srv
+            srv_info.Texture2D.MipLevels = static_cast<UINT>(-1);
         }
 
         if (!win32::check_hresult_as_boolean(
