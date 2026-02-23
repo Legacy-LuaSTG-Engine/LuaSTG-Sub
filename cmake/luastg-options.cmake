@@ -85,25 +85,18 @@ luastg_cmake_option(
 
 # LuaSTG - Image
 
-set(use_wic FALSE)
-set(image_library_enable TRUE)
-if (WIN32)
-    set(use_wic TRUE)
-    set(image_library_enable FALSE)
-endif ()
-
 luastg_cmake_option(
     NAME LUASTG_IMAGE_JPEG_ENABLE
     TYPE BOOL
     HELP "LuaSTG: Image: Enable libjpeg-turbo support"
-    VALUE ${image_library_enable}
+    VALUE TRUE
 )
 
 luastg_cmake_option(
     NAME LUASTG_IMAGE_PNG_ENABLE
     TYPE BOOL
     HELP "LuaSTG: Image: Enable libpng support"
-    VALUE ${image_library_enable}
+    VALUE TRUE
 )
 
 luastg_cmake_option(
@@ -117,18 +110,15 @@ luastg_cmake_option(
     NAME LUASTG_IMAGE_STB_ENABLE
     TYPE BOOL
     HELP "LuaSTG: Image: Enable stb_image support"
-    VALUE ${image_library_enable}
+    VALUE TRUE
 )
 
 luastg_cmake_option(
     NAME LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE
     TYPE BOOL
     HELP "LuaSTG: Image: Enable Windows Imaging Component support"
-    VALUE ${use_wic}
+    VALUE FALSE
 )
-
-unset(use_wic)
-unset(image_library_enable)
 
 # LuaSTG - Graphics
 
