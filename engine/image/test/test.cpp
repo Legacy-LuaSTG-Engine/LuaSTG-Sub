@@ -27,15 +27,19 @@ namespace {
     using std::string_literals::operator ""s;
     using std::string_view_literals::operator ""sv;
 
+#ifdef LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE
     void win32LoggerWriter(const std::string_view message) {
         core::Logger::error(message);
     }
+#endif
 
     void setupLogger() {
         if (!spdlog::get("test"s)) {
             spdlog::set_default_logger(spdlog::stdout_color_mt("test"s));
         }
+    #ifdef LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE
         win32::set_logger_writer(&win32LoggerWriter);
+    #endif
     }
 }
 
