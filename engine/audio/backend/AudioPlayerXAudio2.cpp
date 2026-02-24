@@ -12,7 +12,7 @@ namespace core {
 	// IAudioPlayer
 
 	bool AudioPlayerXAudio2::play(double const seconds) {
-		if (static_cast<double>(m_sample_rate) * m_start_time > static_cast<double>(m_total_frame)) {
+		if (static_cast<double>(m_sample_rate) * seconds > static_cast<double>(m_total_frame)) {
 			m_start_time = m_total_seconds;
 			if (!m_loop) {
 				m_state = AudioPlayerState::stopped;
