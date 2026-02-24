@@ -91,11 +91,12 @@ namespace core {
         // Unmap image
         virtual void unmap() noexcept = 0;
 
-        // Get pixel at (x, y), value is always converted to float4.
+        // Get pixel at (x, y), value is always converted to float4 (r, g, b, a).
         // If the (x, y) coordinates are out of range, return float4(0.0f, 0.0f, 0.0f, 0.0f).
         virtual Vector4F getPixel(uint32_t x, uint32_t y) const noexcept = 0;
 
         // Set pixel at (x, y), value will be automatically converted to the image format.
+        // Pixel value is always treated as float4 (r, g, b, a).
         // If the (x, y) coordinates are out of range, nothing will happen.
         virtual void setPixel(uint32_t x, uint32_t y, const Vector4F& pixel) noexcept = 0;
 
