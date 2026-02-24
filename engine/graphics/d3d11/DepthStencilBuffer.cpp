@@ -47,7 +47,7 @@ namespace core {
     bool DepthStencilBuffer::createResource() {
         HRESULT hr = S_OK;
 
-        const auto d3d11_device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        const auto d3d11_device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
         if (!d3d11_device)
             return false;
         win32::com_ptr<ID3D11DeviceContext> d3d11_devctx;

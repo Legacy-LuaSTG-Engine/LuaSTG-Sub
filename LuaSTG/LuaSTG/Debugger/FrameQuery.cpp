@@ -10,7 +10,7 @@ namespace luastg {
         // IGraphicsDeviceEventListener
 
         void onGraphicsDeviceCreate() override {
-            createResources(static_cast<ID3D11Device*>(m_device->getNativeHandle()));
+            createResources(static_cast<ID3D11Device*>(m_device->getNativeDevice()));
         }
         void onGraphicsDeviceDestroy() override {
             destroyResources();
@@ -128,7 +128,7 @@ namespace luastg {
         }
 
         Impl(core::IGraphicsDevice* device) : m_device(device) {
-            createResources(static_cast<ID3D11Device*>(m_device->getNativeHandle()));
+            createResources(static_cast<ID3D11Device*>(m_device->getNativeDevice()));
             m_device->addEventListener(this);
         }
         ~Impl() {

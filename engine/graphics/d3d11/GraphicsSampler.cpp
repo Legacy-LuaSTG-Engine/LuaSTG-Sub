@@ -61,7 +61,7 @@ namespace core {
         return true;
     }
     bool GraphicsSampler::createResource() {
-        const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        const auto device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
         if (device == nullptr) {
             assert(false); return false;
         }

@@ -67,7 +67,6 @@ namespace core {
         StringView getGpuName(uint32_t index) override { return dxgi_adapter_name_list[index]; }
         StringView getCurrentGpuName() const noexcept override { return dxgi_adapter_name; }
 
-        void* getNativeHandle() override { return d3d11_device.get(); }
 #ifdef LUASTG_ENABLE_DIRECT2D
         void* getNativeRendererHandle() override { return d2d1_devctx.get(); }
 #else

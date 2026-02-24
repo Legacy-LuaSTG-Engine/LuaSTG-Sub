@@ -429,7 +429,7 @@ namespace core {
             assert(false); return false;
         }
 
-        const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        const auto device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
         if (device == nullptr) {
             assert(false); return false;
         }
@@ -709,7 +709,7 @@ namespace core {
     // IGraphicsDeviceEventListener
 
     void SwapChain::onGraphicsDeviceCreate() {
-        const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        const auto device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
         if (device == nullptr) {
             assert(false); return;
         }
@@ -762,7 +762,7 @@ namespace core {
         if (device == nullptr) {
             assert(false); return false;
         }
-        const auto d3d11_device = static_cast<ID3D11Device*>(device->getNativeHandle());
+        const auto d3d11_device = static_cast<ID3D11Device*>(device->getNativeDevice());
         if (d3d11_device == nullptr) {
             assert(false); return false;
         }
@@ -918,7 +918,7 @@ namespace core {
         if (m_model == SwapChainModel::legacy || m_model == SwapChainModel::modern) {
             if (!win32::check_hresult_as_boolean(
                 dxgi_factory->CreateSwapChainForHwnd(
-                    static_cast<ID3D11Device*>(m_device->getNativeHandle()),
+                    static_cast<ID3D11Device*>(m_device->getNativeDevice()),
                     static_cast<HWND>(m_window->getNativeHandle()),
                     &m_swap_chain_info,
                     m_exclusive_fullscreen ? &m_swap_chain_fullscreen_info : nullptr,
@@ -940,7 +940,7 @@ namespace core {
 
             if (!win32::check_hresult_as_boolean(
                 dxgi_factory->CreateSwapChainForComposition(
-                    static_cast<ID3D11Device*>(m_device->getNativeHandle()),
+                    static_cast<ID3D11Device*>(m_device->getNativeDevice()),
                     &m_swap_chain_info,
                     nullptr,
                     m_swap_chain.put()
@@ -1070,7 +1070,7 @@ namespace core {
         if (!m_swap_chain) {
             assert(false); return false;
         }
-        const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        const auto device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
         if (device == nullptr) {
             assert(false); return false;
         }
@@ -1239,7 +1239,7 @@ namespace core {
         if (m_canvas_size.x == 0 || m_canvas_size.y == 0) {
             assert(false); return false;
         }
-        const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        const auto device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
         if (device == nullptr) {
             assert(false); return false;
         }
@@ -1435,7 +1435,7 @@ namespace core {
     #ifdef LUASTG_ENABLE_DIRECT2D
         if (!m_swap_chain_title_bar.create(
             dxgi_factory.get(),
-            static_cast<ID3D11Device*>(m_device->getNativeHandle()),
+            static_cast<ID3D11Device*>(m_device->getNativeDevice()),
             static_cast<ID2D1DeviceContext*>(m_device->getNativeRendererHandle()),
             m_window->_getCurrentSize()
         )) {

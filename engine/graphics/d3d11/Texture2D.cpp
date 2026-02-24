@@ -32,9 +32,9 @@ namespace core {
             Logger::error("[core] [Texture2D] read-only texture cannot by modified");
             assert(false); return false;
         }
-        assert(m_device->getNativeHandle());
+        assert(m_device->getNativeDevice());
         win32::com_ptr<ID3D11DeviceContext> ctx;
-        static_cast<ID3D11Device*>(m_device->getNativeHandle())->GetImmediateContext(ctx.put());
+        static_cast<ID3D11Device*>(m_device->getNativeDevice())->GetImmediateContext(ctx.put());
         assert(m_texture);
         if (!ctx || !m_texture) {
             return false;
@@ -157,7 +157,7 @@ namespace core {
     }
 
     bool Texture2D::createTextureAndView() {
-        const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        const auto device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
         if (device == nullptr) {
             assert(false); return false;
         }
@@ -194,7 +194,7 @@ namespace core {
         return true;
     }
     bool Texture2D::createFromProvidedPath() {
-        const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        const auto device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
         if (device == nullptr) {
             assert(false); return false;
         }
@@ -309,7 +309,7 @@ namespace core {
             assert(false); return false;
         }
 
-        const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        const auto device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
         if (device == nullptr) {
             assert(false); return false;
         }

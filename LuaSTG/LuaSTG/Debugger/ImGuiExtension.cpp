@@ -738,7 +738,7 @@ namespace imgui {
 		}
 		void onGraphicsDeviceCreate() override {
 			g_imgui_impl_dx11_initialized = false;
-			auto const device = static_cast<ID3D11Device*>(LAPP.getGraphicsDevice()->getNativeHandle());
+			auto const device = static_cast<ID3D11Device*>(LAPP.getGraphicsDevice()->getNativeDevice());
 			ID3D11DeviceContext* context{};
 			device->GetImmediateContext(&context);
 			ImGui_ImplDX11_Init(device, context);

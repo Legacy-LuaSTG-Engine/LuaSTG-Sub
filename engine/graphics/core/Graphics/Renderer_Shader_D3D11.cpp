@@ -79,7 +79,7 @@ namespace core::Graphics
 					return false;
 			}
 		}
-		const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+		const auto device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
 		assert(device != nullptr);
 		HRESULT hr = gHR = device->CreatePixelShader(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), nullptr, d3d11_ps.put());
 		if (FAILED(hr))

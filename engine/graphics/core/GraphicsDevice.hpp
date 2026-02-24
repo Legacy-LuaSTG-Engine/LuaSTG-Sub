@@ -128,7 +128,6 @@ namespace core {
         virtual StringView getGpuName(uint32_t index) = 0;
         virtual StringView getCurrentGpuName() const noexcept = 0;
 
-        virtual void* getNativeHandle() = 0;
         virtual void* getNativeRendererHandle() = 0;
     };
 

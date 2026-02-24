@@ -338,7 +338,7 @@ namespace core {
     }
 
     bool GraphicsPipeline::createResources() {
-        const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+        const auto device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
         assert(device != nullptr);
         const auto& create_info = m_graphics_pipeline_state_helper;
 

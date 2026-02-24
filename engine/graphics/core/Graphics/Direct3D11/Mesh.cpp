@@ -273,7 +273,7 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 	bool Mesh::createResources() {
-		const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+		const auto device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
 		assert(device);
 
 		D3D11_INPUT_ELEMENT_DESC elements[3]{};
