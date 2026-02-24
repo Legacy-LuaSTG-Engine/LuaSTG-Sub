@@ -76,8 +76,6 @@ namespace core {
             return false;
         if (!createD3D11())
             return false;
-        if (!createWIC())
-            return false;
 #ifdef LUASTG_ENABLE_DIRECT2D
         if (!createD2D1())
             return false;
@@ -91,14 +89,13 @@ namespace core {
 #ifdef LUASTG_ENABLE_DIRECT2D
         destroyD2D1();
 #endif
-        destroyWIC(); // 长生存期
         destroyD3D11();
         destroyDXGI();
         assert(m_event_listeners.size() == 0);
     }
     bool GraphicsDevice::handleDeviceLost() {
         if (d3d11_device) {
-            gHR = d3d11_device->GetDeviceRemovedReason();
+            win32::check_hresult(d3d11_device->GetDeviceRemovedReason());
         }
         return doDestroyAndCreate();
     }
@@ -278,35 +275,6 @@ namespace core {
         d3d11_device.reset();
         d3d11_devctx.reset();
         d3d11_devctx1.reset();
-    }
-    bool GraphicsDevice::createWIC() {
-        HRESULT hr = S_OK;
-
-        hr = gHR = CoCreateInstance(CLSID_WICImagingFactory2, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(wic_factory2.put()));
-        if (SUCCEEDED(hr)) {
-            hr = gHR = wic_factory2->QueryInterface(wic_factory.put());
-            assert(SUCCEEDED(hr));
-            if (FAILED(hr)) {
-                Logger::error("Windows API failed: IWICImagingFactory2::QueryInterface -> IWICImagingFactory");
-                return false;
-            }
-        }
-        else {
-            Logger::error("Windows API failed: CoCreateInstance -> IWICImagingFactory2");
-            // 没有那么严重，来再一次
-            hr = gHR = CoCreateInstance(CLSID_WICImagingFactory1, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(wic_factory.put()));
-            assert(SUCCEEDED(hr));
-            if (FAILED(hr)) {
-                Logger::error("Windows API failed: CoCreateInstance -> IWICImagingFactory");
-                return false;
-            }
-        }
-
-        return true;
-    }
-    void GraphicsDevice::destroyWIC() {
-        wic_factory.reset();
-        wic_factory2.reset();
     }
 #ifdef LUASTG_ENABLE_DIRECT2D
     bool GraphicsDevice::createD2D1() {

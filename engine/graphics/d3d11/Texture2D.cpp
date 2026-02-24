@@ -9,8 +9,6 @@
 
 namespace {
     using std::string_view_literals::operator ""sv;
-
-    IWICImagingFactory* getWIC(core::IGraphicsDevice* device);
 }
 
 namespace core {
@@ -68,7 +66,9 @@ namespace core {
                 &GUID_WICPixelFormat24bppBGR
             ),
             "DirectX::SaveWICTextureToFile"sv
-        ));
+        )) {
+            return false;
+        }
 
         return true;
     }
@@ -401,12 +401,6 @@ namespace core {
 }
 
 #include "d3d11/GraphicsDevice.hpp"
-
-namespace {
-    IWICImagingFactory* getWIC(core::IGraphicsDevice* const device) {
-        return static_cast<core::GraphicsDevice*>(device)->GetWICImagingFactory();
-    }
-}
 
 namespace core {
     bool GraphicsDevice::createTextureFromFile(StringView const path, bool const mipmap, ITexture2D** const out_texture) {
