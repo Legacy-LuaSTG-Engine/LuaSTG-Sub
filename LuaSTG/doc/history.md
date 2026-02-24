@@ -1,5 +1,9 @@
 # LuaSTG Sub 更新历史记录
 
+* LuaSTG Sub v0.21.128
+    * 音频
+        * 修复：播放音效时，如果不慎将开始播放的秒数设置超过音频总长度，后续将无法再播放该音效
+        * 修复：播放背景音乐时，如果该背景音乐关闭了循环播放，那么播放完后将无法再次播放该背景音乐
 * LuaSTG Sub v0.21.127
     * 图形/渲染
         * 修复：修复 `lstg.Sprite:setCenter` 与 `lstg.SetImageCenter` 行为不一致，现在 `center_x`、`center_y` 统一从 Sprite 矩形左上角开始  

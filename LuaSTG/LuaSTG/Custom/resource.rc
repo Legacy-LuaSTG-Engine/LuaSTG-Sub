@@ -50,8 +50,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
-    FILEVERSION 0,21,127,0
-    PRODUCTVERSION 0,21,127,0
+    FILEVERSION 0,21,128,0
+    PRODUCTVERSION 0,21,128,0
     FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
     FILEFLAGS 0x1L
@@ -68,12 +68,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "LuaSTG Community (隔壁的桌子, ⑨CHU, ESC, Xiliusha, 璀境石)"
             VALUE "FileDescription", "LuaSTG Sub"
-            VALUE "FileVersion", "0.21.127.0"
+            VALUE "FileVersion", "0.21.128.0"
             VALUE "InternalName", "LuaSTG Sub"
             VALUE "LegalCopyright", "Copyright 2020-2026 LuaSTG Community (隔壁的桌子, ⑨CHU, ESC, Xiliusha, 璀境石)"
             VALUE "OriginalFilename", "LuaSTGSub.exe"
             VALUE "ProductName", "LuaSTG Sub"
-            VALUE "ProductVersion", "0.21.127.0"
+            VALUE "ProductVersion", "0.21.128.0"
         END
     END
     BLOCK "VarFileInfo"
