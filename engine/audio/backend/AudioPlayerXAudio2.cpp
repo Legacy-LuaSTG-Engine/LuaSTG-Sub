@@ -215,10 +215,6 @@ namespace core {
 			return false;
 		}
 
-		m_voice_buffer.Flags = XAUDIO2_END_OF_STREAM;
-		m_voice_buffer.AudioBytes = frames_read * static_cast<uint32_t>(decoder->getFrameSize());
-		m_voice_buffer.pAudioData = m_pcm_data.data();
-
 		std::ignore = create();
 		m_parent->addEventListener(this);
 		return true;
