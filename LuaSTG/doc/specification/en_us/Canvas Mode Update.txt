@@ -1,0 +1,129 @@
+LuaSTG Sub Canvas feature branch
+    This is a feature branch related to engine behavior change,
+    which is still in early develop.
+    Differences from LuaSTG Plus/LuaSTG Ex Plus:
+        1. Support for more present modes and automatically select the one
+           with the best performance and lowest latency.
+        2. The window can be freely adjusted in size, maximized,
+           and snapped to a layout.
+        3. Toggle full screen mode via Alt+Enter shortcut
+           (instead of Ctrl+Enter shortcut).
+        4. Introduce the concept of the canvas,
+           allowing fixed rendering resolutions.
+        5. The canvas will automatically be letter boxing renderering
+           to the window or monitor.
+        6. Mouse positions are mapped to canvas coordinates.
+    Available present modes (sort by selection priority):
+        1. Desktop Composition Engine
+        2. Window and Exclusive FullScreen
+        3. Window and Borderless Window FullScreen
+        4. Window (Legacy) and Exclusive FullScreen
+        5. Window (Legacy) and Borderless Window FullScreen (Legacy)
+    Desktop Composition Engine require:
+        1. Windows 10 1809 or later, Windows 11.
+        2. Support present allow tearing (DXGI_FEATURE_PRESENT_ALLOW_TEARING).
+        3. Each connected monitor supports at least one of the following features:
+            1. Multi-Plane Overlay
+            2. Hardware-accelerated fullscreen composition
+               (DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN).
+        4. Multi-Plane Overlay not disabled via registry
+           (HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Dwm:OverlayTestMode=5 not exist）.
+    Window and Exclusive FullScreen require:
+        1. Windows 10 1809 or later, Windows 11.
+        2. Support present allow tearing (DXGI_FEATURE_PRESENT_ALLOW_TEARING).
+    Window and Borderless Window FullScreen require:
+        1. Windows 10 1809 or later, Windows 11.
+        2. Support present allow tearing (DXGI_FEATURE_PRESENT_ALLOW_TEARING).
+    Window (Legacy) and Exclusive FullScreen require:
+        1. Windows 7 SP1/8/8.1/10/11
+        2. For Windows 7 SP1, also require:
+            1. Platform Update For Windows 7 (KB2670838)
+    Window (Legacy) and Borderless Window FullScreen (Legacy) require:
+        1. Windows 7 SP1/8/8.1/10/11
+        2. For Windows 7 SP1, also require:
+            1. Platform Update For Windows 7 (KB2670838)
+
+LuaSTG Sub Canvas 0.19.202
+    * Fix: load fancy2d font will crash then engine
+
+LuaSTG Sub Canvas 0.19.201
+    * Fix: If an error occurs when executing the launch script,
+      program will crash silently
+    * Change: When resizing the canvas, if in Exclusive Fullscreen mode,
+      reconfigure Exclusive Fullscreen
+    * Change: if the internally used mode is Exclusive Fullscreen,
+      when leaving fullscreen mode, reconfigure SwapChain
+
+LuaSTG Sub Canvas 0.19.200
+    * Change: Initially merge the window message thread and update & render thread,
+      which has an imperceptible impact on game performance,
+      but makes the engine easier to maintain
+    * Fix: if the internally used mode is Exclusive Fullscreen,
+      when leaving fullscreen mode, the window layout will not restore successfully
+    * Change: Improved scoring of refresh rates for enumerated display modes
+      when using exclusive fullscreen mode, which can theoretically reduce
+      the possibility of choosing an unsuitable refresh rate
+
+LuaSTG Sub Canvas 0.19.108
+    * Update some third-party libraries
+    * Change: On Windows 10/11, Desktop Composition Engine is disabled
+      for some older devices for performance reasons
+
+LuaSTG Sub Canvas 0.19.107
+    * Update some third-party libraries
+    * Change: On Windows 10/11, Exclusive FullScreen using modern
+      FLIP swapchain model (DXGI_SWAP_EFFECT_FLIP_DISCARD)
+
+LuaSTG Sub Canvas 0.19.106
+    * Add: Window and Exclusive FullScreen mode
+    * Change: Strict check on compatibility of Desktop Composition Engine,
+      especially Multi-Plane Overlay compatibility
+    * Change: On Windows 10/11, if the compatibility of the
+      Desktop Compositing Engine does not meet the requirements,
+      Window and Exclusive FullScreen mode are preferred,
+      and if failed, fallback to Window and Borderless Window FullScreen
+
+LuaSTG Sub Canvas 0.19.105
+    * Change: The file name of this version is revert to LuaSTGSub.exe
+    * Change: Undo disabling of Desktop Composition Engine
+
+LuaSTG Sub Canvas 0.19.104
+    * Change: The file name of this version is LuaSTGSub.EFS.exe
+    * Change: Desktop Composition Engine is disabled in this version for testing.
+    * Add: Window (Legacy) and Exclusive FullScreen mode
+
+LuaSTG Sub Canvas 0.19.103
+    * Fix: The state of window at engine startup
+    * Add: Now we can enter/leave fullscreen mode through lstg.ChangeVideoMode
+    * Add: lstg.ChangeVideoMode and Alt+Enter share fullscreen state
+    * Change: On Desktop Composition Engine mode,
+      use more stable triple buffer
+    * Change: On Desktop Composition Engine mode,
+      enable low latency presentation
+    * Change: On Window and Borderless Window FullScreen mode,
+      use more stable triple buffer
+    * Change: On Window and Borderless Window FullScreen mode,
+      enable low latency presentation
+    * Fix: Desktop Compositing Engine mode will scaling game canvas
+      through point samplers on older devices
+
+LuaSTG Sub Canvas 0.19.102
+    * Fix: Dead ImGui mouse input position and rendering viewport size
+    * Change: Slightly improve the performance of
+      call to Desktop Composition Engine
+
+LuaSTG Sub Canvas 0.19.101
+    * Fix: lstg.GetMousePosition return the wrong value after launch
+    * Add: Desktop Composition Engine mode
+
+LuaSTG Sub Canvas 0.19.100
+    Initial support for canvas mode
+    * Add: Canvas Mode, rendering resolution no longer bind to window size
+    * Add: The Canvas will automatically be letter boxing renderering
+      to the window or monitor.
+    * Change: The mouse positions are mapped to the canvas coordinate
+    * Add: Window and Borderless Window FullScreen mode
+    * Add: Window (Legacy) and Borderless Window FullScreen (Legacy) mode
+    * Change: Support free window size adjustment in window mode
+    * Change: Support to enter/leave fullscreen mode through Alt+Enter
+    * Remove: Enter/leave fullscreen mode through Ctrl+Enter

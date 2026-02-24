@@ -1,0 +1,101 @@
+﻿LuaSTG Sub Canvas 功能分支
+    这是一个涉及到引擎行为变更的功能分支，目前处于测试阶段。
+    与 LuaSTG Plus/LuaSTG Ex Plus 的不同之处：
+        1、支持更多呈现模式，并自动选择性能最好、延迟最低的
+        2、窗口可以自由调整尺寸，可最大化，可进行贴靠布局
+        3、通过 Alt+Enter 快捷键切换全屏模式（而不是 Ctrl+Enter 快捷键）
+        4、抽象出画布的概念，允许固定的渲染分辨率
+        5、画布会自动地内接等比放大显示到窗口或显示器上
+        6、鼠标坐标映射到画布坐标系上
+    可用的呈现模式（按选择优先级从高到低排序）：
+        1、桌面合成引擎
+        2、窗口和独占全屏
+        3、窗口和无边框窗口全屏
+        4、窗口（旧版）和独占全屏
+        5、窗口（旧版）和无边框窗口全屏（旧版）
+    桌面合成引擎要求：
+        1、Windows 10 1809 或更新版本，Windows 11
+        2、画面呈现时允许撕裂（DXGI_FEATURE_PRESENT_ALLOW_TEARING）
+        3、每个连接的显示器支持以下功能中的至少一项：
+            1、多平面叠加（Multi-Plane Overlay）
+            2、硬件加速的全屏画面合成（DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN）
+        4、没有通过注册表禁用多平面叠加（即注册表中不存在 HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Dwm:OverlayTestMode=5 条目）
+    窗口和独占全屏、要求：
+        1、Windows 10 1809 或更新版本，Windows 11
+        2、呈现时允许画面撕裂（DXGI_FEATURE_PRESENT_ALLOW_TEARING）
+    窗口和无边框窗口全屏要求：
+        1、Windows 10 1809 或更新版本，Windows 11
+        2、呈现时允许画面撕裂（DXGI_FEATURE_PRESENT_ALLOW_TEARING）
+    窗口（旧版）和独占全屏要求：
+        1、Windows 7 SP1/8/8.1/10/11
+        2、对于 Windows 7 SP1，还要求：
+            1、Windows 7 的平台更新补丁（KB2670838）
+    窗口（旧版）和无边框窗口全屏（旧版）要求：
+        1、Windows 7 SP1/8/8.1/10/11
+        2、对于 Windows 7 SP1，还要求：
+            1、Windows 7 的平台更新补丁（KB2670838）
+
+LuaSTG Sub Canvas 0.19.202
+    * 修复：加载 fancy2d 字体会导致引擎崩溃
+
+LuaSTG Sub Canvas 0.19.201
+    * 修复：执行 launch 脚本时如果出现错误，会导致整个程序闪退
+    * 修改：调整画布尺寸时，如果处于独占全屏模式，则重新配置独占全屏
+    * 修改：如果内部使用的模式为独占全屏，离开全屏模式时，重新配置交换链
+
+LuaSTG Sub Canvas 0.19.200
+    * 修改：初步合并窗口消息线程和更新渲染线程，这对游戏性能影响难以察觉，但是能让引擎更易于维护
+    * 修复：离开全屏模式时，如果内部使用的模式为独占全屏，窗口布局将无法正常还原
+    * 修改：改进使用独占全屏模式时，对枚举得到的显示模式的刷新率的评分，
+      理论上可以降低选择到不适合的刷新率的可能性
+
+LuaSTG Sub Canvas 0.19.108
+    * 更新一些第三方库
+    * 修改：Windows 10/11 上，由于性能原因，对某些旧设备禁用桌面合成引擎
+
+LuaSTG Sub Canvas 0.19.107
+    * 更新一些第三方库
+    * 修改：Windows 10/11 上，独占全屏使用快速交换模式（DXGI_SWAP_EFFECT_FLIP_DISCARD）
+
+LuaSTG Sub Canvas 0.19.106
+    * 新增：窗口和独占全屏模式
+    * 修改：对桌面合成引擎兼容性进行更严格的检查，特别是多平面叠加支持情况
+    * 修改：Windows 10/11 上，若桌面合成引擎的兼容性不满足要求，
+      则优先使用窗口和独占全屏模式，再失败则使用窗口和无边框窗口全屏模式
+
+LuaSTG Sub Canvas 0.19.105
+    * 修改：可执行文件名称改回 LuaSTGSub.exe
+    * 修改：取消禁用桌面合成引擎模式
+
+LuaSTG Sub Canvas 0.19.104
+    * 修改：可执行文件名称临时改为 LuaSTGSub.EFS.exe
+    * 修改：临时禁用了桌面合成引擎以便于测试独占全屏
+    * 新增：窗口（旧版）和独占全屏模式
+
+LuaSTG Sub Canvas 0.19.103
+    * 修复：引擎启动时窗口的状态
+    * 新增：现在可以通过 lstg.ChangeVideoMode 进入、离开全屏模式
+    * 新增：lstg.ChangeVideoMode 和 Alt+Enter 共享全屏模式状态
+    * 修改：桌面合成引擎模式下，使用三重缓冲（BufferCount=3）
+    * 修改：桌面合成引擎模式下，使用帧延迟可等待对象（DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT）
+    * 修改：窗口和无边框窗口全屏模式下，使用三重缓冲（BufferCount=3）
+    * 修改：窗口和无边框窗口全屏模式下，使用帧延迟可等待对象（DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT）
+    * 修复：桌面合成引擎模式在较老的设备上通过邻近采样器缩放画面的问题
+
+LuaSTG Sub Canvas 0.19.102
+    * 修复：Dear ImGui 获取的鼠标坐标和渲染的视口尺寸
+    * 修改：稍微提升了桌面合成引擎模式下的性能
+
+LuaSTG Sub Canvas 0.19.101
+    * 修复：启动后鼠标位置获取失败，调整一次窗口尺寸后恢复正常
+    * 新增：桌面合成引擎模式
+
+LuaSTG Sub Canvas 0.19.100
+    * 新增：画布模式，让渲染分辨率与呈现模式不再有关
+    * 新增：画布会自动地内接等比放大显示到窗口或显示器上
+    * 修改：鼠标坐标映射到画布坐标系
+    * 新增：窗口和无边框窗口全屏模式
+    * 新增：窗口（旧版）和无边框窗口全屏（旧版）模式
+    * 修改：窗口模式下支持自由调整窗口尺寸、贴靠布局、最大化
+    * 新增：通过 Alt+Enter 快捷键切换全屏模式
+    * 移除：通过 Ctrl+Enter 快捷键切换独占全屏模式
