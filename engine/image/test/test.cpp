@@ -178,15 +178,17 @@ TEST(Image, r8g8b8a8_normalized_map_write_unmap_getPixel) {
     SmartReference<IImage> image;
     ASSERT_TRUE(ImageFactory::create(description, image.put()));
 
-    constexpr uint32_t rgba{ 0xff0080ffu };
-    const Vector4F color(1.0f, 128.0f / 255.0f, 0.0f, 1.0f);
+    DirectX::PackedVector::XMCOLOR bgra(16.0f / 255.0f, 32.0f / 255.0f, 128.0f / 255.0f, 1.0f);
+    std::swap(bgra.r, bgra.b); // BGRA to RGBA
+    const Vector4F color(16.0f / 255.0f, 32.0f / 255.0f, 128.0f / 255.0f, 1.0f);
 
     ImageMappedBuffer buffer{};
     ASSERT_TRUE(image->map(buffer));
-    std::memcpy(buffer.data, &rgba, sizeof(uint32_t));
+    std::memcpy(buffer.data, &bgra, sizeof(bgra));
     image->unmap();
 
-    EXPECT_EQ(color, image->getPixel(0, 0));
+    const auto output_color = image->getPixel(0, 0);
+    EXPECT_EQ(color, output_color);
 }
 TEST(Image, b8g8r8a8_normalized_map_write_unmap_getPixel) {
     setupLogger();
@@ -202,15 +204,16 @@ TEST(Image, b8g8r8a8_normalized_map_write_unmap_getPixel) {
     SmartReference<IImage> image;
     ASSERT_TRUE(ImageFactory::create(description, image.put()));
 
-    constexpr uint32_t bgra{ 0xffff8000u };
-    const Vector4F color(1.0f, 128.0f / 255.0f, 0.0f, 1.0f);
+    const DirectX::PackedVector::XMCOLOR bgra(16.0f / 255.0f, 32.0f / 255.0f, 128.0f / 255.0f, 1.0f);
+    const Vector4F color(16.0f / 255.0f, 32.0f / 255.0f, 128.0f / 255.0f, 1.0f);
 
     ImageMappedBuffer buffer{};
     ASSERT_TRUE(image->map(buffer));
-    std::memcpy(buffer.data, &bgra, sizeof(uint32_t));
+    std::memcpy(buffer.data, &bgra, sizeof(bgra));
     image->unmap();
 
-    EXPECT_EQ(color, image->getPixel(0, 0));
+    const auto output_color = image->getPixel(0, 0);
+    EXPECT_EQ(color, output_color);
 }
 TEST(Image, r16g16b16a16_float_map_write_unmap_getPixel) {
     setupLogger();
