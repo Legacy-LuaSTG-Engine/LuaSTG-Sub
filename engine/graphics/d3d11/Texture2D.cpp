@@ -53,19 +53,24 @@ namespace core {
         return true;
     }
     bool Texture2D::saveToFile(StringView const path) {
-        assert(m_device->getNativeHandle());
-        win32::com_ptr<ID3D11DeviceContext> ctx;
-        static_cast<ID3D11Device*>(m_device->getNativeHandle())->GetImmediateContext(ctx.put());
+        const auto ctx = static_cast<ID3D11DeviceContext*>(m_device->getCommandbuffer()->getNativeHandle());
+        if (ctx == nullptr) {
+            assert(false); return false;
+        }
 
-        std::wstring const wide_path(utf8::to_wstring(path));
-        HRESULT hr = S_OK;
-        hr = gHR = DirectX::SaveWICTextureToFile(
-            ctx.get(),
-            m_texture.get(),
-            GUID_ContainerFormatJpeg,
-            wide_path.c_str(),
-            &GUID_WICPixelFormat24bppBGR);
-        return SUCCEEDED(hr);
+        const std::wstring path_wide(utf8::to_wstring(path));
+        if (!win32::check_hresult_as_boolean(
+            DirectX::SaveWICTextureToFile(
+                ctx,
+                m_texture.get(),
+                GUID_ContainerFormatJpeg,
+                path_wide.c_str(),
+                &GUID_WICPixelFormat24bppBGR
+            ),
+            "DirectX::SaveWICTextureToFile"sv
+        ));
+
+        return true;
     }
 
     // IGraphicsDeviceEventListener
