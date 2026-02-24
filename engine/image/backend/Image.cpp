@@ -97,6 +97,7 @@ namespace core {
         buffer.data = m_pixels;
         buffer.stride = m_description.size.x * getImageFormatPixelSize(m_description.format);
         buffer.size = m_description.size.y * buffer.stride;
+        m_mapped = true;
         return true;
     }
     void Image::unmap() noexcept {
