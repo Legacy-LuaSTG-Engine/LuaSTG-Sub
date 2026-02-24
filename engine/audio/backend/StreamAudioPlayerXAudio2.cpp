@@ -348,12 +348,15 @@ namespace core {
 				Logger::error("[StreamAudioPlayer] AudioDecoder read failed");
 				return;
 			}
-			if (read_sample_count == 0) {
-				return; // eof
-			}
 			m_current_sample += read_sample_count;
 			buffer.seconds = static_cast<double>(read_sample_count) / static_cast<double>(m_decoder->getSampleRate());
 			buffer.current_seconds = static_cast<double>(m_current_sample) / static_cast<double>(m_decoder->getSampleRate());
+			if (read_sample_count == 0) {
+				// prevent frequent triggering of the buffer available event
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				m_action_queue.notifyBufferAvailable(index);
+				return; // eof
+			}
 			buffer.info.AudioBytes = read_sample_count * m_decoder->getFrameSize();
 			buffer.info.Flags = 0;
 			m_fft_buffer_index = index;
