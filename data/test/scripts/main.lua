@@ -1,3 +1,5 @@
+local lstg = require("lstg")
+
 ---@class test.Window
 window = {}
 window.width = 1920

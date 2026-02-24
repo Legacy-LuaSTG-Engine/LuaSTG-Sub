@@ -4,13 +4,13 @@
 			"path": "."
 		},
 		{
-			"path": "../../doc"
+			"path": "../../LuaSTG/doc"
 		}
 	],
 	"settings": {
 		"Lua.runtime.version": "LuaJIT",
 		"Lua.workspace.library": [
-			"../../doc"
+			"../../LuaSTG/doc"
 		]
 	}
 }
