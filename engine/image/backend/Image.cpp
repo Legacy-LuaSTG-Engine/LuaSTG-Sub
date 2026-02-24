@@ -100,7 +100,7 @@ namespace core {
         return true;
     }
     void Image::unmap() noexcept {
-        if (m_mapped) {
+        if (!m_mapped) {
             Logger::warn("[core] cannot unmap an image that has not been mapped"sv);
         }
         m_mapped = false;
