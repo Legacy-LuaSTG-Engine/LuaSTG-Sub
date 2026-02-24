@@ -1,3 +1,8 @@
+param(
+    [ValidateSet("vs2022", "vs2026-v143", "vs2026")]
+    [string]$Toolchain = "vs2026-v143"
+)
+
 $ProjectRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::Join($PSScriptRoot, ".."))
 $ReleasesRoot = [System.IO.Path]::Join($ProjectRoot, "build", "releases")
 $BinaryRootX86 = [System.IO.Path]::Join($ProjectRoot, "build", "x86", "bin")
@@ -14,8 +19,14 @@ Write-Output "Example Root       : $ExampleRoot"
 
 Set-Location $ProjectRoot
 
-cmake --workflow --preset windows-amd64-release
-cmake --workflow --preset windows-x86-release
+$Presets = switch ($Toolchain) {
+    "vs2022"     { @{ AMD64 = "windows-amd64-release"; X86 = "windows-x86-release" } }
+    "vs2026-v143"{ @{ AMD64 = "windows-vs2026-v143-amd64-release"; X86 = "windows-vs2026-v143-x86-release" } }
+    "vs2026"     { @{ AMD64 = "windows-vs2026-amd64-release"; X86 = "windows-vs2026-x86-release" } }
+}
+
+cmake --workflow --preset $Presets.AMD64
+cmake --workflow --preset $Presets.X86
 
 # read version info
 
