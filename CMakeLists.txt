@@ -3,6 +3,10 @@ project(LuaSTGSub)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# Although this project doesn't make use of C++20 Modules,
+# the module scanning process runs during every build, this increases the build time.
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 include(cmake/architecture.cmake)
 include(cmake/luastg-options.cmake)
 include(cmake/luastg-utils.cmake)
