@@ -18,10 +18,12 @@ namespace core {
         FrameRateController(double frame_rate = 60.0) noexcept;
 
     private:
-        double m_frame_rate{ 60.0 };
+        double m_frame_rate{};
         int64_t m_frequency{};
         int64_t m_interval{};
+        int64_t m_baseline{};
         int64_t m_last{};
+        int64_t m_frame_count{};
         FrameRateStatistics m_statistics;
     };
 }
