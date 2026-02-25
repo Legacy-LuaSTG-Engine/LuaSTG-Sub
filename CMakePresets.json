@@ -58,38 +58,26 @@
 
     { "name": "target-luastg", "hidden": true, "targets": [ "LuaSTG" ] },
 
-    { "name": "windows-x86"  , "hidden": true, "configurePreset": "vs2022-x86"   },
-    { "name": "windows-amd64", "hidden": true, "configurePreset": "vs2022-amd64" },
-    { "name": "windows-arm64", "hidden": true, "configurePreset": "vs2022-arm64" },
+    { "name": "windows-x86-debug"    , "configurePreset": "vs2022-x86"  , "inherits": [ "debug"  , "target-luastg" ] },
+    { "name": "windows-x86-release"  , "configurePreset": "vs2022-x86"  , "inherits": [ "release", "target-luastg" ] },
+    { "name": "windows-amd64-debug"  , "configurePreset": "vs2022-amd64", "inherits": [ "debug"  , "target-luastg" ] },
+    { "name": "windows-amd64-release", "configurePreset": "vs2022-amd64", "inherits": [ "release", "target-luastg" ] },
+    { "name": "windows-arm64-debug"  , "configurePreset": "vs2022-arm64", "inherits": [ "debug"  , "target-luastg" ] },
+    { "name": "windows-arm64-release", "configurePreset": "vs2022-arm64", "inherits": [ "release", "target-luastg" ] },
 
-    { "name": "windows-x86-debug"    , "inherits": [ "windows-x86"  , "debug"  , "target-luastg" ] },
-    { "name": "windows-x86-release"  , "inherits": [ "windows-x86"  , "release", "target-luastg" ] },
-    { "name": "windows-amd64-debug"  , "inherits": [ "windows-amd64", "debug"  , "target-luastg" ] },
-    { "name": "windows-amd64-release", "inherits": [ "windows-amd64", "release", "target-luastg" ] },
-    { "name": "windows-arm64-debug"  , "inherits": [ "windows-arm64", "debug"  , "target-luastg" ] },
-    { "name": "windows-arm64-release", "inherits": [ "windows-arm64", "release", "target-luastg" ] },
+    { "name": "windows-vs2026-v143-x86-debug"    , "configurePreset": "vs2026-v143-x86"  , "inherits": [ "debug"  , "target-luastg" ] },
+    { "name": "windows-vs2026-v143-x86-release"  , "configurePreset": "vs2026-v143-x86"  , "inherits": [ "release", "target-luastg" ] },
+    { "name": "windows-vs2026-v143-amd64-debug"  , "configurePreset": "vs2026-v143-amd64", "inherits": [ "debug"  , "target-luastg" ] },
+    { "name": "windows-vs2026-v143-amd64-release", "configurePreset": "vs2026-v143-amd64", "inherits": [ "release", "target-luastg" ] },
+    { "name": "windows-vs2026-v143-arm64-debug"  , "configurePreset": "vs2026-v143-arm64", "inherits": [ "debug"  , "target-luastg" ] },
+    { "name": "windows-vs2026-v143-arm64-release", "configurePreset": "vs2026-v143-arm64", "inherits": [ "release", "target-luastg" ] },
 
-    { "name": "windows-vs2026-v143-x86"  , "hidden": true, "configurePreset": "vs2026-v143-x86"   },
-    { "name": "windows-vs2026-v143-amd64", "hidden": true, "configurePreset": "vs2026-v143-amd64" },
-    { "name": "windows-vs2026-v143-arm64", "hidden": true, "configurePreset": "vs2026-v143-arm64" },
-
-    { "name": "windows-vs2026-v143-x86-debug"    , "inherits": [ "windows-vs2026-v143-x86"  , "debug"  , "target-luastg" ] },
-    { "name": "windows-vs2026-v143-x86-release"  , "inherits": [ "windows-vs2026-v143-x86"  , "release", "target-luastg" ] },
-    { "name": "windows-vs2026-v143-amd64-debug"  , "inherits": [ "windows-vs2026-v143-amd64", "debug"  , "target-luastg" ] },
-    { "name": "windows-vs2026-v143-amd64-release", "inherits": [ "windows-vs2026-v143-amd64", "release", "target-luastg" ] },
-    { "name": "windows-vs2026-v143-arm64-debug"  , "inherits": [ "windows-vs2026-v143-arm64", "debug"  , "target-luastg" ] },
-    { "name": "windows-vs2026-v143-arm64-release", "inherits": [ "windows-vs2026-v143-arm64", "release", "target-luastg" ] },
-
-    { "name": "windows-vs2026-x86"  , "hidden": true, "configurePreset": "vs2026-x86"   },
-    { "name": "windows-vs2026-amd64", "hidden": true, "configurePreset": "vs2026-amd64" },
-    { "name": "windows-vs2026-arm64", "hidden": true, "configurePreset": "vs2026-arm64" },
-
-    { "name": "windows-vs2026-x86-debug"    , "inherits": [ "windows-vs2026-x86"  , "debug"  , "target-luastg" ] },
-    { "name": "windows-vs2026-x86-release"  , "inherits": [ "windows-vs2026-x86"  , "release", "target-luastg" ] },
-    { "name": "windows-vs2026-amd64-debug"  , "inherits": [ "windows-vs2026-amd64", "debug"  , "target-luastg" ] },
-    { "name": "windows-vs2026-amd64-release", "inherits": [ "windows-vs2026-amd64", "release", "target-luastg" ] },
-    { "name": "windows-vs2026-arm64-debug"  , "inherits": [ "windows-vs2026-arm64", "debug"  , "target-luastg" ] },
-    { "name": "windows-vs2026-arm64-release", "inherits": [ "windows-vs2026-arm64", "release", "target-luastg" ] }
+    { "name": "windows-vs2026-x86-debug"    , "configurePreset": "vs2026-x86"  , "inherits": [ "debug"  , "target-luastg" ] },
+    { "name": "windows-vs2026-x86-release"  , "configurePreset": "vs2026-x86"  , "inherits": [ "release", "target-luastg" ] },
+    { "name": "windows-vs2026-amd64-debug"  , "configurePreset": "vs2026-amd64", "inherits": [ "debug"  , "target-luastg" ] },
+    { "name": "windows-vs2026-amd64-release", "configurePreset": "vs2026-amd64", "inherits": [ "release", "target-luastg" ] },
+    { "name": "windows-vs2026-arm64-debug"  , "configurePreset": "vs2026-arm64", "inherits": [ "debug"  , "target-luastg" ] },
+    { "name": "windows-vs2026-arm64-release", "configurePreset": "vs2026-arm64", "inherits": [ "release", "target-luastg" ] }
   ],
   "workflowPresets": [
     { "name": "windows-x86-release"  , "steps": [ { "type": "configure", "name": "vs2022-x86"   }, { "type": "build", "name": "windows-x86-release"   } ] },
