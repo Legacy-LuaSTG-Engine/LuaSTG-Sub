@@ -95,7 +95,10 @@ namespace core {
         double m_duration{ 0.0 };
         double m_current_time{ 0.0 };
         double m_last_requested_time{ -1.0 };
+        // 帧率信息：num/den 来自 MF_MT_FRAME_RATE，interval = den / num
         double m_frame_interval{ 1.0 / 30.0 };
+        uint32_t m_frame_rate_num{ 30 };
+        uint32_t m_frame_rate_den{ 1 };
         bool m_looping{ false };
         bool m_has_loop_range{ false };
         double m_loop_start{ 0.0 };

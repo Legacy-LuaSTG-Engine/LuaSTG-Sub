@@ -152,12 +152,12 @@ namespace core {
         UINT dxgi_reset_token = 0;
         bool use_hardware_accel = false;
         
-        bool const hw_decode_disabled = core::ConfigurationLoader::getInstance().getGraphicsSystem().isDisableHardwareVideoDecode();
+        bool const allow_hw_decode = core::ConfigurationLoader::getInstance().getGraphicsSystem().isAllowHardwareVideoDecode();
         hr = MFCreateDXGIDeviceManager(&dxgi_reset_token, dxgi_device_manager.put());
         if (SUCCEEDED(hr)) {
             hr = dxgi_device_manager->ResetDevice(d3d_device, dxgi_reset_token);
             if (SUCCEEDED(hr)) {
-                if (video_device && !hw_decode_disabled) {
+                if (video_device && allow_hw_decode) {
                     hr = attributes->SetUnknown(MF_SOURCE_READER_D3D_MANAGER, dxgi_device_manager.get());
                     if (SUCCEEDED(hr)) {
                         use_hardware_accel = true;
@@ -165,7 +165,7 @@ namespace core {
                     } else {
                         Logger::warn("[core] [VideoDecoder] Failed to set D3D manager attribute, hr = {:#x}", (uint32_t)hr);
                     }
-                } else if (hw_decode_disabled) {
+                } else if (!allow_hw_decode) {
                     Logger::info("[core] [VideoDecoder] Hardware video decode disabled by config");
                 } else {
                     Logger::warn("[core] [VideoDecoder] Skipping hardware acceleration - device does not support video");
@@ -458,10 +458,14 @@ namespace core {
         }
         if (rate_den > 0 && rate_num > 0) {
             m_frame_interval = static_cast<double>(rate_den) / static_cast<double>(rate_num);
+            m_frame_rate_num = rate_num;
+            m_frame_rate_den = rate_den;
             Logger::info("[core] [VideoDecoder] Frame rate: {} / {} (= {:.2f} fps)", rate_num, rate_den, 1.0 / m_frame_interval);
         } else {
-            m_frame_interval = 1.0 / 60.0;
-            Logger::warn("[core] [VideoDecoder] MF_MT_FRAME_RATE not available, assuming 60 fps");
+            m_frame_rate_num = 30;
+            m_frame_rate_den = 1;
+            m_frame_interval = 1.0 / 30.0;
+            Logger::warn("[core] [VideoDecoder] MF_MT_FRAME_RATE not available, assuming 30 fps");
         }
         
         if (!createTexture()) {
@@ -576,6 +580,8 @@ namespace core {
         m_current_time = 0.0;
         m_last_requested_time = -1.0;
         m_frame_interval = 1.0 / 30.0;
+        m_frame_rate_num = 30;
+        m_frame_rate_den = 1;
         m_frame_pitch = 0;
         m_video_stream_index = 0;
         m_has_loop_range = false;
@@ -802,10 +808,6 @@ namespace core {
     }
     
     void VideoDecoder::onGraphicsDeviceDestroy() {
-        m_video_processor.reset();
-        m_video_processor_enum.reset();
-        m_video_context.reset();
-        m_video_device.reset();
         close();
     }
 
@@ -891,12 +893,18 @@ namespace core {
         
         D3D11_VIDEO_PROCESSOR_CONTENT_DESC content_desc = {};
         content_desc.InputFrameFormat = D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE;
-        content_desc.InputFrameRate.Numerator = 30;
-        content_desc.InputFrameRate.Denominator = 1;
+        UINT input_fps_num = m_frame_rate_num;
+        UINT input_fps_den = m_frame_rate_den;
+        if (input_fps_num == 0 || input_fps_den == 0) {
+            input_fps_num = 30;
+            input_fps_den = 1;
+        }
+        content_desc.InputFrameRate.Numerator = input_fps_num;
+        content_desc.InputFrameRate.Denominator = input_fps_den;
         content_desc.InputWidth = m_video_size.x;
         content_desc.InputHeight = m_video_size.y;
-        content_desc.OutputFrameRate.Numerator = 30;
-        content_desc.OutputFrameRate.Denominator = 1;
+        content_desc.OutputFrameRate.Numerator = input_fps_num;
+        content_desc.OutputFrameRate.Denominator = input_fps_den;
         content_desc.OutputWidth = m_target_size.x;
         content_desc.OutputHeight = m_target_size.y;
         content_desc.Usage = D3D11_VIDEO_USAGE_PLAYBACK_NORMAL;

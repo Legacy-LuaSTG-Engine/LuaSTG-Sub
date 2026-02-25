@@ -25,21 +25,19 @@ namespace core {
         
         m_device = device;
         
-        auto decoder = new VideoDecoder();
+        SmartReference<VideoDecoder> decoder;
+        decoder.attach(new VideoDecoder);
         if (!decoder->initialize(device)) {
             Logger::error("[core] [VideoTexture] Failed to initialize video decoder");
-            decoder->release();
             return false;
         }
         
         if (!decoder->open(path, options)) {
             Logger::error("[core] [VideoTexture] Failed to open video file: {}", path);
-            decoder->release();
             return false;
         }
         
-        m_decoder = decoder;
-        decoder->release();
+        m_decoder.attach(decoder.detach());
         m_premultiplied_alpha = options.premultiplied_alpha;
         m_initialized = true;
         m_device->addEventListener(this);
