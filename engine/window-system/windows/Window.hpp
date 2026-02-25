@@ -2,7 +2,6 @@
 #include "core/Window.hpp"
 #include "core/implement/ReferenceCounted.hpp"
 #include <vector>
-#include <thread>
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
@@ -25,8 +24,6 @@ namespace core {
 
         HWND win32_window{};
         bool m_window_created{ false };
-        std::atomic_bool m_heartbeat_running{};
-        std::jthread m_heartbeat_thread;
 
         BOOL win32_window_ime_enable{ FALSE };
 

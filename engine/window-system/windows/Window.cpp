@@ -21,7 +21,6 @@ namespace {
     constexpr int LUASTG_WM_RECREATE = WM_APP + __LINE__;
     constexpr int LUASTG_WM_SET_WINDOW_MODE = WM_APP + __LINE__;
     constexpr int LUASTG_WM_SET_FULLSCREEN_MODE = WM_APP + __LINE__;
-    constexpr int LUASTG_WM_UPDATE = WM_APP + __LINE__;
 
     Platform::RuntimeLoader::DesktopWindowManager dwmapi_loader;
 
@@ -321,16 +320,6 @@ namespace core {
                 ValidateRect(window, nullptr);
             }
             return 0;
-        case LUASTG_WM_UPDATE:
-            //if (const auto application = core::ApplicationManager::getApplication(); application != nullptr) {
-            //    const auto frame_rate_controller = core::IFrameRateController::getInstance();
-            //    const auto enabled = core::ApplicationManager::isUpdateEnabled() && core::ApplicationManager::isDelegateUpdateEnabled();
-            //    if (enabled && !core::ApplicationManager::isUpdating() && frame_rate_controller->arrived()) {
-            //        core::ApplicationManager::runBeforeUpdate();
-            //        core::ApplicationManager::runUpdate();
-            //    }
-            //}
-            return 0;
         case WM_SYSKEYDOWN:
         case WM_KEYDOWN:
             if (arg1 == VK_MENU)
@@ -550,34 +539,9 @@ namespace core {
 
         m_sizemove.setWindow(win32_window);
 
-        // 启动消息生成器
-
-        m_heartbeat_running = true;
-        m_heartbeat_thread = std::move(std::jthread([this]() -> void {
-            const auto frame_rate_controller = core::IFrameRateController::getInstance();
-            constexpr UINT flags{ SMTO_BLOCK };
-            while (m_heartbeat_running) {
-                while (m_heartbeat_running && !frame_rate_controller->arrived()) {
-                    Sleep(0);
-                }
-                SetLastError(ERROR_SUCCESS);
-                const LRESULT result = SendMessageTimeoutW(win32_window, LUASTG_WM_UPDATE, 0, 0, flags, 100, nullptr);
-                if (result == 0) {
-                    const DWORD last_error = GetLastError();
-                    if (last_error != ERROR_SUCCESS && last_error != ERROR_TIMEOUT) {
-                        core::Logger::error("[core] SendMessageTimeoutW failed (last error {})"sv, GetLastError());
-                    }
-                }
-            }
-        }));
-
         return true;
     }
     void Window::destroyWindow() {
-        m_heartbeat_running = false;
-        if (m_heartbeat_thread.joinable()) {
-            m_heartbeat_thread.join();
-        }
         m_sizemove.setWindow(nullptr);
         m_window_created = false;
         if (win32_window) {
