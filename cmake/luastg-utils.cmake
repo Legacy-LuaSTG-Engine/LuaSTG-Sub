@@ -27,31 +27,6 @@ function(luastg_target_common_options __TARGET__)
     )
 endfunction()
 
-function(luastg_target_common_options2 __TARGET__)
-    target_compile_options(${__TARGET__} PRIVATE
-        "/MP"
-        "/utf-8"
-        "$<$<CONFIG:Debug>:/ZI>"
-    )
-    #target_link_options(${__TARGET__} PRIVATE
-    #    "/DEPENDENTLOADFLAG:0x800" # Windows 10 1607+ 强制 DLL 搜索目录为系统目录
-    #)
-    if(LUASTG_ARCH STREQUAL "x86")
-        target_compile_options(${__TARGET__} PRIVATE
-            "/arch:SSE2"
-        )
-        target_link_options(${__TARGET__} PRIVATE
-            "$<$<CONFIG:Debug>:/SAFESEH:NO>"
-        )
-    endif()
-    set_target_properties(${__TARGET__} PROPERTIES
-        C_STANDARD 17
-        C_STANDARD_REQUIRED ON
-        CXX_STANDARD 20
-        CXX_STANDARD_REQUIRED ON
-    )
-endfunction()
-
 function(luastg_target_more_warning __TARGET__)
     target_compile_options(${__TARGET__} PRIVATE
         "/W4"
