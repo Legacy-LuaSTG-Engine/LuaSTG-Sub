@@ -5,6 +5,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Although this project doesn't make use of C++20 Modules,
 # the module scanning process runs during every build, this increases the build time.
+# See: https://cmake.org/cmake/help/latest/manual/cmake-cxxmodules.7.html#scanning-without-modules
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 include(cmake/architecture.cmake)
