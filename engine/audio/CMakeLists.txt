@@ -41,9 +41,6 @@ target_link_libraries(${test_name} PRIVATE
     #GTest::gtest_main
 )
 
-add_custom_command(TARGET ${test_name} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.XAudio2.Redist> $<TARGET_FILE_DIR:${test_name}>
-    VERBATIM
-)
+luastg_target_copy_to_bin_directory(${test_name} ${test_name})
 
 set_target_properties(${test_name} PROPERTIES FOLDER engine/test)
