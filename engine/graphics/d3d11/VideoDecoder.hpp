@@ -14,33 +14,34 @@ namespace core {
     class VideoDecoder final :
         public implement::ReferenceCounted<IVideoDecoder>,
         public IGraphicsDeviceEventListener {
-    public:
+    private:
         enum class OutputFormat {
-            ARGB32,  // Default format (BGRA in memory)
-            RGB32,   // RGB format
-            NV12     // Hardware native format, requires Video Processor conversion
+            ARGB32,
+            RGB32,
+            NV12
         };
         
+    public:
         // IVideoDecoder
-        
+
         bool open(StringView path) override;
         bool open(StringView path, VideoOpenOptions const& options) override;
         void close() override;
-        
+
         bool hasVideo() const noexcept override { return m_source_reader.get() != nullptr; }
-        
+
         Vector2U getVideoSize() const noexcept override { return m_target_size; }
         double getDuration() const noexcept override { return m_duration; }
         double getCurrentTime() const noexcept override { return m_current_time; }
         double getFrameInterval() const noexcept override { return m_frame_interval; }
-        
+
         bool seek(double time_in_seconds) override;
-        
+
         void setLooping(bool loop) override { m_looping = loop; }
         bool isLooping() const noexcept override { return m_looping; }
         void setLoopRange(double end_sec, double duration_sec) override;
         void getLoopRange(double* end_sec, double* duration_sec) const noexcept override;
-        
+
         bool updateToTime(double time_in_seconds) override;
         void* getNativeTexture() const noexcept override { return m_texture.get(); }
         void* getNativeShaderResourceView() const noexcept override { return m_shader_resource_view.get(); }
@@ -53,17 +54,22 @@ namespace core {
         std::string_view getLastOpenPath() const noexcept override { return m_last_open_path; }
 
         // IGraphicsDeviceEventListener
-        
+
         void onGraphicsDeviceCreate() override;
         void onGraphicsDeviceDestroy() override;
-        
+
         // VideoDecoder
-        
+
         VideoDecoder();
+        VideoDecoder(VideoDecoder const&) = delete;
+        VideoDecoder(VideoDecoder&&) = delete;
         ~VideoDecoder();
-        
+
+        VideoDecoder& operator=(VideoDecoder const&) = delete;
+        VideoDecoder& operator=(VideoDecoder&&) = delete;
+
         bool initialize(IGraphicsDevice* device);
-        
+
     private:
         bool createTexture();
         bool createVideoProcessor();
@@ -72,7 +78,7 @@ namespace core {
         bool updateTextureFromNV12SampleTo(IMFSample* sample, ID3D11Texture2D* output_texture);
         bool readNextFrame();
         bool readFrameAtTime(double time_in_seconds);
-        
+
         std::mutex m_device_context_mutex;
         SmartReference<IGraphicsDevice> m_device;
         win32::com_ptr<ID3D11Texture2D> m_texture;
@@ -87,30 +93,23 @@ namespace core {
         win32::com_ptr<ID3D11VideoContext> m_video_context;
         win32::com_ptr<ID3D11VideoProcessor> m_video_processor;
         win32::com_ptr<ID3D11VideoProcessorEnumerator> m_video_processor_enum;
-        
         OutputFormat m_output_format{ OutputFormat::ARGB32 };
-        
         Vector2U m_video_size{};
         Vector2U m_target_size{};
         double m_duration{ 0.0 };
         double m_current_time{ 0.0 };
         double m_last_requested_time{ -1.0 };
-        // 帧率信息：num/den 来自 MF_MT_FRAME_RATE，interval = den / num
         double m_frame_interval{ 1.0 / 30.0 };
         uint32_t m_frame_rate_num{ 30 };
         uint32_t m_frame_rate_den{ 1 };
+        uint32_t m_frame_pitch{ 0 };
+        uint32_t m_video_stream_index{ 0 };
         bool m_looping{ false };
         bool m_has_loop_range{ false };
         double m_loop_start{ 0.0 };
         double m_loop_end{ 0.0 };
-
-        uint32_t m_frame_pitch{ 0 };
-
-        uint32_t m_video_stream_index{ 0 };
-
         std::string m_last_open_path;
         VideoOpenOptions m_last_open_options;
-        
         bool m_initialized{ false };
     };
 }

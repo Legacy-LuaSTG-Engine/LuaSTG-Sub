@@ -68,30 +68,30 @@ namespace core {
         return Vector2U{};
     }
     
-    bool VideoTexture::setSize(Vector2U /* size */) {
+    bool VideoTexture::setSize(Vector2U) {
         Logger::warn("[core] [VideoTexture] setSize() is not supported on video textures");
         return false;
     }
     
-    bool VideoTexture::update(RectU /* rect */, void const* /* data */, uint32_t /* row_pitch_in_bytes */) {
+    bool VideoTexture::update(RectU, void const*, uint32_t) {
         Logger::warn("[core] [VideoTexture] update() is not supported on video textures");
         return false;
     }
     
-    void VideoTexture::setImage(IImage* /* image */) {
+    void VideoTexture::setImage(IImage*) {
         Logger::warn("[core] [VideoTexture] setImage() is not supported on video textures");
     }
     
-    bool VideoTexture::saveToFile(StringView /* path */) {
+    bool VideoTexture::saveToFile(StringView) {
         Logger::warn("[core] [VideoTexture] saveToFile() is not supported on video textures");
         return false;
     }
     
-    void VideoTexture::onGraphicsDeviceCreate() {}
+    void VideoTexture::onGraphicsDeviceCreate() {
+    }
     
-    void VideoTexture::onGraphicsDeviceDestroy() {}
-    
-    // GraphicsDevice 扩展：视频功能
+    void VideoTexture::onGraphicsDeviceDestroy() {
+    }
     
     bool GraphicsDevice::createVideoTexture(StringView path, ITexture2D** out_texture) {
         return createVideoTexture(path, VideoOpenOptions{}, out_texture);
@@ -99,7 +99,8 @@ namespace core {
 
     bool GraphicsDevice::createVideoTexture(StringView path, VideoOpenOptions const& options, ITexture2D** out_texture) {
         if (out_texture == nullptr) {
-            assert(false); return false;
+            assert(false);
+            return false;
         }
         SmartReference<VideoTexture> video_texture;
         video_texture.attach(new VideoTexture);
@@ -112,7 +113,8 @@ namespace core {
     
     bool GraphicsDevice::createVideoDecoder(IVideoDecoder** out_decoder) {
         if (out_decoder == nullptr) {
-            assert(false); return false;
+            assert(false);
+            return false;
         }
         SmartReference<VideoDecoder> decoder;
         decoder.attach(new VideoDecoder);
