@@ -3,6 +3,7 @@
 #include "core/GraphicsDevice.hpp"
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
+#include "d3d11/VideoDecoderConfig.hpp"
 #include "d3d11/pch.h"
 #include <mfapi.h>
 #include <mfidl.h>
@@ -19,6 +20,12 @@ namespace core {
             ARGB32,
             RGB32,
             NV12
+        };
+
+        struct LoopState {
+            bool has_range{ false };
+            double start{ 0.0 };
+            double end{ 0.0 };
         };
         
     public:
@@ -71,8 +78,37 @@ namespace core {
         bool initialize(IGraphicsDevice* device);
 
     private:
+        // File loading
+        bool loadVideoFile(StringView path);
+        
+        // Hardware acceleration setup
+        bool configureHardwareAcceleration();
+        
+        // Stream selection
+        bool selectVideoStream(uint32_t preferred_index);
+        
+        // Output format negotiation
+        bool negotiateOutputFormat(VideoOpenOptions const& options);
+        void logNativeFormat(IMFMediaType* partial_media_type);
+        void enumerateOutputFormats(IMFMediaType* partial_media_type);
+        bool configureOutputResolution(IMFMediaType* partial_media_type, IMFMediaType* media_type, VideoOpenOptions const& options);
+        bool trySetOutputFormat(IMFMediaType* partial_media_type, IMFMediaType* media_type);
+        bool tryNV12Format(IMFMediaType* partial_media_type, IMFMediaType* media_type);
+        bool retryWithOriginalResolution(IMFMediaType* partial_media_type, IMFMediaType* media_type, HRESULT& hr, bool& succeeded);
+        void logFinalFormat();
+        
+        // Property extraction
+        bool extractVideoProperties();
+        
+        // Resource creation
+        bool createResources();
         bool createTexture();
         bool createVideoProcessor();
+        
+        // Frame loading
+        bool loadFirstFrame();
+        
+        // Frame decoding
         bool updateTextureFromSample(IMFSample* sample);
         bool updateTextureFromNV12Sample(IMFSample* sample);
         bool updateTextureFromNV12SampleTo(IMFSample* sample, ID3D11Texture2D* output_texture);
@@ -99,17 +135,16 @@ namespace core {
         double m_duration{ 0.0 };
         double m_current_time{ 0.0 };
         double m_last_requested_time{ -1.0 };
-        double m_frame_interval{ 1.0 / 30.0 };
-        uint32_t m_frame_rate_num{ 30 };
-        uint32_t m_frame_rate_den{ 1 };
+        double m_frame_interval{ 1.0 / VideoDecoderConfig::kDefaultFrameRateNum };
+        uint32_t m_frame_rate_num{ VideoDecoderConfig::kDefaultFrameRateNum };
+        uint32_t m_frame_rate_den{ VideoDecoderConfig::kDefaultFrameRateDen };
         uint32_t m_frame_pitch{ 0 };
         uint32_t m_video_stream_index{ 0 };
         bool m_looping{ false };
-        bool m_has_loop_range{ false };
-        double m_loop_start{ 0.0 };
-        double m_loop_end{ 0.0 };
+        LoopState m_loop_state{};
         std::string m_last_open_path;
         VideoOpenOptions m_last_open_options;
         bool m_initialized{ false };
+        bool m_first_texture_update_logged{ false };
     };
 }

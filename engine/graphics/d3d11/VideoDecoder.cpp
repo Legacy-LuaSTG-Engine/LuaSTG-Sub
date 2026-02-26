@@ -1,4 +1,6 @@
 #include "d3d11/VideoDecoder.hpp"
+#include "d3d11/VideoDecoderConfig.hpp"
+#include "d3d11/MediaFoundationHelpers.hpp"
 #include "core/Configuration.hpp"
 #include "core/FileSystem.hpp"
 #include "core/Logger.hpp"
@@ -18,6 +20,9 @@
 
 namespace {
     using std::string_view_literals::operator ""sv;
+    using core::mf_helpers::PropVariantGuard;
+    using Config = core::VideoDecoderConfig;
+    
     class MFInitializer {
     public:
         static MFInitializer& getInstance() {
@@ -43,12 +48,6 @@ namespace {
         
         bool m_initialized{ false };
     };
-    
-    // Maximum number of streams to enumerate (video/audio)
-    constexpr DWORD kMaxStreams = 16;
-    
-    // Maximum number of frames to decode after seeking to reach the requested timestamp
-    constexpr int kMaxDecodeFramesAfterSeek = 360;
 }
 
 namespace core {
@@ -91,408 +90,13 @@ namespace core {
         
         close();
         
-        SmartReference<IData> file_data;
-        if (!FileSystemManager::readFile(path, file_data.put())) {
-            Logger::error("[core] [VideoDecoder] Failed to read video file: {}", path);
-            return false;
-        }
-        
-        win32::com_ptr<IStream> mem_stream;
-        mem_stream.attach(static_cast<IStream*>(SHCreateMemStream(
-            static_cast<BYTE const*>(file_data->data()),
-            static_cast<UINT>(file_data->size()))));
-        if (!mem_stream) {
-            Logger::error("[core] [VideoDecoder] Failed to create memory stream");
-            return false;
-        }
-        
-        win32::com_ptr<IMFByteStream> byte_stream;
-        if (!win32::check_hresult_as_boolean(
-            MFCreateMFByteStreamOnStream(mem_stream.get(), byte_stream.put()),
-            "MFCreateMFByteStreamOnStream"sv
-        )) {
-            return false;
-        }
-        
-        m_byte_stream = std::move(byte_stream);
-        
-        auto d3d_device = static_cast<ID3D11Device*>(m_device->getNativeDevice());
-        if (!d3d_device) {
-            Logger::error("[core] [VideoDecoder] Failed to get D3D11 device");
-            return false;
-        }
-        
-        win32::com_ptr<ID3D11DeviceContext> temp_context;
-        d3d_device->GetImmediateContext(temp_context.put());
-        if (temp_context) {
-            win32::com_ptr<ID3D11Multithread> multithread;
-            if (SUCCEEDED(temp_context->QueryInterface(IID_PPV_ARGS(multithread.put())))) {
-                multithread->SetMultithreadProtected(TRUE);
-                Logger::info("[core] [VideoDecoder] Enabled D3D11 multithread protection");
-            } else {
-                Logger::warn("[core] [VideoDecoder] Failed to enable D3D11 multithread protection");
-            }
-        }
-        
-        win32::com_ptr<ID3D11VideoDevice> video_device;
-        HRESULT hr = d3d_device->QueryInterface(IID_PPV_ARGS(video_device.put()));
-        if (win32::check_hresult_as_boolean(hr, "ID3D11Device::QueryInterface(ID3D11VideoDevice)"sv)) {
-            Logger::info("[core] [VideoDecoder] D3D11 device supports video decoding");
-        } else {
-            Logger::warn("[core] [VideoDecoder] D3D11 device does not support video decoding");
-        }
-        
-        win32::com_ptr<IMFAttributes> attributes;
-        if (!win32::check_hresult_as_boolean(
-            MFCreateAttributes(attributes.put(), 3),
-            "MFCreateAttributes"sv
-        )) {
-            return false;
-        }
-        
-        win32::com_ptr<IMFDXGIDeviceManager> dxgi_device_manager;
-        UINT dxgi_reset_token = 0;
-        bool use_hardware_accel = false;
-        
-        bool const allow_hw_decode = core::ConfigurationLoader::getInstance().getGraphicsSystem().isAllowHardwareVideoDecode();
-        hr = MFCreateDXGIDeviceManager(&dxgi_reset_token, dxgi_device_manager.put());
-        if (win32::check_hresult_as_boolean(hr, "MFCreateDXGIDeviceManager"sv)) {
-            hr = dxgi_device_manager->ResetDevice(d3d_device, dxgi_reset_token);
-            if (win32::check_hresult_as_boolean(hr, "IMFDXGIDeviceManager::ResetDevice"sv)) {
-                if (video_device && allow_hw_decode) {
-                    hr = attributes->SetUnknown(MF_SOURCE_READER_D3D_MANAGER, dxgi_device_manager.get());
-                    if (win32::check_hresult_as_boolean(hr, "IMFAttributes::SetUnknown(MF_SOURCE_READER_D3D_MANAGER)"sv)) {
-                        use_hardware_accel = true;
-                        Logger::info("[core] [VideoDecoder] Attempting D3D11 hardware acceleration (IMFDXGIDeviceManager)");
-                    }
-                } else if (!allow_hw_decode) {
-                    Logger::info("[core] [VideoDecoder] Hardware video decode disabled by config");
-                } else {
-                    Logger::warn("[core] [VideoDecoder] Skipping hardware acceleration - device does not support video");
-                }
-            }
-        }
-        
-        if (!use_hardware_accel) {
-            win32::check_hresult(
-                attributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, TRUE),
-                "IMFAttributes::SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS)"sv
-            );
-            
-            win32::check_hresult(
-                attributes->SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING, TRUE),
-                "IMFAttributes::SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING)"sv
-            );
-        }
-        
-        hr = MFCreateSourceReaderFromByteStream(m_byte_stream.get(), attributes.get(), m_source_reader.put());
-        if (!win32::check_hresult_as_boolean(hr, "MFCreateSourceReaderFromByteStream"sv)) {
-            if (use_hardware_accel && hr == E_INVALIDARG) {
-                Logger::warn("[core] [VideoDecoder] Hardware acceleration failed, retrying without D3D manager");
-                attributes->DeleteItem(MF_SOURCE_READER_D3D_MANAGER);
-                dxgi_device_manager.reset();
-                use_hardware_accel = false;
-                
-                hr = MFCreateSourceReaderFromByteStream(m_byte_stream.get(), attributes.get(), m_source_reader.put());
-            }
-            
-            if (!win32::check_hresult_as_boolean(hr, "MFCreateSourceReaderFromByteStream (retry)"sv)) {
-                return false;
-            } else {
-                Logger::info("[core] [VideoDecoder] Falling back to software decoding");
-            }
-        } else if (use_hardware_accel) {
-            Logger::info("[core] [VideoDecoder] Using D3D11 hardware acceleration (IMFDXGIDeviceManager)");
-        }
-        
-        m_video_stream_index = options.video_stream_index;
-        if (m_video_stream_index == static_cast<uint32_t>(-1)) {
-            for (DWORD i = 0; i < kMaxStreams; ++i) {
-                win32::com_ptr<IMFMediaType> mt;
-                if (FAILED(m_source_reader->GetNativeMediaType(i, 0, mt.put()))) continue;
-                GUID major = GUID_NULL;
-                if (FAILED(mt->GetGUID(MF_MT_MAJOR_TYPE, &major)) || major != MFMediaType_Video) continue;
-                m_video_stream_index = i;
-                Logger::info("[core] [VideoDecoder] Auto-selected video stream index {}", (unsigned)i);
-                break;
-            }
-            if (m_video_stream_index == static_cast<uint32_t>(-1)) {
-                Logger::error("[core] [VideoDecoder] No video stream found in file");
-                return false;
-            }
-        }
-        
-        for (DWORD i = 0; i < kMaxStreams; ++i) {
-            BOOL const select = (i == m_video_stream_index);
-            m_source_reader->SetStreamSelection(i, select);
-        }
-        
-        win32::com_ptr<IMFMediaType> partial_media_type;
-        hr = m_source_reader->GetNativeMediaType((DWORD)m_video_stream_index, 0, partial_media_type.put());
-        if (!win32::check_hresult_as_boolean(hr, "IMFSourceReader::GetNativeMediaType"sv)) {
-            Logger::warn("[core] [VideoDecoder] Failed to get native media type, trying current type");
-            hr = m_source_reader->GetCurrentMediaType((DWORD)m_video_stream_index, partial_media_type.put());
-            win32::check_hresult(hr, "IMFSourceReader::GetCurrentMediaType"sv);
-        }
-        
-        if (partial_media_type && use_hardware_accel) {
-            GUID native_subtype = GUID_NULL;
-            if (SUCCEEDED(partial_media_type->GetGUID(MF_MT_SUBTYPE, &native_subtype))) {
-                const char* format_name = "Unknown";
-                if (native_subtype == MFVideoFormat_NV12) {
-                    format_name = "NV12";
-                } else if (native_subtype == MFVideoFormat_ARGB32) {
-                    format_name = "ARGB32";
-                } else if (native_subtype == MFVideoFormat_RGB32) {
-                    format_name = "RGB32";
-                }
-                Logger::info("[core] [VideoDecoder] Native hardware decoder format: {} ({:08x}-{:04x}-{:04x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x})",
-                    format_name,
-                    native_subtype.Data1, native_subtype.Data2, native_subtype.Data3,
-                    native_subtype.Data4[0], native_subtype.Data4[1],
-                    native_subtype.Data4[2], native_subtype.Data4[3],
-                    native_subtype.Data4[4], native_subtype.Data4[5],
-                    native_subtype.Data4[6], native_subtype.Data4[7]);
-            }
-        }
-        
-        win32::com_ptr<IMFMediaType> media_type;
-        if (!win32::check_hresult_as_boolean(
-            MFCreateMediaType(media_type.put()),
-            "MFCreateMediaType"sv
-        )) {
-            return false;
-        }
-        
-        if (!win32::check_hresult_as_boolean(
-            media_type->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video),
-            "IMFMediaType::SetGUID(MF_MT_MAJOR_TYPE)"sv
-        )) {
-            return false;
-        }
-        
-        if (use_hardware_accel && partial_media_type) {
-            GUID native_subtype = GUID_NULL;
-            if (SUCCEEDED(partial_media_type->GetGUID(MF_MT_SUBTYPE, &native_subtype))) {
-                if (native_subtype == MFVideoFormat_H264) {
-                    Logger::info("[core] [VideoDecoder] Hardware decoder outputs compressed format, enumerating supported output formats");
-                    for (DWORD i = 0; ; ++i) {
-                        win32::com_ptr<IMFMediaType> output_type;
-                        if (!win32::check_hresult_as_boolean(
-                            m_source_reader->GetNativeMediaType((DWORD)m_video_stream_index, i, output_type.put()),
-                            "IMFSourceReader::GetNativeMediaType"sv
-                        )) {
-                            break;
-                        }
-                        GUID output_subtype = GUID_NULL;
-                        if (SUCCEEDED(output_type->GetGUID(MF_MT_SUBTYPE, &output_subtype))) {
-                            const char* format_name = "Unknown";
-                            if (output_subtype == MFVideoFormat_NV12) format_name = "NV12";
-                            else if (output_subtype == MFVideoFormat_ARGB32) format_name = "ARGB32";
-                            else if (output_subtype == MFVideoFormat_RGB32) format_name = "RGB32";
-                            Logger::info("[core] [VideoDecoder]   Output format {}: {}", i, format_name);
-                        }
-                    }
-                }
-            }
-        }
-        
-        if (partial_media_type) {
-            UINT32 width = 0, height = 0;
-            if (SUCCEEDED(MFGetAttributeSize(partial_media_type.get(), MF_MT_FRAME_SIZE, &width, &height))) {
-                UINT32 out_w = options.output_width > 0 ? options.output_width : width;
-                UINT32 out_h = options.output_height > 0 ? options.output_height : height;
-                if (out_w != width || out_h != height) {
-                    Logger::info("[core] [VideoDecoder] Requesting output resolution: {}x{} (original: {}x{})", out_w, out_h, width, height);
-                }
-                hr = MFSetAttributeSize(media_type.get(), MF_MT_FRAME_SIZE, out_w, out_h);
-                if (!win32::check_hresult_as_boolean(hr, "MFSetAttributeSize"sv)) {
-                    Logger::warn("[core] [VideoDecoder] Failed to set output resolution {}x{}, using original {}x{}", 
-                        out_w, out_h, width, height);
-                    win32::check_hresult(
-                        MFSetAttributeSize(media_type.get(), MF_MT_FRAME_SIZE, width, height),
-                        "MFSetAttributeSize (original)"sv
-                    );
-                }
-            }
-            
-            MFVideoArea area = {};
-            if (SUCCEEDED(partial_media_type->GetBlob(MF_MT_GEOMETRIC_APERTURE, (UINT8*)&area, sizeof(area), nullptr))) {
-                media_type->SetBlob(MF_MT_GEOMETRIC_APERTURE, (UINT8*)&area, sizeof(area));
-            }
-        }
-        
-        if (!win32::check_hresult_as_boolean(
-            media_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_ARGB32),
-            "IMFMediaType::SetGUID(MFVideoFormat_ARGB32)"sv
-        )) {
-            return false;
-        }
-        
-        hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
-        
-        if (!win32::check_hresult_as_boolean(hr, "IMFSourceReader::SetCurrentMediaType(ARGB32)"sv)) {
-            Logger::info("[core] [VideoDecoder] ARGB32 not supported, trying RGB32");
-            if (!win32::check_hresult_as_boolean(
-                media_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32),
-                "IMFMediaType::SetGUID(MFVideoFormat_RGB32)"sv
-            )) {
-                return false;
-            }
-            hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
-            
-            if (!win32::check_hresult_as_boolean(hr, "IMFSourceReader::SetCurrentMediaType(RGB32)"sv)) {
-                Logger::info("[core] [VideoDecoder] RGB32 not supported, trying NV12 (hardware native)");
-                if (!win32::check_hresult_as_boolean(
-                    media_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_NV12),
-                    "IMFMediaType::SetGUID(MFVideoFormat_NV12)"sv
-                )) {
-                    return false;
-                }
-                hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
-                bool succeeded_via_retry = false;
-                if (!win32::check_hresult_as_boolean(hr, "IMFSourceReader::SetCurrentMediaType(NV12)"sv)) {
-                    UINT32 req_w = 0, req_h = 0;
-                    MFGetAttributeSize(media_type.get(), MF_MT_FRAME_SIZE, &req_w, &req_h);
-                    UINT32 orig_w = 0, orig_h = 0;
-                    bool can_retry_original = partial_media_type
-                        && SUCCEEDED(MFGetAttributeSize(partial_media_type.get(), MF_MT_FRAME_SIZE, &orig_w, &orig_h))
-                        && (req_w != orig_w || req_h != orig_h);
-                    if (can_retry_original) {
-                        Logger::info("[core] [VideoDecoder] Scaled resolution {}x{} not supported by decoder, retrying with original {}x{}",
-                            req_w, req_h, orig_w, orig_h);
-                        hr = MFSetAttributeSize(media_type.get(), MF_MT_FRAME_SIZE, orig_w, orig_h);
-                        if (SUCCEEDED(hr)) {
-                            hr = media_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_ARGB32);
-                            if (SUCCEEDED(hr)) {
-                                hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
-                            }
-                            if (!win32::check_hresult_as_boolean(hr, "SetCurrentMediaType(ARGB32, original)"sv)) {
-                                hr = media_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
-                                if (SUCCEEDED(hr)) {
-                                    hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
-                                }
-                            }
-                            if (!win32::check_hresult_as_boolean(hr, "SetCurrentMediaType(RGB32, original)"sv)) {
-                                hr = media_type->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_NV12);
-                                if (SUCCEEDED(hr)) {
-                                    hr = m_source_reader->SetCurrentMediaType((DWORD)m_video_stream_index, nullptr, media_type.get());
-                                }
-                                if (win32::check_hresult_as_boolean(hr, "SetCurrentMediaType(NV12, original)"sv)) {
-                                    m_output_format = OutputFormat::NV12;
-                                    Logger::info("[core] [VideoDecoder] Using NV12 output (original resolution), will convert to BGRA via Video Processor");
-                                }
-                            }
-                            if (win32::check_hresult_as_boolean(hr, "SetCurrentMediaType (retry)"sv)) {
-                                succeeded_via_retry = true;
-                            }
-                        }
-                    }
-                    if (!win32::check_hresult_as_boolean(hr, "SetCurrentMediaType (final)"sv)) {
-                        UINT32 err_w = 0, err_h = 0;
-                        MFGetAttributeSize(media_type.get(), MF_MT_FRAME_SIZE, &err_w, &err_h);
-                        Logger::error("[core] [VideoDecoder] Failed to set media type (tried ARGB32, RGB32, NV12) at resolution {}x{}",
-                            err_w, err_h);
-                        Logger::error("[core] [VideoDecoder] This may be due to unsupported output resolution or codec format");
-                        return false;
-                    }
-                } else if (!succeeded_via_retry) {
-                    m_output_format = OutputFormat::NV12;
-                    Logger::info("[core] [VideoDecoder] Using NV12 output, will convert to BGRA via Video Processor");
-                }
-            }
-        }
-        
-        if (!win32::check_hresult_as_boolean(
-            m_source_reader->GetCurrentMediaType((DWORD)m_video_stream_index, m_media_type.put()),
-            "IMFSourceReader::GetCurrentMediaType"sv
-        )) {
-            return false;
-        }
-        
-        GUID subtype = GUID_NULL;
-        hr = m_media_type->GetGUID(MF_MT_SUBTYPE, &subtype);
-        if (SUCCEEDED(hr)) {
-            if (subtype == MFVideoFormat_ARGB32) {
-                Logger::info("[core] [VideoDecoder] Using video format: ARGB32 (native BGRA)");
-            } else if (subtype == MFVideoFormat_RGB32) {
-                Logger::info("[core] [VideoDecoder] Using video format: RGB32");
-            } else if (subtype == MFVideoFormat_NV12) {
-                Logger::info("[core] [VideoDecoder] Using video format: NV12 (hardware native, GPU conversion to BGRA)");
-            } else {
-                Logger::warn("[core] [VideoDecoder] Using unknown video format, display may be incorrect");
-            }
-        }
-        
-        UINT32 width = 0, height = 0;
-        if (!win32::check_hresult_as_boolean(
-            MFGetAttributeSize(m_media_type.get(), MF_MT_FRAME_SIZE, &width, &height),
-            "MFGetAttributeSize(MF_MT_FRAME_SIZE)"sv
-        )) {
-            return false;
-        }
-        
-        m_video_size = Vector2U{ width, height };
-        m_target_size = Vector2U{
-            options.output_width > 0 ? options.output_width : width,
-            options.output_height > 0 ? options.output_height : height
-        };
-        
-        PROPVARIANT var;
-        PropVariantInit(&var);
-        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &var))) {
-            m_duration = var.hVal.QuadPart / 10000000.0;
-            PropVariantClear(&var);
-        }
-        
-        UINT32 rate_num = 0, rate_den = 0;
-        for (DWORD i = 0; ; ++i) {
-            win32::com_ptr<IMFMediaType> mt;
-            if (!win32::check_hresult_as_boolean(
-                m_source_reader->GetNativeMediaType((DWORD)m_video_stream_index, i, mt.put()),
-                "IMFSourceReader::GetNativeMediaType"sv
-            )) {
-                break;
-            }
-            if (SUCCEEDED(MFGetAttributeRatio(mt.get(), MF_MT_FRAME_RATE, &rate_num, &rate_den)) && rate_den > 0 && rate_num > 0)
-                break;
-        }
-        if (rate_den == 0 || rate_num == 0) {
-            hr = MFGetAttributeRatio(m_media_type.get(), MF_MT_FRAME_RATE, &rate_num, &rate_den);
-        }
-        if (rate_den > 0 && rate_num > 0) {
-            m_frame_interval = static_cast<double>(rate_den) / static_cast<double>(rate_num);
-            m_frame_rate_num = rate_num;
-            m_frame_rate_den = rate_den;
-            Logger::info("[core] [VideoDecoder] Frame rate: {} / {} (= {:.2f} fps)", rate_num, rate_den, 1.0 / m_frame_interval);
-        } else {
-            m_frame_rate_num = 30;
-            m_frame_rate_den = 1;
-            m_frame_interval = 1.0 / 30.0;
-            Logger::warn("[core] [VideoDecoder] MF_MT_FRAME_RATE not available, assuming 30 fps");
-        }
-        
-        if (!createTexture()) {
-            close();
-            return false;
-        }
-        
-        if (m_output_format == OutputFormat::NV12 && !createVideoProcessor()) {
-            Logger::error("[core] [VideoDecoder] Failed to create Video Processor for NV12 conversion");
-            close();
-            return false;
-        }
-        
-        m_frame_pitch = m_video_size.x * 4;
-        
-        m_current_time = 0.0;
-        m_last_requested_time = -1.0;
-        
-        bool first_frame_loaded = readFrameAtTime(0.0);
-        Logger::info("[core] [VideoDecoder] First frame loaded: {}", first_frame_loaded);
-        
-        Logger::info("[core] [VideoDecoder] Opened video: {}x{}, duration: {:.2f}s", 
-                    m_target_size.x, m_target_size.y, m_duration);
+        if (!loadVideoFile(path)) return false;
+        if (!configureHardwareAcceleration()) return false;
+        if (!selectVideoStream(options.video_stream_index)) return false;
+        if (!negotiateOutputFormat(options)) return false;
+        if (!extractVideoProperties()) return false;
+        if (!createResources()) return false;
+        if (!loadFirstFrame()) return false;
 
         m_last_open_path.assign(path.data(), path.size());
         m_last_open_options = options;
@@ -502,57 +106,69 @@ namespace core {
             setLoopRange(options.loop_end, options.loop_duration);
         }
 
+        Logger::info("[core] [VideoDecoder] Opened video: {}x{}, duration: {:.2f}s", 
+                    m_target_size.x, m_target_size.y, m_duration);
+
         return true;
     }
 
     void VideoDecoder::getVideoStreams(void (*callback)(VideoStreamInfo const&, void*), void* userdata) const {
         if (!m_source_reader || !callback) return;
-        PROPVARIANT var;
-        PropVariantInit(&var);
+        
+        PropVariantGuard var;
         double duration_sec = 0.0;
-        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &var))) {
-            duration_sec = var.hVal.QuadPart / 10000000.0;
-            PropVariantClear(&var);
+        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, var.get()))) {
+            duration_sec = var->hVal.QuadPart / 10000000.0;
         }
-        for (DWORD si = 0; si < kMaxStreams; ++si) {
+        
+        for (DWORD si = 0; si < Config::kMaxStreams; ++si) {
             win32::com_ptr<IMFMediaType> mt;
             if (FAILED(m_source_reader->GetNativeMediaType(si, 0, mt.put()))) continue;
+            
             GUID major = GUID_NULL;
             if (FAILED(mt->GetGUID(MF_MT_MAJOR_TYPE, &major)) || major != MFMediaType_Video) continue;
+            
             VideoStreamInfo info{};
             info.index = si;
             info.duration_seconds = duration_sec;
+            
             UINT32 w = 0, h = 0;
             if (SUCCEEDED(MFGetAttributeSize(mt.get(), MF_MT_FRAME_SIZE, &w, &h))) {
                 info.width = w;
                 info.height = h;
             }
+            
             UINT32 num = 0, den = 0;
-            if (SUCCEEDED(MFGetAttributeRatio(mt.get(), MF_MT_FRAME_RATE, &num, &den)) && den > 0)
+            if (SUCCEEDED(MFGetAttributeRatio(mt.get(), MF_MT_FRAME_RATE, &num, &den)) && den > 0) {
                 info.fps = static_cast<double>(num) / static_cast<double>(den);
+            }
+            
             callback(info, userdata);
         }
     }
 
     void VideoDecoder::getAudioStreams(void (*callback)(AudioStreamInfo const&, void*), void* userdata) const {
         if (!m_source_reader || !callback) return;
-        PROPVARIANT var;
-        PropVariantInit(&var);
+        
+        PropVariantGuard var;
         double duration_sec = 0.0;
-        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &var))) {
-            duration_sec = var.hVal.QuadPart / 10000000.0;
-            PropVariantClear(&var);
+        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, var.get()))) {
+            duration_sec = var->hVal.QuadPart / 10000000.0;
         }
-        for (DWORD si = 0; si < kMaxStreams; ++si) {
+        
+        for (DWORD si = 0; si < Config::kMaxStreams; ++si) {
             win32::com_ptr<IMFMediaType> mt;
             if (FAILED(m_source_reader->GetNativeMediaType(si, 0, mt.put()))) continue;
+            
             GUID major = GUID_NULL;
             if (FAILED(mt->GetGUID(MF_MT_MAJOR_TYPE, &major)) || major != MFMediaType_Audio) continue;
+            
             AudioStreamInfo info{};
             info.index = si;
             info.duration_seconds = duration_sec;
             info.channels = (UINT32)MFGetAttributeUINT32(mt.get(), MF_MT_AUDIO_NUM_CHANNELS, 0);
             info.sample_rate = MFGetAttributeUINT32(mt.get(), MF_MT_AUDIO_SAMPLES_PER_SECOND, 0);
+            
             callback(info, userdata);
         }
     }
@@ -576,40 +192,42 @@ namespace core {
         m_video_processor_enum.reset();
         m_video_context.reset();
         m_video_device.reset();
-        m_output_format = OutputFormat::ARGB32;
         
+        m_output_format = OutputFormat::ARGB32;
         m_video_size = Vector2U{};
         m_target_size = Vector2U{};
         m_duration = 0.0;
         m_current_time = 0.0;
         m_last_requested_time = -1.0;
-        m_frame_interval = 1.0 / 30.0;
-        m_frame_rate_num = 30;
-        m_frame_rate_den = 1;
+        m_frame_interval = 1.0 / Config::kDefaultFrameRateNum;
+        m_frame_rate_num = Config::kDefaultFrameRateNum;
+        m_frame_rate_den = Config::kDefaultFrameRateDen;
         m_frame_pitch = 0;
         m_video_stream_index = 0;
-        m_has_loop_range = false;
-        m_loop_start = 0.0;
-        m_loop_end = 0.0;
+        m_loop_state = LoopState{};
+        m_first_texture_update_logged = false;
     }
 
     void VideoDecoder::setLoopRange(double end_sec, double duration_sec) {
         if (duration_sec > 0.0 && end_sec >= duration_sec) {
-            m_loop_start = end_sec - duration_sec;
+            m_loop_state.start = end_sec - duration_sec;
             double cap = m_duration > 0.0 ? m_duration : end_sec;
-            m_loop_end = (std::min)(end_sec, cap);
-            m_has_loop_range = (m_loop_end > m_loop_start);
-            if (!m_has_loop_range) { m_loop_start = 0.0; m_loop_end = m_duration; }
+            m_loop_state.end = (std::min)(end_sec, cap);
+            m_loop_state.has_range = (m_loop_state.end > m_loop_state.start);
+            if (!m_loop_state.has_range) { 
+                m_loop_state.start = 0.0; 
+                m_loop_state.end = m_duration; 
+            }
         } else {
-            m_has_loop_range = false;
-            m_loop_start = 0.0;
-            m_loop_end = m_duration;
+            m_loop_state.has_range = false;
+            m_loop_state.start = 0.0;
+            m_loop_state.end = m_duration;
         }
     }
 
     void VideoDecoder::getLoopRange(double* end_sec, double* duration_sec) const noexcept {
-        if (end_sec) *end_sec = m_has_loop_range ? m_loop_end : m_duration;
-        if (duration_sec) *duration_sec = m_has_loop_range ? (m_loop_end - m_loop_start) : m_duration;
+        if (end_sec) *end_sec = m_loop_state.has_range ? m_loop_state.end : m_duration;
+        if (duration_sec) *duration_sec = m_loop_state.has_range ? (m_loop_state.end - m_loop_state.start) : m_duration;
     }
     
     bool VideoDecoder::seek(double time_in_seconds) {
@@ -617,20 +235,13 @@ namespace core {
             return false;
         }
         
-        if (time_in_seconds < 0.0) {
-            time_in_seconds = 0.0;
-        }
-        if (time_in_seconds > m_duration) {
-            time_in_seconds = m_duration;
-        }
+        time_in_seconds = std::clamp(time_in_seconds, 0.0, m_duration);
         
-        PROPVARIANT var;
-        PropVariantInit(&var);
-        var.vt = VT_I8;
-        var.hVal.QuadPart = static_cast<LONGLONG>(time_in_seconds * 10000000.0);
+        PropVariantGuard var;
+        var->vt = VT_I8;
+        var->hVal.QuadPart = static_cast<LONGLONG>(time_in_seconds * 10000000.0);
         
-        HRESULT const hr = m_source_reader->SetCurrentPosition(GUID_NULL, var);
-        PropVariantClear(&var);
+        HRESULT const hr = m_source_reader->SetCurrentPosition(GUID_NULL, *var.get());
         
         if (!win32::check_hresult_as_boolean(hr, "IMFSourceReader::SetCurrentPosition"sv)) {
             return false;
@@ -650,16 +261,15 @@ namespace core {
             return false;
         }
         
-        auto const loop_begin = m_has_loop_range ? m_loop_start : 0.0;
-        auto const loop_end = m_has_loop_range ? m_loop_end : m_duration;
+        auto const loop_begin = m_loop_state.has_range ? m_loop_state.start : 0.0;
+        auto const loop_end = m_loop_state.has_range ? m_loop_state.end : m_duration;
         auto const loop_len = loop_end - loop_begin;
 
         if (time_in_seconds >= m_duration) {
             if (m_looping) {
                 if (loop_end > m_duration && time_in_seconds < loop_end) {
-                    constexpr double kEndEpsilon = 1e-6;
-                    if (m_current_time < m_duration - kEndEpsilon) {
-                        double const last_frame_time = std::max(0.0, m_duration - kEndEpsilon);
+                    if (m_current_time < m_duration - Config::kEndEpsilon) {
+                        double const last_frame_time = std::max(0.0, m_duration - Config::kEndEpsilon);
                         readFrameAtTime(last_frame_time);
                         m_current_time = m_duration;
                     }
@@ -670,11 +280,10 @@ namespace core {
                 else
                     time_in_seconds = std::fmod(time_in_seconds, m_duration);
             } else {
-                constexpr double kEndEpsilon = 1e-6;
-                if (m_current_time >= m_duration - kEndEpsilon) {
+                if (m_current_time >= m_duration - Config::kEndEpsilon) {
                     return true;
                 }
-                double const last_frame_time = std::max(0.0, m_duration - kEndEpsilon);
+                double const last_frame_time = std::max(0.0, m_duration - Config::kEndEpsilon);
                 bool const ok = readFrameAtTime(last_frame_time);
                 m_current_time = m_duration;
                 return ok;
@@ -706,13 +315,11 @@ namespace core {
             }
         }
         
-        constexpr double kTimeEpsilon = 1e-4;
-        constexpr double kBackwardTolerance = 1.0 / 120.0;
         double const frame_tolerance = m_frame_interval * 0.5;
         double const seek_threshold = (std::max)(0.1, 16.0 * m_frame_interval);
         int const max_catch_up_frames = (std::min)(16, (std::max)(1, static_cast<int>(0.2 / m_frame_interval)));
 
-        bool const is_backward = (m_last_requested_time >= 0.0) && (time_in_seconds + kBackwardTolerance < m_last_requested_time);
+        bool const is_backward = (m_last_requested_time >= 0.0) && (time_in_seconds + Config::kBackwardTolerance < m_last_requested_time);
         bool const large_jump = (m_current_time + seek_threshold < time_in_seconds);
 
         m_last_requested_time = time_in_seconds;
@@ -729,7 +336,7 @@ namespace core {
             if (!readNextFrame()) {
                 return false;
             }
-            if (m_current_time + kTimeEpsilon >= time_in_seconds) {
+            if (m_current_time + Config::kTimeEpsilon >= time_in_seconds) {
                 return true;
             }
         }
@@ -786,13 +393,11 @@ namespace core {
             return false;
         }
 
-        constexpr double kTimeEpsilon = 1e-4;
-
-        for (int i = 0; i < kMaxDecodeFramesAfterSeek; ++i) {
+        for (int i = 0; i < Config::kMaxDecodeFramesAfterSeek; ++i) {
             if (!readNextFrame()) {
                 return false;
             }
-            if (m_current_time + kTimeEpsilon >= time_in_seconds) {
+            if (m_current_time + Config::kTimeEpsilon >= time_in_seconds) {
                 return true;
             }
         }
@@ -1113,11 +718,10 @@ namespace core {
             }
         }
         
-        thread_local bool first_copy = true;
-        if (first_copy) {
+        if (!m_first_texture_update_logged) [[unlikely]] {
             Logger::info("[core] [VideoDecoder] Texture update: source={}x{} pitch={}, dest={}x{} pitch={}, force_alpha={}, scale={}",
                         src_w, src_h, source_pitch, dst_w, dst_h, mapped.RowPitch, force_opaque_alpha, need_scale);
-            first_copy = false;
+            m_first_texture_update_logged = true;
         }
         
         if (!need_scale) {
