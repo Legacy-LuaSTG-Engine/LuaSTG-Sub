@@ -255,8 +255,7 @@ namespace luastg::binding {
 
 		// method
 
-		[[maybe_unused]] auto const method_table_ret = ctx.create_module(class_name);
-		auto const method_table = ctx.index_of_top();
+		auto const method_table = ctx.create_module(class_name);
 		// video info
 		ctx.set_map_value(method_table, "getWidth", &VideoBinding::getWidth);
 		ctx.set_map_value(method_table, "getHeight", &VideoBinding::getHeight);
@@ -281,8 +280,7 @@ namespace luastg::binding {
 
 		// metatable
 
-		[[maybe_unused]] auto const metatable_ret = ctx.create_metatable(class_name);
-		auto const metatable = ctx.index_of_top();
+		auto const metatable = ctx.create_metatable(class_name);
 		ctx.set_map_value(metatable, "__gc", &VideoBinding::__gc);
 		ctx.set_map_value(metatable, "__tostring", &VideoBinding::__tostring);
 		ctx.set_map_value(metatable, "__eq", &VideoBinding::__eq);

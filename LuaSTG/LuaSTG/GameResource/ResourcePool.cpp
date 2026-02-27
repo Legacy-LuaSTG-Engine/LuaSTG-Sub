@@ -10,7 +10,6 @@
 #include "GameResource/Implement/ResourceModelImpl.hpp"
 #include "core/FileSystem.hpp"
 #include "core/AudioEngine.hpp"
-#include "d3d11/VideoTexture.hpp"
 #include "AppFrame.h"
 #include "lua/plus.hpp"
 
