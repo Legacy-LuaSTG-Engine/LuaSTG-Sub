@@ -3,18 +3,17 @@
 
 #include "d3d11/VideoDecoder.hpp"
 #include "d3d11/VideoDecoderConfig.hpp"
-#include "d3d11/MediaFoundationHelpers.hpp"
 #include "core/Configuration.hpp"
 #include "core/FileSystem.hpp"
 #include "core/Logger.hpp"
 #include "utf8.hpp"
+#include <wil/resource.h>
 #include <shlwapi.h>
 
 #pragma comment(lib, "shlwapi.lib")
 
 namespace core {
     using std::string_view_literals::operator ""sv;
-    using mf_helpers::PropVariantGuard;
     using Config = VideoDecoderConfig;
 
     bool VideoDecoder::loadVideoFile(StringView path) {
@@ -423,9 +422,9 @@ namespace core {
         m_video_size = Vector2U{ width, height };
         m_target_size = m_video_size;
         
-        PropVariantGuard var;
-        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, var.get()))) {
-            m_duration = var->hVal.QuadPart / 10000000.0;
+        wil::unique_prop_variant var;
+        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &var))) {
+            m_duration = var.hVal.QuadPart / 10000000.0;
         }
         
         UINT32 rate_num = 0, rate_den = 0;

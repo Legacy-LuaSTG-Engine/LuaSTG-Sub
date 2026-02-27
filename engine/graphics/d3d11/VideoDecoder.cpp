@@ -1,10 +1,10 @@
 #include "d3d11/VideoDecoder.hpp"
 #include "d3d11/VideoDecoderConfig.hpp"
-#include "d3d11/MediaFoundationHelpers.hpp"
 #include "core/Configuration.hpp"
 #include "core/FileSystem.hpp"
 #include "core/Logger.hpp"
 #include "utf8.hpp"
+#include <wil/resource.h>
 #include <mferror.h>
 #include <mfapi.h>
 #include <mfobjects.h>
@@ -20,7 +20,6 @@
 
 namespace {
     using std::string_view_literals::operator ""sv;
-    using core::mf_helpers::PropVariantGuard;
     using Config = core::VideoDecoderConfig;
     
     class MFInitializer {
@@ -115,10 +114,10 @@ namespace core {
     void VideoDecoder::getVideoStreams(void (*callback)(VideoStreamInfo const&, void*), void* userdata) const {
         if (!m_source_reader || !callback) return;
         
-        PropVariantGuard var;
+        wil::unique_prop_variant var;
         double duration_sec = 0.0;
-        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, var.get()))) {
-            duration_sec = var->hVal.QuadPart / 10000000.0;
+        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &var))) {
+            duration_sec = var.hVal.QuadPart / 10000000.0;
         }
         
         for (DWORD si = 0; si < Config::kMaxStreams; ++si) {
@@ -150,10 +149,10 @@ namespace core {
     void VideoDecoder::getAudioStreams(void (*callback)(AudioStreamInfo const&, void*), void* userdata) const {
         if (!m_source_reader || !callback) return;
         
-        PropVariantGuard var;
+        wil::unique_prop_variant var;
         double duration_sec = 0.0;
-        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, var.get()))) {
-            duration_sec = var->hVal.QuadPart / 10000000.0;
+        if (SUCCEEDED(m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &var))) {
+            duration_sec = var.hVal.QuadPart / 10000000.0;
         }
         
         for (DWORD si = 0; si < Config::kMaxStreams; ++si) {
@@ -237,11 +236,11 @@ namespace core {
         
         time_in_seconds = std::clamp(time_in_seconds, 0.0, m_duration);
         
-        PropVariantGuard var;
-        var->vt = VT_I8;
-        var->hVal.QuadPart = static_cast<LONGLONG>(time_in_seconds * 10000000.0);
+        wil::unique_prop_variant var;
+        var.vt = VT_I8;
+        var.hVal.QuadPart = static_cast<LONGLONG>(time_in_seconds * 10000000.0);
         
-        HRESULT const hr = m_source_reader->SetCurrentPosition(GUID_NULL, *var.get());
+        HRESULT const hr = m_source_reader->SetCurrentPosition(GUID_NULL, var);
         
         if (!win32::check_hresult_as_boolean(hr, "IMFSourceReader::SetCurrentPosition"sv)) {
             return false;
