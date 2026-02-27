@@ -436,6 +436,14 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			lua_pushboolean(L, p->IsRenderTarget());
 			return 1;
 		}
+		static int IsVideoTexture(lua_State* L) noexcept
+		{
+			core::SmartReference<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
+			if (!p)
+				return luaL_error(L, "texture '%s' not found.", luaL_checkstring(L, 1));
+			lua_pushboolean(L, p->IsVideoTexture());
+			return 1;
+		}
 		static int SetTexturePreMulAlphaState(lua_State* L) noexcept
 		{
 			core::SmartReference<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
@@ -831,6 +839,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "LoadModel", &Wrapper::LoadModel },
 		{ "CreateRenderTarget", &Wrapper::CreateRenderTarget },
 		{ "IsRenderTarget", &Wrapper::IsRenderTarget },
+		{ "IsVideoTexture", &Wrapper::IsVideoTexture },
 		{ "SetTexturePreMulAlphaState", &Wrapper::SetTexturePreMulAlphaState },
 		{ "SetTextureSamplerState", &Wrapper::SetTextureSamplerState },
 		{ "GetTextureSize", &Wrapper::GetTextureSize },
