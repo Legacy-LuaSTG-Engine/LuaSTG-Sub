@@ -24,6 +24,17 @@ target_compile_definitions(LuaSTG PRIVATE
     LDEVVERSION
 )
 
+configure_file(
+    "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/LConfig.h.in"
+    "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/LConfig.h"
+    @ONLY
+)
+configure_file(
+    "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/LuaSTG.manifest.in"
+    "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/LuaSTG.manifest"
+    @ONLY
+)
+
 set(LUASTG_ENGINE_SOURCES
     LuaSTG/SharedHeaders.h
     LuaSTG/SharedHeaders.cpp

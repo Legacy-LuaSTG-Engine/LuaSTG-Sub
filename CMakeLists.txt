@@ -1,5 +1,17 @@
 cmake_minimum_required(VERSION 3.31)
-project(LuaSTGSub)
+
+file(READ "${CMAKE_SOURCE_DIR}/version.json" version_json)
+string(JSON LUASTG_PACKAGE_NAME GET ${version_json} "package")
+string(JSON LUASTG_VERSION_MAJOR GET ${version_json} "major")
+string(JSON LUASTG_VERSION_MINOR GET ${version_json} "minor")
+string(JSON LUASTG_VERSION_PATCH GET ${version_json} "patch")
+message(STATUS "LuaSTG Sub v${LUASTG_VERSION_MAJOR}.${LUASTG_VERSION_MINOR}.${LUASTG_VERSION_PATCH}")
+
+project(LuaSTGSub
+    VERSION      "${LUASTG_VERSION_MAJOR}.${LUASTG_VERSION_MINOR}.${LUASTG_VERSION_PATCH}"
+    DESCRIPTION  "LuaSTG Sub: Game engine for bullet hell games, using Lua as the scripting language"
+    HOMEPAGE_URL "https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub"
+)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
