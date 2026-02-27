@@ -52,12 +52,12 @@ namespace luastg::binding::video {
         auto array_idx = stack.create_array(list.size());
         for (size_t i = 0; i < list.size(); ++i) {
             auto item_idx = stack.create_map(5);
-            stack.set_map_value(item_idx, "index", static_cast<uint32_t>(list[i].index));
-            stack.set_map_value(item_idx, "width", static_cast<uint32_t>(list[i].width));
-            stack.set_map_value(item_idx, "height", static_cast<uint32_t>(list[i].height));
+            stack.set_map_value(item_idx, "index", list[i].index);
+            stack.set_map_value(item_idx, "width", list[i].width);
+            stack.set_map_value(item_idx, "height", list[i].height);
             stack.set_map_value(item_idx, "fps", list[i].fps);
             stack.set_map_value(item_idx, "duration", list[i].duration_seconds);
-            stack.set_array_value(array_idx, lua::stack_index_t(static_cast<int32_t>(i + 1)), item_idx);
+            stack.set_array_value(array_idx, i + 1, item_idx);
         }
     }
 
@@ -79,11 +79,11 @@ namespace luastg::binding::video {
         auto array_idx = stack.create_array(list.size());
         for (size_t i = 0; i < list.size(); ++i) {
             auto item_idx = stack.create_map(4);
-            stack.set_map_value(item_idx, "index", static_cast<uint32_t>(list[i].index));
-            stack.set_map_value(item_idx, "channels", static_cast<uint32_t>(list[i].channels));
-            stack.set_map_value(item_idx, "sample_rate", static_cast<uint32_t>(list[i].sample_rate));
+            stack.set_map_value(item_idx, "index", list[i].index);
+            stack.set_map_value(item_idx, "channels", list[i].channels);
+            stack.set_map_value(item_idx, "sample_rate", list[i].sample_rate);
             stack.set_map_value(item_idx, "duration", list[i].duration_seconds);
-            stack.set_array_value(array_idx, lua::stack_index_t(static_cast<int32_t>(i + 1)), item_idx);
+            stack.set_array_value(array_idx, i + 1, item_idx);
         }
     }
 
@@ -108,10 +108,10 @@ namespace luastg::binding::video {
         stack.set_map_value(map_idx, "loop_duration", loop_duration);
         
         auto size = decoder->getVideoSize();
-        stack.set_map_value(map_idx, "width", static_cast<int32_t>(size.x));
-        stack.set_map_value(map_idx, "height", static_cast<int32_t>(size.y));
+        stack.set_map_value(map_idx, "width", size.x);
+        stack.set_map_value(map_idx, "height", size.y);
         
-        stack.set_map_value(map_idx, "video_stream", static_cast<uint32_t>(decoder->getVideoStreamIndex()));
+        stack.set_map_value(map_idx, "video_stream", decoder->getVideoStreamIndex());
         
         double frame_interval = decoder->getFrameInterval();
         stack.set_map_value(map_idx, "frame_interval", frame_interval);

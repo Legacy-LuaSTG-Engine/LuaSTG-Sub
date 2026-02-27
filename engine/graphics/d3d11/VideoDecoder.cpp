@@ -13,10 +13,6 @@
 #include <shlwapi.h>
 #include <algorithm>
 
-#pragma comment(lib, "mfplat.lib")
-#pragma comment(lib, "mfreadwrite.lib")
-#pragma comment(lib, "mfuuid.lib")
-
 namespace {
     using std::string_view_literals::operator ""sv;
     using Config = core::VideoDecoderConfig;

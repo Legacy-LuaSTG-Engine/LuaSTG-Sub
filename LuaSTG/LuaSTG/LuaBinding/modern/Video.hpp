@@ -5,7 +5,8 @@
 
 namespace luastg::binding {
 	struct Video {
-		static std::string_view class_name;
+		static const std::string_view class_name;
+
 		core::ITexture2D* data{ nullptr };
 
 		static bool is(lua_State* vm, int index);

@@ -1,7 +1,6 @@
 #include "GameResource/ResourceManager.h"
 #ifdef USING_DEAR_IMGUI
 #include "imgui.h"
-#include "d3d11/VideoTexture.hpp"
 #endif
 
 static std::string bytes_count_to_string(unsigned long long size)
