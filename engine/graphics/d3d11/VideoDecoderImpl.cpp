@@ -10,8 +10,6 @@
 #include <wil/resource.h>
 #include <shlwapi.h>
 
-#pragma comment(lib, "shlwapi.lib")
-
 namespace core {
     using std::string_view_literals::operator ""sv;
     using Config = VideoDecoderConfig;

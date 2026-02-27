@@ -50,6 +50,7 @@ target_link_libraries(${lib_name} PUBLIC
     mfplat.lib
     mfreadwrite.lib
     mfuuid.lib
+    shlwapi.lib
     Microsoft.Windows.ImplementationLibrary
     Microsoft::DirectXTexMini
     libqoi

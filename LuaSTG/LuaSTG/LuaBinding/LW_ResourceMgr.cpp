@@ -57,6 +57,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		}
 		static int LoadVideo(lua_State* L) noexcept
 		{
+			lua::stack_t const ctx(L);
 			const char* name = luaL_checkstring(L, 1);
 			const char* path = luaL_checkstring(L, 2);
 
@@ -65,7 +66,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return luaL_error(L, "can't load resource at this time.");
 			
 			core::VideoOpenOptions opt;
-			bool const has_options = lua_gettop(L) >= 3 && lua_istable(L, 3);
+			bool const has_options = ctx.index_of_top() >= 3 && ctx.is_table(3);
 			if (has_options)
 				video::parseVideoOptions(L, 3, opt);
 			
@@ -721,19 +722,21 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		// Video control functions
 
 		static int VideoSeek(lua_State* L) noexcept {
+			lua::stack_t const ctx(L);
 			const char* name = luaL_checkstring(L, 1);
 			double time = luaL_checknumber(L, 2);
 			auto decoder = video::getDecoderFromResourceName(name);
 			if (!decoder)
 				return luaL_error(L, "video texture '%s' not found or is not a video texture.", name);
 			bool ok = decoder->seek(time);
-			lua_pushboolean(L, ok);
+			ctx.push_value(ok);
 			return 1;
 		}
 
 		static int VideoSetLooping(lua_State* L) noexcept {
+			lua::stack_t const ctx(L);
 			const char* name = luaL_checkstring(L, 1);
-			bool loop = lua_toboolean(L, 2) != 0;
+			bool loop = ctx.get_value<bool>(2);
 			auto decoder = video::getDecoderFromResourceName(name);
 			if (!decoder)
 				return luaL_error(L, "video texture '%s' not found.", name);
@@ -753,13 +756,14 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		}
 		
 		static int VideoUpdate(lua_State* L) noexcept {
+			lua::stack_t const ctx(L);
 			const char* name = luaL_checkstring(L, 1);
 			double time = luaL_checknumber(L, 2);
 			auto decoder = video::getDecoderFromResourceName(name);
 			if (!decoder)
 				return luaL_error(L, "video texture '%s' not found or is not a video texture.", name);
 			bool ok = decoder->updateToTime(time);
-			lua_pushboolean(L, ok);
+			ctx.push_value(ok);
 			return 1;
 		}
 		
@@ -791,18 +795,19 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		}
 		
 		static int VideoReopen(lua_State* L) noexcept {
+			lua::stack_t const ctx(L);
 			const char* name = luaL_checkstring(L, 1);
 			auto decoder = video::getDecoderFromResourceName(name);
 			if (!decoder)
 				return luaL_error(L, "video texture '%s' not found or is not a video texture.", name);
 			core::VideoOpenOptions opt = decoder->getLastOpenOptions();
-			if (lua_gettop(L) >= 2 && lua_istable(L, 2))
+			if (ctx.index_of_top() >= 2 && ctx.is_table(2))
 				video::parseVideoOptions(L, 2, opt);
 			if (!decoder->reopen(opt)) {
-				lua_pushboolean(L, false);
+				ctx.push_value(false);
 				return 1;
 			}
-			lua_pushboolean(L, true);
+			ctx.push_value(true);
 			return 1;
 		}
 	};

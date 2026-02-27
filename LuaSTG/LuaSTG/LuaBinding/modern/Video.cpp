@@ -170,7 +170,8 @@ namespace luastg::binding {
 			if (auto decoder = video::getDecoderFromTexture(self->data)) {
 				video::pushVideoStreamsToLua(vm, decoder);
 			} else {
-				lua_createtable(vm, 0, 0);
+				lua::stack_t const ctx(vm);
+				ctx.create_array(0);
 			}
 			return 1;
 		}
@@ -179,7 +180,8 @@ namespace luastg::binding {
 			if (auto decoder = video::getDecoderFromTexture(self->data)) {
 				video::pushAudioStreamsToLua(vm, decoder);
 			} else {
-				lua_createtable(vm, 0, 0);
+				lua::stack_t const ctx(vm);
+				ctx.create_array(0);
 			}
 			return 1;
 		}
@@ -198,7 +200,7 @@ namespace luastg::binding {
 			auto const self = as(vm, 1);
 			if (auto decoder = video::getDecoderFromTexture(self->data)) {
 				core::VideoOpenOptions opt = decoder->getLastOpenOptions();
-				if (lua_gettop(vm) >= 2) {
+				if (ctx.index_of_top() >= 2) {
 					video::parseVideoOptions(vm, 2, opt);
 				}
 				ctx.push_value(decoder->reopen(opt));
@@ -215,7 +217,7 @@ namespace luastg::binding {
 			auto const path = ctx.get_value<std::string_view>(1);
 			
 			core::VideoOpenOptions opt{};
-			if (lua_gettop(vm) >= 2) {
+			if (ctx.index_of_top() >= 2) {
 				video::parseVideoOptions(vm, 2, opt);
 			}
 

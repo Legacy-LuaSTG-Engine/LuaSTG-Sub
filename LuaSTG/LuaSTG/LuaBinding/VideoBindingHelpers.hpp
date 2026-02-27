@@ -1,43 +1,26 @@
 #pragma once
 #include "core/VideoDecoder.hpp"
 #include "core/Texture2D.hpp"
-#include "lua.hpp"
+#include "lua/plus.hpp"
 #include <vector>
 
 namespace luastg::binding::video {
-    // Lua table field extraction helpers
-    template<typename T>
-    inline void getOptionalField(lua_State* L, int table_idx, const char* field, T& out) noexcept {
-        lua_getfield(L, table_idx, field);
-        if constexpr (std::is_same_v<T, uint32_t>) {
-            if (lua_isnumber(L, -1)) {
-                out = static_cast<uint32_t>(lua_tointeger(L, -1));
-            }
-        } else if constexpr (std::is_same_v<T, bool>) {
-            if (lua_isboolean(L, -1)) {
-                out = (lua_toboolean(L, -1) != 0);
-            }
-        } else if constexpr (std::is_same_v<T, double>) {
-            if (lua_isnumber(L, -1)) {
-                out = lua_tonumber(L, -1);
-            }
-        }
-        lua_pop(L, 1);
-    }
-
     // Parse VideoOpenOptions from Lua table
     inline void parseVideoOptions(lua_State* L, int index, core::VideoOpenOptions& opt) noexcept {
-        if (!lua_istable(L, index)) {
+        lua::stack_t stack(L);
+        lua::stack_index_t table_idx(index);
+        
+        if (!stack.is_table(table_idx)) {
             return;
         }
         
-        getOptionalField(L, index, "video_stream", opt.video_stream_index);
-        getOptionalField(L, index, "width", opt.output_width);
-        getOptionalField(L, index, "height", opt.output_height);
-        getOptionalField(L, index, "premultiplied_alpha", opt.premultiplied_alpha);
-        getOptionalField(L, index, "looping", opt.looping);
-        getOptionalField(L, index, "loop_end", opt.loop_end);
-        getOptionalField(L, index, "loop_duration", opt.loop_duration);
+        opt.video_stream_index = stack.get_map_value<uint32_t>(table_idx, "video_stream", opt.video_stream_index);
+        opt.output_width = stack.get_map_value<uint32_t>(table_idx, "width", opt.output_width);
+        opt.output_height = stack.get_map_value<uint32_t>(table_idx, "height", opt.output_height);
+        opt.premultiplied_alpha = stack.get_map_value<bool>(table_idx, "premultiplied_alpha", opt.premultiplied_alpha);
+        opt.looping = stack.get_map_value<bool>(table_idx, "looping", opt.looping);
+        opt.loop_end = stack.get_map_value<double>(table_idx, "loop_end", opt.loop_end);
+        opt.loop_duration = stack.get_map_value<double>(table_idx, "loop_duration", opt.loop_duration);
     }
 
     // Get video decoder from texture object
@@ -53,8 +36,10 @@ namespace luastg::binding::video {
 
     // Push video stream info array to Lua stack
     inline void pushVideoStreamsToLua(lua_State* L, core::IVideoDecoder* decoder) {
+        lua::stack_t stack(L);
+        
         if (!decoder) {
-            lua_createtable(L, 0, 0);
+            stack.create_array(0);
             return;
         }
 
@@ -64,27 +49,24 @@ namespace luastg::binding::video {
         };
         decoder->getVideoStreams(callback, &list);
 
-        lua_createtable(L, static_cast<int>(list.size()), 0);
+        auto array_idx = stack.create_array(list.size());
         for (size_t i = 0; i < list.size(); ++i) {
-            lua_createtable(L, 0, 5);
-            lua_pushinteger(L, static_cast<lua_Integer>(list[i].index));
-            lua_setfield(L, -2, "index");
-            lua_pushinteger(L, static_cast<lua_Integer>(list[i].width));
-            lua_setfield(L, -2, "width");
-            lua_pushinteger(L, static_cast<lua_Integer>(list[i].height));
-            lua_setfield(L, -2, "height");
-            lua_pushnumber(L, list[i].fps);
-            lua_setfield(L, -2, "fps");
-            lua_pushnumber(L, list[i].duration_seconds);
-            lua_setfield(L, -2, "duration");
-            lua_rawseti(L, -2, static_cast<int>(i) + 1);
+            auto item_idx = stack.create_map(5);
+            stack.set_map_value(item_idx, "index", static_cast<uint32_t>(list[i].index));
+            stack.set_map_value(item_idx, "width", static_cast<uint32_t>(list[i].width));
+            stack.set_map_value(item_idx, "height", static_cast<uint32_t>(list[i].height));
+            stack.set_map_value(item_idx, "fps", list[i].fps);
+            stack.set_map_value(item_idx, "duration", list[i].duration_seconds);
+            stack.set_array_value(array_idx, lua::stack_index_t(static_cast<int32_t>(i + 1)), item_idx);
         }
     }
 
     // Push audio stream info array to Lua stack
     inline void pushAudioStreamsToLua(lua_State* L, core::IVideoDecoder* decoder) {
+        lua::stack_t stack(L);
+        
         if (!decoder) {
-            lua_createtable(L, 0, 0);
+            stack.create_array(0);
             return;
         }
 
@@ -94,62 +76,48 @@ namespace luastg::binding::video {
         };
         decoder->getAudioStreams(callback, &list);
 
-        lua_createtable(L, static_cast<int>(list.size()), 0);
+        auto array_idx = stack.create_array(list.size());
         for (size_t i = 0; i < list.size(); ++i) {
-            lua_createtable(L, 0, 4);
-            lua_pushinteger(L, static_cast<lua_Integer>(list[i].index));
-            lua_setfield(L, -2, "index");
-            lua_pushinteger(L, static_cast<lua_Integer>(list[i].channels));
-            lua_setfield(L, -2, "channels");
-            lua_pushinteger(L, static_cast<lua_Integer>(list[i].sample_rate));
-            lua_setfield(L, -2, "sample_rate");
-            lua_pushnumber(L, list[i].duration_seconds);
-            lua_setfield(L, -2, "duration");
-            lua_rawseti(L, -2, static_cast<int>(i) + 1);
+            auto item_idx = stack.create_map(4);
+            stack.set_map_value(item_idx, "index", static_cast<uint32_t>(list[i].index));
+            stack.set_map_value(item_idx, "channels", static_cast<uint32_t>(list[i].channels));
+            stack.set_map_value(item_idx, "sample_rate", static_cast<uint32_t>(list[i].sample_rate));
+            stack.set_map_value(item_idx, "duration", list[i].duration_seconds);
+            stack.set_array_value(array_idx, lua::stack_index_t(static_cast<int32_t>(i + 1)), item_idx);
         }
     }
 
     // Push video info table to Lua stack
     inline void pushVideoInfoToLua(lua_State* L, core::IVideoDecoder* decoder) {
+        lua::stack_t stack(L);
+        
         if (!decoder) {
-            lua_createtable(L, 0, 0);
+            stack.create_map(0);
             return;
         }
 
-        lua_createtable(L, 0, 10);
+        auto map_idx = stack.create_map(10);
         
-        lua_pushnumber(L, decoder->getDuration());
-        lua_setfield(L, -2, "duration");
-        
-        lua_pushnumber(L, decoder->getCurrentTime());
-        lua_setfield(L, -2, "time");
-        
-        lua_pushboolean(L, decoder->isLooping());
-        lua_setfield(L, -2, "looping");
+        stack.set_map_value(map_idx, "duration", decoder->getDuration());
+        stack.set_map_value(map_idx, "time", decoder->getCurrentTime());
+        stack.set_map_value(map_idx, "looping", decoder->isLooping());
 
         double loop_end = 0.0, loop_duration = 0.0;
         decoder->getLoopRange(&loop_end, &loop_duration);
-        lua_pushnumber(L, loop_end);
-        lua_setfield(L, -2, "loop_end");
-        lua_pushnumber(L, loop_duration);
-        lua_setfield(L, -2, "loop_duration");
+        stack.set_map_value(map_idx, "loop_end", loop_end);
+        stack.set_map_value(map_idx, "loop_duration", loop_duration);
         
         auto size = decoder->getVideoSize();
-        lua_pushinteger(L, size.x);
-        lua_setfield(L, -2, "width");
-        lua_pushinteger(L, size.y);
-        lua_setfield(L, -2, "height");
+        stack.set_map_value(map_idx, "width", static_cast<int32_t>(size.x));
+        stack.set_map_value(map_idx, "height", static_cast<int32_t>(size.y));
         
-        lua_pushinteger(L, static_cast<lua_Integer>(decoder->getVideoStreamIndex()));
-        lua_setfield(L, -2, "video_stream");
+        stack.set_map_value(map_idx, "video_stream", static_cast<uint32_t>(decoder->getVideoStreamIndex()));
         
         double frame_interval = decoder->getFrameInterval();
-        lua_pushnumber(L, frame_interval);
-        lua_setfield(L, -2, "frame_interval");
+        stack.set_map_value(map_idx, "frame_interval", frame_interval);
         
         if (frame_interval > 0.0) {
-            lua_pushnumber(L, 1.0 / frame_interval);
-            lua_setfield(L, -2, "fps");
+            stack.set_map_value(map_idx, "fps", 1.0 / frame_interval);
         }
     }
 }
