@@ -34,6 +34,11 @@ configure_file(
     "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/LuaSTG.manifest"
     @ONLY
 )
+configure_file(
+    "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/Custom/resource.rc.in"
+    "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/Custom/resource.rc"
+    @ONLY
+)
 
 set(LUASTG_ENGINE_SOURCES
     LuaSTG/SharedHeaders.h

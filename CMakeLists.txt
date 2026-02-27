@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.31)
 
 file(READ "${CMAKE_SOURCE_DIR}/version.json" version_json)
 string(JSON LUASTG_PACKAGE_NAME GET ${version_json} "package")
+string(JSON LUASTG_ORGNIZATION_NAME GET ${version_json} "organization")
 string(JSON LUASTG_VERSION_MAJOR GET ${version_json} "major")
 string(JSON LUASTG_VERSION_MINOR GET ${version_json} "minor")
 string(JSON LUASTG_VERSION_PATCH GET ${version_json} "patch")
