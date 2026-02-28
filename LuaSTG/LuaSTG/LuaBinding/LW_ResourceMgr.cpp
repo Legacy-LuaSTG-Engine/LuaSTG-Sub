@@ -77,6 +77,21 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			}
 			return 0;
 		}
+		static int CopySprite(lua_State* L) noexcept
+		{
+			const char* name = luaL_checkstring(L, 1);
+			const char* src_name = luaL_checkstring(L, 2);
+
+			ResourcePool* pActivedPool = LRES.GetActivedPool();
+			if (!pActivedPool)
+				return luaL_error(L, "can't load resource at this time.");
+
+			if (!pActivedPool->CopySprite(name, src_name))
+			{
+				return luaL_error(L, "copy image failed (name='%s', src='%s').", name, src_name);
+			}
+			return 0;
+		}
 		static int LoadAnimation(lua_State* L) noexcept
 		{
 			const char* name = luaL_checkstring(L, 1);
@@ -556,6 +571,16 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return 1;
 			}
 		}
+		static int GetImageSize(lua_State* L) noexcept
+		{
+			core::SmartReference<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
+			if (!p)
+				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
+			core::RectF rect = p->GetSprite()->getTextureRect();
+			lua_pushnumber(L, rect.b.x - rect.a.x);
+			lua_pushnumber(L, rect.b.y - rect.a.y);
+			return 2;
+		}
 		static int SetImageState(lua_State* L) noexcept
 		{
 			core::SmartReference<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
@@ -679,6 +704,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "GetResourceStatus", &Wrapper::GetResourceStatus },
 		{ "LoadTexture", &Wrapper::LoadTexture },
 		{ "LoadImage", &Wrapper::LoadSprite },
+		{ "CopyImage", &Wrapper::CopySprite },
 		{ "LoadAnimation", &Wrapper::LoadAnimation },
 		{ "LoadPS", &Wrapper::LoadPS },
 		{ "LoadSound", &Wrapper::LoadSound },
@@ -699,6 +725,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 
 		{ "SetImageScale", &Wrapper::SetImageScale },
 		{ "GetImageScale", &Wrapper::GetImageScale },
+		{ "GetImageSize", &Wrapper::GetImageSize },
 		{ "SetImageState", &Wrapper::SetImageState },
 		{ "SetImageCenter", &Wrapper::SetImageCenter },
 

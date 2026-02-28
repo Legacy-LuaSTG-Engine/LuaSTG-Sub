@@ -104,6 +104,8 @@ namespace luastg
         bool CreateSprite(const char* name, const char* texname,
                           double x, double y, double w, double h,
                           double a, double b, bool rect = false) noexcept;
+        // 复制图片精灵
+        bool CopySprite(const char* name, const char* src_name) noexcept;
         // 动画精灵
         bool CreateAnimation(const char* name, const char* texname,
                              double x, double y, double w, double h, int n, int m, int intv,
