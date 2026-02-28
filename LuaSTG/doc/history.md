@@ -1,5 +1,9 @@
 # LuaSTG Sub 更新历史记录
 
+* LuaSTG Sub v0.21.129
+    * 图形/渲染
+        * 新增：新增 `lstg.CopyImage` 方法用于复制图片精灵资源（不复制混合模式、顶点颜色）
+        * 新增：新增 `lstg.GetImageSize` 方法用于获取图片精灵的尺寸，与 `lstg.LoadImage` 时填的尺寸一致
 * LuaSTG Sub v0.21.128
     * 音频
         * 修复：播放音效时，如果不慎将开始播放的秒数设置超过音频总长度，后续将无法再播放该音效
