@@ -107,6 +107,15 @@ end
 function M.IsRenderTarget(name)
 end
 
+--- [LuaSTG Sub 新增]  
+--- 判断纹理是否为视频纹理  
+--- [LuaSTG Sub Add]  
+--- Check if a texture is a video texture  
+---@param name string 纹理名称 / Texture name
+---@return boolean is_video 是否为视频纹理 / Whether it is a video texture
+function M.IsVideoTexture(name)
+end
+
 --- 返回纹理或渲染目标的宽度和高度
 ---@param texname string
 ---@return number, number
@@ -402,6 +411,133 @@ end
 ---@param modname string
 ---@param gltfpath string
 function M.LoadModel(modname, gltfpath)
+end
+
+--------------------------------------------------------------------------------
+--- 视频
+--- Video
+
+--- [LuaSTG Sub 新增]  
+--- 从文件加载视频纹理  
+--- 支持常见的视频格式（如 mp4, avi, mkv 等）  
+--- 加载后的视频可以像普通纹理一样使用，通过 LoadImage 创建精灵  
+--- [LuaSTG Sub Add]  
+--- Load video texture from file  
+--- Supports common video formats (such as mp4, avi, mkv, etc.)  
+--- The loaded video can be used like a normal texture, create sprite via LoadImage  
+---
+---# 示例 / Example
+---```lua
+---lstg.LoadVideo('video1', 'test_video.mp4')
+---lstg.LoadVideo('video2', 'test_video.mp4', {
+---    video_stream = 0,
+---    width = 1280,
+---    height = 720,
+---    looping = true,
+---    loop_end = 10.0,
+---    loop_duration = 5.0
+---})
+---lstg.LoadImage('video_sprite', 'video1', 0, 0, 640, 480)
+---```
+---@param videoname string 视频资源名称 / Video resource name
+---@param filepath string 视频文件路径 / Video file path
+---@param options? lstg.VideoOpenOptions 视频打开选项 / Video open options
+function M.LoadVideo(videoname, filepath, options)
+end
+
+--- [LuaSTG Sub 新增]  
+--- 跳转到视频的指定时间  
+--- [LuaSTG Sub Add]  
+--- Seek video to specified time  
+---@param videoname string 视频资源名称 / Video resource name
+---@param time number 目标时间（秒）/ Target time in seconds
+---@return boolean success 是否成功 / Success status
+function M.VideoSeek(videoname, time)
+end
+
+--- [LuaSTG Sub 新增]  
+--- 设置视频是否循环播放  
+--- [LuaSTG Sub Add]  
+--- Set whether the video loops  
+---@param videoname string 视频资源名称 / Video resource name
+---@param loop boolean 是否循环 / Whether to loop
+function M.VideoSetLooping(videoname, loop)
+end
+
+--- [LuaSTG Sub 新增]  
+--- 设置视频循环区间  
+--- 循环区间为 [loop_end - loop_duration, loop_end)  
+--- 当播放时间超过 loop_end 时，会跳转到 loop_end - loop_duration  
+--- [LuaSTG Sub Add]  
+--- Set video loop range  
+--- Loop range is [loop_end - loop_duration, loop_end)  
+--- When playback time exceeds loop_end, it jumps to loop_end - loop_duration  
+---@param videoname string 视频资源名称 / Video resource name
+---@param loop_end number 循环结束时间（秒）/ Loop end time in seconds
+---@param loop_duration number 循环时长（秒）/ Loop duration in seconds
+function M.VideoSetLoopRange(videoname, loop_end, loop_duration)
+end
+
+--- [LuaSTG Sub 新增]  
+--- 更新视频到指定的绝对时间  
+--- 通常配合 StopWatch 使用来同步视频播放  
+--- [LuaSTG Sub Add]  
+--- Update video to specified absolute time  
+--- Typically used with StopWatch to synchronize video playback  
+---
+---# 示例 / Example
+---```lua
+---local video_clock = lstg.StopWatch()
+---function RenderFunc()
+---    lstg.VideoUpdate('video1', video_clock:GetElapsed())
+---    lstg.Render('video_sprite', 100, 100)
+---end
+---```
+---@param videoname string 视频资源名称 / Video resource name
+---@param time number 目标时间（秒）/ Target time in seconds
+---@return boolean success 是否成功 / Success status
+function M.VideoUpdate(videoname, time)
+end
+
+--- [LuaSTG Sub 新增]  
+--- 获取视频信息  
+--- [LuaSTG Sub Add]  
+--- Get video information  
+---@param videoname string 视频资源名称 / Video resource name
+---@return lstg.VideoInfo info 视频信息表 / Video information table
+function M.VideoGetInfo(videoname)
+end
+
+--- [LuaSTG Sub 新增]  
+--- 获取视频文件中的所有视频流信息  
+--- 用于多轨视频的流选择  
+--- [LuaSTG Sub Add]  
+--- Get all video streams in the video file  
+--- Used for multi-track video stream selection  
+---@param videoname string 视频资源名称 / Video resource name
+---@return lstg.VideoStreamInfo[] streams 视频流信息数组 / Array of video stream info
+function M.VideoGetVideoStreams(videoname)
+end
+
+--- [LuaSTG Sub 新增]  
+--- 获取视频文件中的所有音频流信息  
+--- [LuaSTG Sub Add]  
+--- Get all audio streams in the video file  
+---@param videoname string 视频资源名称 / Video resource name
+---@return lstg.AudioStreamInfo[] streams 音频流信息数组 / Array of audio stream info
+function M.VideoGetAudioStreams(videoname)
+end
+
+--- [LuaSTG Sub 新增]  
+--- 使用新的选项重新打开视频  
+--- 可用于切换视频流或修改输出尺寸  
+--- [LuaSTG Sub Add]  
+--- Reopen video with new options  
+--- Can be used to switch video streams or change output size  
+---@param videoname string 视频资源名称 / Video resource name
+---@param options? lstg.VideoOpenOptions 新的打开选项 / New open options
+---@return boolean success 是否成功 / Success status
+function M.VideoReopen(videoname, options)
 end
 
 --------------------------------------------------------------------------------

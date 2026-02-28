@@ -9,6 +9,7 @@
 #include "GameResource/Implement/ResourcePostEffectShaderImpl.hpp"
 #include "GameResource/Implement/ResourceModelImpl.hpp"
 #include "core/FileSystem.hpp"
+#include "core/AudioEngine.hpp"
 #include "AppFrame.h"
 #include "lua/plus.hpp"
 
@@ -222,6 +223,47 @@ namespace luastg
         if (ResourceMgr::GetResourceLoadingLog())
         {
             spdlog::info("[luastg] LoadTexture: 已从 '{}' 加载纹理 '{}' ({})", path, name, getResourcePoolTypeName());
+        }
+    
+        return true;
+    }
+
+    bool ResourcePool::LoadVideo(const char* name, const char* path, core::VideoOpenOptions const* options) noexcept
+    {
+        if (m_TexturePool.find(std::string_view(name)) != m_TexturePool.end())
+        {
+            if (ResourceMgr::GetResourceLoadingLog())
+            {
+                spdlog::warn("[luastg] LoadVideo: 纹理 '{}' 已存在，加载操作已取消", name);
+            }
+            return true;
+        }
+    
+        core::SmartReference<core::ITexture2D> p_texture;
+        bool ok = options
+            ? LAPP.getGraphicsDevice()->createVideoTexture(path, *options, p_texture.put())
+            : LAPP.getGraphicsDevice()->createVideoTexture(path, p_texture.put());
+        if (!ok)
+        {
+            spdlog::error("[luastg] 从 '{}' 创建视频纹理 '{}' 失败", path, name);
+            return false;
+        }
+
+        try
+        {
+            core::SmartReference<IResourceTexture> tRes;
+            tRes.attach(new ResourceTextureImpl(name, p_texture.get()));
+            m_TexturePool.emplace(name, tRes);
+        }
+        catch (std::exception const& e)
+        {
+            spdlog::error("[luastg] LoadVideo: 创建视频纹理 '{}' 失败 ({})", name, e.what());
+            return false;
+        }
+    
+        if (ResourceMgr::GetResourceLoadingLog())
+        {
+            spdlog::info("[luastg] LoadVideo: 已从 '{}' 加载视频 '{}' ({})", path, name, getResourcePoolTypeName());
         }
     
         return true;

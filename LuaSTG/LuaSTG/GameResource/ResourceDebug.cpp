@@ -81,18 +81,21 @@ namespace luastg
 			};
 			auto draw_texture = [](IResourceTexture* p_res, bool show_info, float scale) -> void
 			{
-				auto const size = p_res->GetTexture()->getSize();
+				auto* p_tex = p_res->GetTexture();
+				auto const size = p_tex->getSize();
 				if (show_info)
 				{
 					ImGui::Text("Size: %u x %u", size.x, size.y);
-					ImGui::Text("RenderTarget: %s", p_res->IsRenderTarget() ? "Yes" : "Not");
-					ImGui::Text("Dynamic: %s", p_res->IsRenderTarget() ? "Yes" : "Not");
-					unsigned long long mem_usage = size.x * size.y * 4;
+					char const* type_str = p_tex->isVideoTexture() ? "Video" : (p_res->IsRenderTarget() ? "RenderTarget" : "Texture");
+					ImGui::Text("Type: %s", type_str);
+					ImGui::Text("Dynamic: %s", p_tex->isDynamic() ? "Yes" : "Not");
+					unsigned long long display_mem = (unsigned long long)size.x * size.y * 4;
+					unsigned long long mem_usage = display_mem;
 					ImGui::Text("Adapter Memory Usage (Approximate): %s", bytes_count_to_string(mem_usage).c_str());
 				}
 				ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 1.0);
 				ImGui::Image(
-					reinterpret_cast<size_t>(p_res->GetTexture()->getNativeView()),
+					reinterpret_cast<size_t>(p_tex->getNativeView()),
 					ImVec2(scale * (float)size.x, scale * (float)size.y),
 					ImVec2(0.0f, 0.0f),
 					ImVec2(1.0f, 1.0f));

@@ -7,6 +7,7 @@
 #include "LuaBinding/modern/Window.hpp"
 #include "LuaBinding/modern/SwapChain.hpp"
 #include "LuaBinding/modern/Texture2D.hpp"
+#include "LuaBinding/modern/Video.hpp"
 #include "LuaBinding/modern/RenderTarget.hpp"
 #include "LuaBinding/modern/DepthStencilBuffer.hpp"
 #include "LuaBinding/modern/Mesh.hpp"
@@ -82,6 +83,7 @@ namespace luastg::binding
 		Window_Windows11Extension::registerClass(L);
 		SwapChain::registerClass(L);
 		Texture2D::registerClass(L);
+		Video::registerClass(L);
 		RenderTarget::registerClass(L);
 		DepthStencilBuffer::registerClass(L);
 		Mesh::registerClass(L);

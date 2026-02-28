@@ -467,6 +467,16 @@ namespace core {
 					assert_type_is_boolean(allow_direct_composition, "/graphics_system/allow_direct_composition"sv);
 					loader.graphics_system.setAllowDirectComposition(allow_direct_composition.get<bool>());
 				}
+				if (graphics_system.contains("allow_hardware_video_decode"sv)) {
+					auto const& v = graphics_system.at("allow_hardware_video_decode"sv);
+					assert_type_is_boolean(v, "/graphics_system/allow_hardware_video_decode"sv);
+					loader.graphics_system.setAllowHardwareVideoDecode(v.get<bool>());
+				}
+				else if (graphics_system.contains("disable_hardware_video_decode"sv)) {
+					auto const& v = graphics_system.at("disable_hardware_video_decode"sv);
+					assert_type_is_boolean(v, "/graphics_system/disable_hardware_video_decode"sv);
+					loader.graphics_system.setAllowHardwareVideoDecode(!v.get<bool>());
+				}
 				// TODO: display
 			}
 
@@ -738,6 +748,7 @@ namespace {
 		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_exclusive_fullscreen="sv, .path = "/graphics_system/allow_exclusive_fullscreen"_json_pointer },
 		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_modern_swap_chain="sv   , .path = "/graphics_system/allow_modern_swap_chain"_json_pointer },
 		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_direct_composition="sv  , .path = "/graphics_system/allow_direct_composition"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_hardware_video_decode="sv, .path = "/graphics_system/allow_hardware_video_decode"_json_pointer },
 		// audio_system
 		{ .type = OptionType::string , .prefix = "--audio_system.preferred_endpoint_name="sv, .path = "/audio_system/preferred_endpoint_name"_json_pointer },
 		{ .type = OptionType::number , .prefix = "--audio_system.sound_effect_volume="sv    , .path = "/audio_system/sound_effect_volume"_json_pointer },
