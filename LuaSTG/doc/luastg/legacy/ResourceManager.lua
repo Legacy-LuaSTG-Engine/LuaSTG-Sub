@@ -162,6 +162,17 @@ end
 function M.LoadImage(imgname, texname, x, y, width, height, a, b, rect)
 end
 
+--- 复制已有的图片精灵  
+--- 新的图片精灵将拥有与源图片精灵相同的纹理、纹理区域、中心点、碰撞盒和矩形标志  
+--- 不会复制混合模式和顶点颜色等状态，这些状态将使用默认值  
+--- Copy an existing sprite  
+--- The new sprite will have the same texture, texture rect, center, collision box and rect flag as the source sprite  
+--- Blend mode and vertex color will not be copied, these states will use default values  
+---@param imgname string
+---@param src_imgname string
+function M.CopyImage(imgname, src_imgname)
+end
+
 --- 更改图片精灵渲染时使用的混合模式和顶点颜色  
 --- 如果提供 4 个颜色参数，则对图片精灵的 4 个顶点分别设置颜色  
 ---@param imgname string
@@ -216,6 +227,15 @@ end
 ---@return number
 ---@overload fun():number
 function M.GetImageScale(imgname)
+end
+
+--- 获取图片精灵的纹理区域大小，单位为像素  
+--- 返回值为宽度和高度  
+--- Get the texture rect size of the sprite, in pixels  
+--- Returns width and height  
+---@param imgname string
+---@return number, number
+function M.GetImageSize(imgname)
 end
 
 --------------------------------------------------------------------------------

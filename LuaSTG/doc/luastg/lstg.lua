@@ -198,10 +198,12 @@ M.Snapshot = ResourceManager.Snapshot
 M.SetTextureSamplerState = ResourceManager.SetTextureSamplerState
 
 M.LoadImage = ResourceManager.LoadImage
+M.CopyImage = ResourceManager.CopyImage
 M.SetImageState = ResourceManager.SetImageState
 M.SetImageCenter = ResourceManager.SetImageCenter
 M.SetImageScale = ResourceManager.SetImageScale
 M.GetImageScale = ResourceManager.GetImageScale
+M.GetImageSize = ResourceManager.GetImageSize
 
 M.LoadAnimation = ResourceManager.LoadAnimation
 M.SetAnimationState = ResourceManager.SetAnimationState
