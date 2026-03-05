@@ -34,14 +34,19 @@ namespace luastg::binding::video {
         decoder->getVideoStreams(callback, &list);
 
         auto array_idx = stack.create_array(list.size());
-        for (size_t i = 0; i < list.size(); ++i) {
+        int index = 1;
+        for (auto const& info : list) {
             auto item_idx = stack.create_map(5);
-            stack.set_map_value(item_idx, "index", list[i].index);
-            stack.set_map_value(item_idx, "width", list[i].width);
-            stack.set_map_value(item_idx, "height", list[i].height);
-            stack.set_map_value(item_idx, "fps", list[i].fps);
-            stack.set_map_value(item_idx, "duration", list[i].duration_seconds);
-            stack.set_array_value(array_idx, i + 1, item_idx);
+            
+            stack.set_map_value(item_idx, "index", info.index);
+            stack.set_map_value(item_idx, "width", info.width);
+            stack.set_map_value(item_idx, "height", info.height);
+            stack.set_map_value(item_idx, "fps", info.fps);
+            stack.set_map_value(item_idx, "duration", info.duration_seconds);
+            
+            stack.set_array_value(array_idx, index, item_idx);
+            stack.pop_value();
+            ++index;
         }
     }
 
@@ -60,13 +65,18 @@ namespace luastg::binding::video {
         decoder->getAudioStreams(callback, &list);
 
         auto array_idx = stack.create_array(list.size());
-        for (size_t i = 0; i < list.size(); ++i) {
+        int index = 1;
+        for (auto const& info : list) {
             auto item_idx = stack.create_map(4);
-            stack.set_map_value(item_idx, "index", list[i].index);
-            stack.set_map_value(item_idx, "channels", list[i].channels);
-            stack.set_map_value(item_idx, "sample_rate", list[i].sample_rate);
-            stack.set_map_value(item_idx, "duration", list[i].duration_seconds);
-            stack.set_array_value(array_idx, i + 1, item_idx);
+            
+            stack.set_map_value(item_idx, "index", info.index);
+            stack.set_map_value(item_idx, "channels", info.channels);
+            stack.set_map_value(item_idx, "sample_rate", info.sample_rate);
+            stack.set_map_value(item_idx, "duration", info.duration_seconds);
+            
+            stack.set_array_value(array_idx, index, item_idx);
+            stack.pop_value();
+            ++index;
         }
     }
 
