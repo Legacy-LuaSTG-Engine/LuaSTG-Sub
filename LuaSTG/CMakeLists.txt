@@ -144,8 +144,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/modern/SwapChain.cpp
     LuaSTG/LuaBinding/modern/Texture2D.hpp
     LuaSTG/LuaBinding/modern/Texture2D.cpp
-    LuaSTG/LuaBinding/modern/Video.hpp
-    LuaSTG/LuaBinding/modern/Video.cpp
+    LuaSTG/LuaBinding/modern/VideoDecoder.hpp
+    LuaSTG/LuaBinding/modern/VideoDecoder.cpp
     LuaSTG/LuaBinding/VideoBindingHelpers.hpp
     LuaSTG/LuaBinding/VideoBindingHelpers.cpp
     LuaSTG/LuaBinding/modern/RenderTarget.hpp
