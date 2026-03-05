@@ -21,6 +21,7 @@ namespace luastg
 		core::IRenderTarget* GetRenderTarget() { return m_rt.get(); }
 		core::IDepthStencilBuffer* GetDepthStencilBuffer() { return m_ds.get(); }
 		bool IsRenderTarget() { return m_is_rendertarget; }
+		bool IsVideoTexture() { return m_texture && m_texture->isVideoTexture(); }
 		bool HasDepthStencilBuffer() { return m_enable_depthbuffer; }
 	public:
 		// 纹理容器
@@ -47,6 +48,7 @@ namespace luastg
 		core::IRenderTarget* GetRenderTarget() override { return m_rt.get(); }
 		core::IDepthStencilBuffer* GetDepthStencilBuffer() override { return m_ds.get(); }
 		bool IsRenderTarget() override { return true; }
+		bool IsVideoTexture() override { return false; }
 		bool HasDepthStencilBuffer() override { return !!m_ds; }
 
 		// RenderTargetStackResourceTextureImpl

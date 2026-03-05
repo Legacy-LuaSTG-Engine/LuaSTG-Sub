@@ -3,6 +3,7 @@
 #include "core/ImmutableString.hpp"
 #include "core/GraphicsBuffer.hpp"
 #include "core/Texture2D.hpp"
+#include "core/VideoDecoder.hpp"
 #include "core/GraphicsSampler.hpp"
 #include "core/RenderTarget.hpp"
 #include "core/DepthStencilBuffer.hpp"
@@ -108,6 +109,9 @@ namespace core {
         virtual bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** out_texture) = 0;
         virtual bool createTextureFromImage(IImage* image, bool mipmap, ITexture2D** out_texture) = 0;
         virtual bool createTexture(Vector2U size, ITexture2D** out_texture) = 0;
+        virtual bool createVideoTexture(StringView path, ITexture2D** out_texture) = 0;
+        virtual bool createVideoTexture(StringView path, VideoOpenOptions const& options, ITexture2D** out_texture) = 0;
+        virtual bool createVideoDecoder(IVideoDecoder** out_decoder) = 0;
 
         virtual bool createSampler(const GraphicsSamplerInfo& info, IGraphicsSampler** out_sampler) = 0;
 

@@ -1,6 +1,9 @@
 #include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/VideoBindingHelpers.hpp"
 #include "lua/plus.hpp"
 #include "AppFrame.h"
+#include "d3d11/VideoTexture.hpp"
+#include "core/VideoDecoder.hpp"
 
 void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 {
@@ -50,6 +53,25 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return luaL_error(L, "can't load resource at this time.");
 			if (!pActivedPool->LoadTexture(name, path, lua_toboolean(L, 3) == 0 ? false : true))
 				return luaL_error(L, "can't load texture from file '%s'.", path);
+			return 0;
+		}
+		static int LoadVideo(lua_State* L) noexcept
+		{
+			lua::stack_t const ctx(L);
+			const char* name = luaL_checkstring(L, 1);
+			const char* path = luaL_checkstring(L, 2);
+
+			ResourcePool* pActivedPool = LRES.GetActivedPool();
+			if (!pActivedPool)
+				return luaL_error(L, "can't load resource at this time.");
+			
+			core::VideoOpenOptions opt;
+			bool const has_options = ctx.index_of_top() >= 3 && ctx.is_table(3);
+			if (has_options)
+				video::parseVideoOptions(L, 3, opt);
+			
+			if (!pActivedPool->LoadVideo(name, path, has_options ? &opt : nullptr))
+				return luaL_error(L, "can't load video from file '%s'.", path);
 			return 0;
 		}
 		static int LoadSprite(lua_State* L) noexcept
@@ -414,6 +436,14 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			lua_pushboolean(L, p->IsRenderTarget());
 			return 1;
 		}
+		static int IsVideoTexture(lua_State* L) noexcept
+		{
+			core::SmartReference<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
+			if (!p)
+				return luaL_error(L, "texture '%s' not found.", luaL_checkstring(L, 1));
+			lua_pushboolean(L, p->IsVideoTexture());
+			return 1;
+		}
 		static int SetTexturePreMulAlphaState(lua_State* L) noexcept
 		{
 			core::SmartReference<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
@@ -696,6 +726,98 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			LRES.CacheTTFFontString(luaL_checkstring(L, 1), str, len);
 			return 0;
 		}
+
+		// Video control functions
+
+		static int VideoSeek(lua_State* L) noexcept {
+			lua::stack_t const ctx(L);
+			const char* name = luaL_checkstring(L, 1);
+			double time = luaL_checknumber(L, 2);
+			auto decoder = video::getDecoderFromResourceName(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found or is not a video texture.", name);
+			bool ok = decoder->seek(time);
+			ctx.push_value(ok);
+			return 1;
+		}
+
+		static int VideoSetLooping(lua_State* L) noexcept {
+			lua::stack_t const ctx(L);
+			const char* name = luaL_checkstring(L, 1);
+			bool loop = ctx.get_value<bool>(2);
+			auto decoder = video::getDecoderFromResourceName(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found.", name);
+			decoder->setLooping(loop);
+			return 0;
+		}
+		
+		static int VideoSetLoopRange(lua_State* L) noexcept {
+			const char* name = luaL_checkstring(L, 1);
+			auto decoder = video::getDecoderFromResourceName(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found.", name);
+			double loop_end = luaL_checknumber(L, 2);
+			double loop_duration = luaL_checknumber(L, 3);
+			decoder->setLoopRange(loop_end, loop_duration);
+			return 0;
+		}
+		
+		static int VideoUpdate(lua_State* L) noexcept {
+			lua::stack_t const ctx(L);
+			const char* name = luaL_checkstring(L, 1);
+			double time = luaL_checknumber(L, 2);
+			auto decoder = video::getDecoderFromResourceName(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found or is not a video texture.", name);
+			bool ok = decoder->updateToTime(time);
+			ctx.push_value(ok);
+			return 1;
+		}
+		
+		static int VideoGetInfo(lua_State* L) noexcept {
+			const char* name = luaL_checkstring(L, 1);
+			auto decoder = video::getDecoderFromResourceName(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found.", name);
+			video::pushVideoInfoToLua(L, decoder);
+			return 1;
+		}
+		
+		static int VideoGetVideoStreams(lua_State* L) noexcept {
+			const char* name = luaL_checkstring(L, 1);
+			auto decoder = video::getDecoderFromResourceName(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found.", name);
+			video::pushVideoStreamsToLua(L, decoder);
+			return 1;
+		}
+		
+		static int VideoGetAudioStreams(lua_State* L) noexcept {
+			const char* name = luaL_checkstring(L, 1);
+			auto decoder = video::getDecoderFromResourceName(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found.", name);
+			video::pushAudioStreamsToLua(L, decoder);
+			return 1;
+		}
+		
+		static int VideoReopen(lua_State* L) noexcept {
+			lua::stack_t const ctx(L);
+			const char* name = luaL_checkstring(L, 1);
+			auto decoder = video::getDecoderFromResourceName(name);
+			if (!decoder)
+				return luaL_error(L, "video texture '%s' not found or is not a video texture.", name);
+			core::VideoOpenOptions opt = decoder->getLastOpenOptions();
+			if (ctx.index_of_top() >= 2 && ctx.is_table(2))
+				video::parseVideoOptions(L, 2, opt);
+			if (!decoder->reopen(opt)) {
+				ctx.push_value(false);
+				return 1;
+			}
+			ctx.push_value(true);
+			return 1;
+		}
 	};
 
 	luaL_Reg const lib[] = {
@@ -703,6 +825,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "SetResourceStatus", &Wrapper::SetResourceStatus },
 		{ "GetResourceStatus", &Wrapper::GetResourceStatus },
 		{ "LoadTexture", &Wrapper::LoadTexture },
+		{ "LoadVideo", &Wrapper::LoadVideo },
 		{ "LoadImage", &Wrapper::LoadSprite },
 		{ "CopyImage", &Wrapper::CopySprite },
 		{ "LoadAnimation", &Wrapper::LoadAnimation },
@@ -716,6 +839,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "LoadModel", &Wrapper::LoadModel },
 		{ "CreateRenderTarget", &Wrapper::CreateRenderTarget },
 		{ "IsRenderTarget", &Wrapper::IsRenderTarget },
+		{ "IsVideoTexture", &Wrapper::IsVideoTexture },
 		{ "SetTexturePreMulAlphaState", &Wrapper::SetTexturePreMulAlphaState },
 		{ "SetTextureSamplerState", &Wrapper::SetTextureSamplerState },
 		{ "GetTextureSize", &Wrapper::GetTextureSize },
@@ -737,6 +861,17 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "SetFontState", &Wrapper::SetFontState },
 
 		{ "CacheTTFString", &Wrapper::CacheTTFString },
+
+		// Video control functions
+		{ "VideoSeek", &Wrapper::VideoSeek },
+		{ "VideoSetLooping", &Wrapper::VideoSetLooping },
+		{ "VideoSetLoopRange", &Wrapper::VideoSetLoopRange },
+		{ "VideoUpdate", &Wrapper::VideoUpdate },
+		{ "VideoGetInfo", &Wrapper::VideoGetInfo },
+		{ "VideoGetVideoStreams", &Wrapper::VideoGetVideoStreams },
+		{ "VideoGetAudioStreams", &Wrapper::VideoGetAudioStreams },
+		{ "VideoReopen", &Wrapper::VideoReopen },
+
 		{ NULL, NULL },
 	};
 

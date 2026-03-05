@@ -190,8 +190,10 @@ M.CheckRes = ResourceManager.CheckRes
 M.EnumRes = ResourceManager.EnumRes
 
 M.LoadTexture = ResourceManager.LoadTexture
+M.LoadVideo = ResourceManager.LoadVideo
 M.CreateRenderTarget = ResourceManager.CreateRenderTarget
 M.IsRenderTarget = ResourceManager.IsRenderTarget
+M.IsVideoTexture = ResourceManager.IsVideoTexture
 M.GetTextureSize = ResourceManager.GetTextureSize
 M.SaveTexture = ResourceManager.SaveTexture
 M.Snapshot = ResourceManager.Snapshot
@@ -226,6 +228,15 @@ M.LoadMusic = ResourceManager.LoadMusic
 M.LoadFX = ResourceManager.LoadFX
 
 M.LoadModel = ResourceManager.LoadModel
+
+M.VideoSeek = ResourceManager.VideoSeek
+M.VideoSetLooping = ResourceManager.VideoSetLooping
+M.VideoSetLoopRange = ResourceManager.VideoSetLoopRange
+M.VideoUpdate = ResourceManager.VideoUpdate
+M.VideoGetInfo = ResourceManager.VideoGetInfo
+M.VideoGetVideoStreams = ResourceManager.VideoGetVideoStreams
+M.VideoGetAudioStreams = ResourceManager.VideoGetAudioStreams
+M.VideoReopen = ResourceManager.VideoReopen
 
 M.ResourceManager = ResourceManager.ResourceManager
 

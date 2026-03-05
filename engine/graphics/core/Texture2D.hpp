@@ -8,6 +8,8 @@
 #include "core/GraphicsSampler.hpp"
 
 namespace core {
+    // Forward declaration
+    CORE_INTERFACE IVideoDecoder;
     enum class TextureBindFlag {
         shader_resource = 0x8,
         render_target = 0x20,
@@ -27,6 +29,7 @@ namespace core {
         virtual void* getNativeView() const noexcept = 0;
 
         virtual bool isDynamic() const noexcept = 0;
+        virtual bool isVideoTexture() const noexcept = 0;
         virtual bool isPremultipliedAlpha() const noexcept = 0;
         virtual void setPremultipliedAlpha(bool v) = 0;
         virtual Vector2U getSize() const noexcept = 0;
@@ -39,6 +42,9 @@ namespace core {
 
         virtual void setSamplerState(IGraphicsSampler* sampler) = 0;
         virtual IGraphicsSampler* getSamplerState() const noexcept = 0;
+
+        // 获取视频解码器（仅当 isVideoTexture() 返回 true 时有效）
+        virtual IVideoDecoder* getVideoDecoder() const noexcept = 0;
     };
 
     CORE_INTERFACE_ID(ITexture2D, "5477054a-61c9-5071-9339-a9959e538a21")
