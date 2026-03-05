@@ -12,7 +12,6 @@ namespace luastg
 		virtual core::IRenderTarget* GetRenderTarget() = 0;
 		virtual core::IDepthStencilBuffer* GetDepthStencilBuffer() = 0;
 		virtual bool IsRenderTarget() = 0;
-		virtual bool IsVideoTexture() = 0;
 		virtual bool HasDepthStencilBuffer() = 0;
 	};
 };

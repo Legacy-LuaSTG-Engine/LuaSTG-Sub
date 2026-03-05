@@ -45,6 +45,39 @@ namespace {
 }
 
 namespace core {
+    // ITexture2D
+
+    bool VideoDecoder::setSize(const Vector2U size) {
+        std::ignore = size;
+        Logger::error("[core] [VideoDecoder] ITexture2D::setSize is not supported in VideoDecoder"sv);
+        assert(false);
+        return false;
+    }
+
+    bool VideoDecoder::update(const RectU rect, const void* const data, const uint32_t row_pitch_in_bytes) {
+        std::ignore = rect;
+        std::ignore = data;
+        std::ignore = row_pitch_in_bytes;
+        Logger::error("[core] [VideoDecoder] ITexture2D::setSize is not supported in VideoDecoder"sv);
+        assert(false);
+        return false;
+    }
+
+    void VideoDecoder::setImage(IImage* const image) {
+        std::ignore = image;
+        Logger::error("[core] [VideoDecoder] ITexture2D::setImage is not supported in VideoDecoder"sv);
+        assert(false);
+    }
+
+    bool VideoDecoder::saveToFile(const StringView path) {
+        std::ignore = path;
+        Logger::error("[core] [VideoDecoder] ITexture2D::saveToFile is not supported in VideoDecoder"sv);
+        assert(false);
+        return false;
+    }
+}
+
+namespace core {
     VideoDecoder::VideoDecoder() = default;
     
     VideoDecoder::~VideoDecoder() {
@@ -763,6 +796,24 @@ namespace core {
             buffer->Unlock();
         }
         
+        return true;
+    }
+}
+
+#include "d3d11/GraphicsDevice.hpp"
+
+namespace core {
+    bool GraphicsDevice::createVideoDecoder(IVideoDecoder** out_decoder) {
+        if (out_decoder == nullptr) {
+            assert(false);
+            return false;
+        }
+        SmartReference<VideoDecoder> decoder;
+        decoder.attach(new VideoDecoder);
+        if (!decoder->initialize(this)) {
+            return false;
+        }
+        *out_decoder = decoder.detach();
         return true;
     }
 }

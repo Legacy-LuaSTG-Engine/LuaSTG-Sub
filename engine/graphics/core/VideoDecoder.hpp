@@ -4,6 +4,7 @@
 #include "core/ImmutableString.hpp"
 #include <cstdint>
 #include <string_view>
+#include "core/Texture2D.hpp"
 
 namespace core {
     struct VideoOpenOptions {
@@ -53,8 +54,7 @@ namespace core {
 
         virtual bool updateToTime(double time_in_seconds) = 0;
 
-        virtual void* getNativeTexture() const noexcept = 0;
-        virtual void* getNativeShaderResourceView() const noexcept = 0;
+        virtual ITexture2D* getTexture() const noexcept = 0;
 
         virtual uint32_t getVideoStreamIndex() const noexcept = 0;
         virtual void getVideoStreams(void (*callback)(VideoStreamInfo const&, void*), void* userdata) const = 0;
@@ -65,5 +65,5 @@ namespace core {
         virtual std::string_view getLastOpenPath() const noexcept = 0;
     };
 
-    CORE_INTERFACE_ID(IVideoDecoder, "a4b5c6d7-e8f9-1234-5678-9abcdef01234")
+    CORE_INTERFACE_ID(IVideoDecoder, "85897c79-e364-5fc9-9c2a-2d645cc36509")
 }

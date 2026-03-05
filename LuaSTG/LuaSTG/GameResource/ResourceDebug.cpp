@@ -86,7 +86,7 @@ namespace luastg
 				if (show_info)
 				{
 					ImGui::Text("Size: %u x %u", size.x, size.y);
-					char const* type_str = p_tex->isVideoTexture() ? "Video" : (p_res->IsRenderTarget() ? "RenderTarget" : "Texture");
+					const char* type_str = p_res->IsRenderTarget() ? "RenderTarget" : "Texture";
 					ImGui::Text("Type: %s", type_str);
 					ImGui::Text("Dynamic: %s", p_tex->isDynamic() ? "Yes" : "Not");
 					unsigned long long display_mem = (unsigned long long)size.x * size.y * 4;

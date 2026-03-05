@@ -13,7 +13,7 @@
 
 namespace core {
     class VideoDecoder final :
-        public implement::ReferenceCounted<IVideoDecoder>,
+        public implement::ReferenceCounted<IVideoDecoder, ITexture2D>,
         public IGraphicsDeviceEventListener {
     private:
         enum class OutputFormat {
@@ -27,7 +27,7 @@ namespace core {
             double start{ 0.0 };
             double end{ 0.0 };
         };
-        
+
     public:
         // IVideoDecoder
 
@@ -50,8 +50,8 @@ namespace core {
         void getLoopRange(double* end_sec, double* duration_sec) const noexcept override;
 
         bool updateToTime(double time_in_seconds) override;
-        void* getNativeTexture() const noexcept override { return m_texture.get(); }
-        void* getNativeShaderResourceView() const noexcept override { return m_shader_resource_view.get(); }
+
+        ITexture2D* getTexture() const noexcept override { return static_cast<ITexture2D*>(const_cast<VideoDecoder*>(this)); }
 
         uint32_t getVideoStreamIndex() const noexcept override { return m_video_stream_index; }
         void getVideoStreams(void (*callback)(VideoStreamInfo const&, void*), void* userdata) const override;
@@ -59,6 +59,25 @@ namespace core {
         bool reopen(VideoOpenOptions const& options) override;
         VideoOpenOptions getLastOpenOptions() const noexcept override { return m_last_open_options; }
         std::string_view getLastOpenPath() const noexcept override { return m_last_open_path; }
+
+        // ITexture2D
+
+        void* getNativeResource() const noexcept override { return m_texture.get(); }
+        void* getNativeView() const noexcept override { return m_shader_resource_view.get(); }
+
+        bool isDynamic() const noexcept override { return true; }
+        bool isPremultipliedAlpha() const noexcept override { return m_premultiplied_alpha; }
+        void setPremultipliedAlpha(const bool v) override { m_premultiplied_alpha = v; }
+        Vector2U getSize() const noexcept override { return getVideoSize(); }
+
+        bool setSize(Vector2U size) override;
+        bool update(RectU rect, void const* data, uint32_t row_pitch_in_bytes) override;
+        void setImage(IImage* image) override;
+
+        bool saveToFile(StringView path) override;
+
+        void setSamplerState(IGraphicsSampler* const sampler) override { m_sampler = sampler; }
+        IGraphicsSampler* getSamplerState() const noexcept override { return m_sampler.get(); }
 
         // IGraphicsDeviceEventListener
 
@@ -146,5 +165,8 @@ namespace core {
         VideoOpenOptions m_last_open_options;
         bool m_initialized{ false };
         bool m_first_texture_update_logged{ false };
+
+        SmartReference<IGraphicsSampler> m_sampler;
+        bool m_premultiplied_alpha{ false };
     };
 }

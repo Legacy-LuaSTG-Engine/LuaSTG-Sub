@@ -472,11 +472,6 @@ namespace core {
 					assert_type_is_boolean(v, "/graphics_system/allow_hardware_video_decode"sv);
 					loader.graphics_system.setAllowHardwareVideoDecode(v.get<bool>());
 				}
-				else if (graphics_system.contains("disable_hardware_video_decode"sv)) {
-					auto const& v = graphics_system.at("disable_hardware_video_decode"sv);
-					assert_type_is_boolean(v, "/graphics_system/disable_hardware_video_decode"sv);
-					loader.graphics_system.setAllowHardwareVideoDecode(!v.get<bool>());
-				}
 				// TODO: display
 			}
 
@@ -739,15 +734,15 @@ namespace {
 		{ .type = OptionType::boolean, .prefix = "--window.allow_window_corner="sv      , .path = "/window/allow_window_corner"_json_pointer },
 		{ .type = OptionType::boolean, .prefix = "--window.allow_title_bar_auto_hide="sv, .path = "/window/allow_title_bar_auto_hide"_json_pointer },
 		// graphics_system
-		{ .type = OptionType::string , .prefix = "--graphics_system.preferred_device_name="sv     , .path = "/graphics_system/preferred_device_name"_json_pointer },
-		{ .type = OptionType::number , .prefix = "--graphics_system.width="sv                     , .path = "/graphics_system/width"_json_pointer },
-		{ .type = OptionType::number , .prefix = "--graphics_system.height="sv                    , .path = "/graphics_system/height"_json_pointer },
-		{ .type = OptionType::boolean, .prefix = "--graphics_system.fullscreen="sv                , .path = "/graphics_system/fullscreen"_json_pointer },
-		{ .type = OptionType::boolean, .prefix = "--graphics_system.vsync="sv                     , .path = "/graphics_system/vsync"_json_pointer },
-		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_software_device="sv     , .path = "/graphics_system/allow_software_device"_json_pointer },
-		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_exclusive_fullscreen="sv, .path = "/graphics_system/allow_exclusive_fullscreen"_json_pointer },
-		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_modern_swap_chain="sv   , .path = "/graphics_system/allow_modern_swap_chain"_json_pointer },
-		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_direct_composition="sv  , .path = "/graphics_system/allow_direct_composition"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--graphics_system.preferred_device_name="sv      , .path = "/graphics_system/preferred_device_name"_json_pointer },
+		{ .type = OptionType::number , .prefix = "--graphics_system.width="sv                      , .path = "/graphics_system/width"_json_pointer },
+		{ .type = OptionType::number , .prefix = "--graphics_system.height="sv                     , .path = "/graphics_system/height"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.fullscreen="sv                 , .path = "/graphics_system/fullscreen"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.vsync="sv                      , .path = "/graphics_system/vsync"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_software_device="sv      , .path = "/graphics_system/allow_software_device"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_exclusive_fullscreen="sv , .path = "/graphics_system/allow_exclusive_fullscreen"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_modern_swap_chain="sv    , .path = "/graphics_system/allow_modern_swap_chain"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_direct_composition="sv   , .path = "/graphics_system/allow_direct_composition"_json_pointer },
 		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_hardware_video_decode="sv, .path = "/graphics_system/allow_hardware_video_decode"_json_pointer },
 		// audio_system
 		{ .type = OptionType::string , .prefix = "--audio_system.preferred_endpoint_name="sv, .path = "/audio_system/preferred_endpoint_name"_json_pointer },
