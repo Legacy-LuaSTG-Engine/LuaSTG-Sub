@@ -65,5 +65,5 @@ namespace core {
         virtual std::string_view getLastOpenPath() const noexcept = 0;
     };
 
-    CORE_INTERFACE_ID(IVideoDecoder, "a4b5c6d7-e8f9-1234-5678-9abcdef01234")
+    CORE_INTERFACE_ID(IVideoDecoder, "85897c79-e364-5fc9-9c2a-2d645cc36509")
 }
