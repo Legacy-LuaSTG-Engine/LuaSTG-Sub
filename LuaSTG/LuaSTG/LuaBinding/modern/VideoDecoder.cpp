@@ -176,7 +176,7 @@ namespace luastg::binding {
 				return luaL_error(vm, "create VideoDecoder from file '%s' failed", path.data());
 			}
 
-			if (!decoder->open(path)) {
+			if (!decoder->open(path, opt)) {
 				return luaL_error(vm, "create VideoDecoder from file '%s' failed", path.data());
 			}
 
