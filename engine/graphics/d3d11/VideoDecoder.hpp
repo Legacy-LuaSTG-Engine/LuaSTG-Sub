@@ -10,6 +10,7 @@
 #include <mfreadwrite.h>
 #include <mutex>
 #include <string>
+#include <vector>
 
 namespace core {
     class VideoDecoder final :
@@ -33,6 +34,7 @@ namespace core {
 
         bool open(StringView path) override;
         bool open(StringView path, VideoOpenOptions const& options) override;
+        bool openFromMemory(void const* data, size_t size, VideoOpenOptions const& options, StringView source_name = "<memory>");
         void close() override;
 
         bool hasVideo() const noexcept override { return m_source_reader.get() != nullptr; }
@@ -97,8 +99,11 @@ namespace core {
         bool initialize(IGraphicsDevice* device);
 
     private:
-        // File loading
-        bool loadVideoFile(StringView path);
+        // Stream creation
+        bool createStreamFromMemory(void const* data, size_t size);
+        
+        // Video opening (requires stream to be set)
+        bool openFromStream(VideoOpenOptions const& options);
         
         // Hardware acceleration setup
         bool configureHardwareAcceleration();
@@ -118,6 +123,7 @@ namespace core {
         
         // Property extraction
         bool extractVideoProperties();
+        void cacheStreamInformation();
         
         // Resource creation
         bool createResources();
@@ -168,5 +174,9 @@ namespace core {
 
         SmartReference<IGraphicsSampler> m_sampler;
         bool m_premultiplied_alpha{ false };
+        
+        // Cached stream information
+        std::vector<VideoStreamInfo> m_cached_video_streams;
+        std::vector<AudioStreamInfo> m_cached_audio_streams;
     };
 }

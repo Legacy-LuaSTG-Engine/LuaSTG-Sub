@@ -14,17 +14,27 @@ namespace core {
     using std::string_view_literals::operator ""sv;
     using Config = VideoDecoderConfig;
 
-    bool VideoDecoder::loadVideoFile(StringView path) {
-        SmartReference<IData> file_data;
-        if (!FileSystemManager::readFile(path, file_data.put())) {
-            Logger::error("[core] [VideoDecoder] Failed to read video file: {}", path);
+    bool VideoDecoder::createStreamFromMemory(void const* data, size_t size) {
+        if (size > 0 && data == nullptr) {
+            Logger::error("[core] [VideoDecoder] Invalid parameters: data is null but size is {}", size);
+            return false;
+        }
+        
+        if (size > static_cast<size_t>(UINT_MAX)) {
+            Logger::error("[core] [VideoDecoder] Data size {} exceeds maximum supported size {} (UINT_MAX)", 
+                         size, static_cast<size_t>(UINT_MAX));
+            return false;
+        }
+        
+        if (size == 0) {
+            Logger::error("[core] [VideoDecoder] Invalid parameters: size is 0");
             return false;
         }
         
         win32::com_ptr<IStream> mem_stream;
         mem_stream.attach(static_cast<IStream*>(SHCreateMemStream(
-            static_cast<BYTE const*>(file_data->data()),
-            static_cast<UINT>(file_data->size()))));
+            static_cast<BYTE const*>(data),
+            static_cast<UINT>(size))));
         if (!mem_stream) {
             Logger::error("[core] [VideoDecoder] Failed to create memory stream");
             return false;
@@ -39,6 +49,23 @@ namespace core {
         }
         
         m_byte_stream = std::move(byte_stream);
+        return true;
+    }
+    
+    bool VideoDecoder::openFromStream(VideoOpenOptions const& options) {
+        if (!m_byte_stream) {
+            Logger::error("[core] [VideoDecoder] No byte stream available");
+            return false;
+        }
+        
+        if (!configureHardwareAcceleration()) return false;
+        cacheStreamInformation();
+        if (!selectVideoStream(options.video_stream_index)) return false;
+        if (!negotiateOutputFormat(options)) return false;
+        if (!extractVideoProperties()) return false;
+        if (!createResources()) return false;
+        if (!loadFirstFrame()) return false;
+        
         return true;
     }
 
@@ -438,7 +465,7 @@ namespace core {
                 break;
         }
         if (rate_den == 0 || rate_num == 0) {
-            HRESULT hr = MFGetAttributeRatio(m_media_type.get(), MF_MT_FRAME_RATE, &rate_num, &rate_den);
+            MFGetAttributeRatio(m_media_type.get(), MF_MT_FRAME_RATE, &rate_num, &rate_den);
         }
         if (rate_den > 0 && rate_num > 0) {
             m_frame_interval = static_cast<double>(rate_den) / static_cast<double>(rate_num);
@@ -453,6 +480,63 @@ namespace core {
         }
         
         return true;
+    }
+
+    void VideoDecoder::cacheStreamInformation() {
+        m_cached_video_streams.clear();
+        m_cached_audio_streams.clear();
+        
+        if (!m_source_reader) return;
+        
+        wil::unique_prop_variant var;
+        double duration_sec = 0.0;
+        HRESULT hr = m_source_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &var);
+        if (win32::check_hresult_as_boolean(hr, "IMFSourceReader::GetPresentationAttribute(MF_PD_DURATION)"sv)) {
+            duration_sec = var.hVal.QuadPart / 10000000.0;
+        }
+        
+        for (DWORD si = 0; si < Config::kMaxStreams; ++si) {
+            win32::com_ptr<IMFMediaType> mt;
+            hr = m_source_reader->GetNativeMediaType(si, 0, mt.put());
+            if (FAILED(hr)) continue; // Expected failure for non-existent streams
+            
+            GUID major = GUID_NULL;
+            hr = mt->GetGUID(MF_MT_MAJOR_TYPE, &major);
+            if (FAILED(hr)) continue; // Silently skip if we can't get the type
+            
+            if (major == MFMediaType_Video) {
+                VideoStreamInfo info{};
+                info.index = si;
+                info.duration_seconds = duration_sec;
+                
+                UINT32 w = 0, h = 0;
+                hr = MFGetAttributeSize(mt.get(), MF_MT_FRAME_SIZE, &w, &h);
+                if (win32::check_hresult_as_boolean(hr, "MFGetAttributeSize(MF_MT_FRAME_SIZE)"sv)) {
+                    info.width = w;
+                    info.height = h;
+                }
+                
+                UINT32 num = 0, den = 0;
+                hr = MFGetAttributeRatio(mt.get(), MF_MT_FRAME_RATE, &num, &den);
+                if (win32::check_hresult_as_boolean(hr, "MFGetAttributeRatio(MF_MT_FRAME_RATE)"sv) && den > 0) {
+                    info.fps = static_cast<double>(num) / static_cast<double>(den);
+                }
+                
+                m_cached_video_streams.push_back(info);
+            }
+            else if (major == MFMediaType_Audio) {
+                AudioStreamInfo info{};
+                info.index = si;
+                info.duration_seconds = duration_sec;
+                info.channels = (UINT32)MFGetAttributeUINT32(mt.get(), MF_MT_AUDIO_NUM_CHANNELS, 0);
+                info.sample_rate = MFGetAttributeUINT32(mt.get(), MF_MT_AUDIO_SAMPLES_PER_SECOND, 0);
+                
+                m_cached_audio_streams.push_back(info);
+            }
+        }
+        
+        Logger::info("[core] [VideoDecoder] Cached {} video stream(s) and {} audio stream(s)", 
+                    m_cached_video_streams.size(), m_cached_audio_streams.size());
     }
 
     bool VideoDecoder::createResources() {
