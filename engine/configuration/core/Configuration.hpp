@@ -64,6 +64,8 @@ namespace core {
 			private:
 				bool preserve{ false };
 			};
+			class StandardOutput : public Base {
+			};
 			class File : public Base {
 			public:
 				GetterSetterString(File, path, Path);
@@ -79,11 +81,13 @@ namespace core {
 		public:
 			inline Debugger const& getDebugger() const noexcept { return debugger; }
 			inline Console const& getConsole() const noexcept { return console; }
+			inline StandardOutput const& getStandardOutput() const noexcept { return standard_output; }
 			inline File const& getFile() const noexcept { return file; }
 			inline RollingFile const& getRollingFile() const noexcept { return rolling_file; }
 		private:
 			Debugger debugger;
 			Console console;
+			StandardOutput standard_output;
 			File file;
 			RollingFile rolling_file;
 		};
@@ -149,6 +153,7 @@ namespace core {
 			GetterSetterBoolean(GraphicsSystem, allow_exclusive_fullscreen, AllowExclusiveFullscreen);
 			GetterSetterBoolean(GraphicsSystem, allow_modern_swap_chain, AllowModernSwapChain);
 			GetterSetterBoolean(GraphicsSystem, allow_direct_composition, AllowDirectComposition);
+			GetterSetterBoolean(GraphicsSystem, allow_hardware_video_decode, AllowHardwareVideoDecode);
 		private:
 			std::string preferred_device_name;
 			uint32_t width{ 640u };
@@ -159,6 +164,7 @@ namespace core {
 			bool allow_exclusive_fullscreen{ true };
 			bool allow_modern_swap_chain{ true };
 			bool allow_direct_composition{ true };
+			bool allow_hardware_video_decode{ true };
 		};
 		class AudioSystem {
 		public:

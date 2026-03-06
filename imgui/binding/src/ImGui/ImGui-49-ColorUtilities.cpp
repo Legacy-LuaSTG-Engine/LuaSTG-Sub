@@ -21,8 +21,8 @@ namespace {
 	int ColorConvertRGBtoHSV(lua_State* const vm) {
 		lua::stack_t const ctx(vm);
 		auto const r = ctx.get_value<float>(1);
-		auto const g = ctx.get_value<float>(1);
-		auto const b = ctx.get_value<float>(1);
+		auto const g = ctx.get_value<float>(2);
+		auto const b = ctx.get_value<float>(3);
 		float out_h{};
 		float out_s{};
 		float out_v{};
@@ -35,8 +35,8 @@ namespace {
 	int ColorConvertHSVtoRGB(lua_State* const vm) {
 		lua::stack_t const ctx(vm);
 		auto const h = ctx.get_value<float>(1);
-		auto const s = ctx.get_value<float>(1);
-		auto const v = ctx.get_value<float>(1);
+		auto const s = ctx.get_value<float>(2);
+		auto const v = ctx.get_value<float>(3);
 		float out_r{};
 		float out_g{};
 		float out_b{};

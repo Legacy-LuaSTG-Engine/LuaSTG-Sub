@@ -2,7 +2,7 @@
 #include "core/FileSystem.hpp"
 
 namespace luastg {
-    struct CORE_NO_VIRTUAL_TABLE IEmbeddedFileSystem : core::IFileSystem {
+    CORE_INTERFACE IEmbeddedFileSystem : core::IFileSystem {
         static IEmbeddedFileSystem* getInstance();
     };
 }

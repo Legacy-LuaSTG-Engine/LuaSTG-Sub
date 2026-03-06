@@ -64,7 +64,6 @@ namespace core {
 		SmartReference<AudioEngineXAudio2> m_parent;
 		IXAudio2SourceVoice* m_voice{};
 		WAVEFORMATEX m_format{};
-		XAUDIO2_BUFFER m_voice_buffer = {};
 		std::vector<BYTE> m_pcm_data;
 		AudioMixingChannel m_mixing_channel;
 		float m_volume = 1.0f;

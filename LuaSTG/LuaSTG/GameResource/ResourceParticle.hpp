@@ -1,4 +1,6 @@
 #pragma once
+#include "core/Vector2.hpp"
+#include "core/Color.hpp"
 #include "GameResource/ResourceBase.hpp"
 
 namespace luastg

@@ -20,15 +20,42 @@ extern "C" {
 #include "LuaBinding/external/lua_random.hpp"
 #include "LuaBinding/external/lua_dwrite.hpp"
 
+#include "core/Logger.hpp"
+#include "core/CommandLineArguments.hpp"
 #include "core/FileSystem.hpp"
 #include "utf8.hpp"
-#include "Platform/CommandLineArguments.hpp"
-#include "core/FileSystem.hpp"
+#include "lua/plus.hpp"
 #include "luastg/EmbeddedFileSystem.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
+
+using std::string_view_literals::operator ""sv;
+
+namespace {
+	HWND getMainWindow(core::IWindow* const window) {
+		if (!window) {
+			return nullptr;
+		}
+		return static_cast<HWND>(window->getNativeHandle());
+	}
+
+	void registerCommandLineArguments(lua_State* const vm) {
+		[[maybe_unused]] lua::stack_balancer_t const sb(vm);
+		lua::stack_t const ctx(vm);
+
+		auto const args{ core::CommandLineArguments::copy() };
+		auto const args_table = ctx.create_array(args.size());
+		for (size_t i = 0; i < args.size(); i += 1) {
+			core::Logger::info("[luajit] [{}] {}", i, args[i]);
+			ctx.set_array_value(args_table, static_cast<int32_t>(i + 1), args[i]);
+		}
+
+		auto const m = ctx.push_module("lstg"sv);
+		ctx.set_map_value(m, "args"sv, args_table);
+	}
+}
 
 namespace luastg
 {
@@ -77,7 +104,7 @@ namespace luastg
 			{
 				spdlog::error("[luajit] 编译'{}'失败：{}", desc, lua_tostring(L, -1));
 				MessageBoxW(
-					m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
+					getMainWindow(m_window.get()),
 					utf8::to_wstring(
 						fmt::format("编译'{}'失败：{}", desc, lua_tostring(L, -1))
 					).c_str(),
@@ -102,7 +129,7 @@ namespace luastg
 				}
 				spdlog::error("[luajit] 运行'{}'时出错：{}", desc, errmsg);
 				MessageBoxW(
-					m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
+					getMainWindow(m_window.get()),
 					utf8::to_wstring(
 						fmt::format("运行'{}'时出错：\n{}", desc, errmsg)
 					).c_str(),
@@ -147,7 +174,7 @@ namespace luastg
 				}
 				spdlog::error("[luajit] 调用全局函数'{}'时出错：{}", name, errmsg);
 				MessageBoxW(
-					m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
+					getMainWindow(m_window.get()),
 					utf8::to_wstring(
 						fmt::format("调用全局函数'{}'时出错：\n{}", name, errmsg)
 					).c_str(),
@@ -182,7 +209,7 @@ namespace luastg
 				spdlog::error("[luajit] 调用全局函数'{}'时出错：全局函数'{}'不存在", name, name);
 				/*
 				MessageBoxW(
-					m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
+					getMainWindow(m_window.get()),
 					tErrorInfo.c_str(),
 					L"" LUASTG_INFO,
 					MB_ICONERROR | MB_OK);
@@ -208,7 +235,7 @@ namespace luastg
 			{
 				spdlog::error("[luajit] 调用全局函数'{}'时出错：{}", name, lua_tostring(L, -1));
 				MessageBoxW(
-					m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
+					getMainWindow(m_window.get()),
 					utf8::to_wstring(
 						fmt::format("调用全局函数'{}'时出错：\n{}", name, lua_tostring(L, -1))
 					).c_str(),
@@ -240,7 +267,7 @@ namespace luastg
 
 	void AppFrame::LoadScript(lua_State* SL, const char* path, const char* packname)
 	{
-	#define L (fuck) // 这里不能使用全局的 lua_State，必须使用传入的
+	#define L (NOT_ALLOWED) // 这里不能使用全局的 lua_State，必须使用传入的
 		if (ResourceMgr::GetResourceLoadingLog())
 		{
 			if (packname)
@@ -323,29 +350,8 @@ namespace luastg
 		#endif
 			lua_settop(L, 0);
 
-			binding::RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
-
-			// 设置命令行参数
-			spdlog::info("[luajit] 储存命令行参数");
-			std::vector<std::string_view> args;
-			Platform::CommandLineArguments::Get().GetArguments(args);
-			if (!args.empty()) {
-				// 打印命令行参数
-				std::vector<std::string_view> args_lua;
-				for (size_t idx = 0; idx < args.size(); idx += 1) {
-					spdlog::info("[luajit] [{}] {}", idx, args[idx]);
-					args_lua.emplace_back(args[idx]);
-				}
-				// 储存
-				lua_getglobal(L, "lstg");                       // ? t
-				lua_createtable(L, (int)args_lua.size(), 0);    // ? t t
-				for (int idx = 0; idx < (int)args_lua.size(); idx += 1) {
-					lua_pushstring(L, args_lua[idx].data());    // ? t t s
-					lua_rawseti(L, -2, idx + 1);                // ? t t
-				}
-				lua_setfield(L, -2, "args");                    // ? t
-				lua_pop(L, 1);                                  // ?
-			}
+			binding::RegistBuiltInClassWrapper(L); // LuaSTG API
+			registerCommandLineArguments(L); // command line args
 
 			constexpr std::string_view boost_script(R"(-- LuaSTG Sub boost script
 package.cpath = ""

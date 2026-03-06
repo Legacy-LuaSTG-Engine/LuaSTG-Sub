@@ -120,7 +120,7 @@ namespace luastg
 	using GameObjectDetectLinkedList = GameObjectLinkedList<GameObjectDetectLinkedListFieldAssessor>;
 
 	// 游戏对象管理器回调函数集
-	struct CORE_NO_VIRTUAL_TABLE IGameObjectManagerCallbacks {
+	CORE_INTERFACE IGameObjectManagerCallbacks {
 		// 获取当前回调函数集的名称
 		[[nodiscard]] virtual std::string_view getCallbacksName() const noexcept = 0;
 		// 对象管理器分配对象

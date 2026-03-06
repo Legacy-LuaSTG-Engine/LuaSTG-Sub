@@ -12,7 +12,7 @@ namespace core {
 	// IAudioPlayer
 
 	bool AudioPlayerXAudio2::play(double const seconds) {
-		if (static_cast<double>(m_sample_rate) * m_start_time > static_cast<double>(m_total_frame)) {
+		if (static_cast<double>(m_sample_rate) * seconds > static_cast<double>(m_total_frame)) {
 			m_start_time = m_total_seconds;
 			if (!m_loop) {
 				m_state = AudioPlayerState::stopped;
@@ -214,10 +214,6 @@ namespace core {
 		if (!decoder->read(decoder->getFrameCount(), m_pcm_data.data(), &frames_read)) {
 			return false;
 		}
-
-		m_voice_buffer.Flags = XAUDIO2_END_OF_STREAM;
-		m_voice_buffer.AudioBytes = frames_read * static_cast<uint32_t>(decoder->getFrameSize());
-		m_voice_buffer.pAudioData = m_pcm_data.data();
 
 		std::ignore = create();
 		m_parent->addEventListener(this);

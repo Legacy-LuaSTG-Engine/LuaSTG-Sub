@@ -23,13 +23,13 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
       - name: Cache C++ packages
         id: cache-cpp
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             build/packages
@@ -68,12 +68,12 @@ jobs:
         run: cmake --workflow --preset windows-amd64-release
 
       - name: Package  
-        run: pwsh scripts/package.ps1
+        run: pwsh tool/package.ps1
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release
           path: |
             build/releases/*.zip
-          retention-days: 7
+          retention-days: 30

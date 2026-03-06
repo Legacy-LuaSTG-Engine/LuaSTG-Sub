@@ -1,7 +1,7 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "AppFrame.h"
 #include "Keyboard.h"
-#include "Platform/Keyboard.hpp"
+#include "windows/Keyboard.hpp"
 #include "Mouse.h"
 
 static int register_keyboard(lua_State* L)

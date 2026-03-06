@@ -5,7 +5,7 @@ namespace luastg
     bool AppFrame::BeginRenderTargetStack()
     {
         m_stRenderTargetStack.clear();
-        GetAppModel()->getSwapChain()->applyRenderAttachment();
+        m_swap_chain->applyRenderAttachment();
         return true;
     }
     bool AppFrame::EndRenderTargetStack()
@@ -15,7 +15,7 @@ namespace luastg
         {
             spdlog::error("[luastg] 渲染结束时 RenderTarget 栈不为空，可能缺少对 lstg.PopRenderTarget 的调用");
             m_stRenderTargetStack.clear();
-            GetAppModel()->getSwapChain()->applyRenderAttachment();
+            m_swap_chain->applyRenderAttachment();
         }
         return true;
     }
@@ -32,7 +32,7 @@ namespace luastg
             return false;
         }
 
-        GetRenderer2D()->setRenderAttachment(
+        getRenderer2D()->setRenderAttachment(
             rt->GetRenderTarget(),
             rt->GetDepthStencilBuffer()
         );
@@ -60,14 +60,14 @@ namespace luastg
         if (!m_stRenderTargetStack.empty())
         {
             IResourceTexture* rt = *(m_stRenderTargetStack.back());
-            GetRenderer2D()->setRenderAttachment(
+            getRenderer2D()->setRenderAttachment(
                 rt->GetRenderTarget(),
                 rt->GetDepthStencilBuffer()
             );
         }
         else
         {
-            GetAppModel()->getSwapChain()->applyRenderAttachment();
+            m_swap_chain->applyRenderAttachment();
         }
 
         return true;
@@ -91,7 +91,7 @@ namespace luastg
         }
         else
         {
-            return GetAppModel()->getSwapChain()->getCanvasSize();
+            return m_swap_chain->getCanvasSize();
         }
     }
 
@@ -112,7 +112,7 @@ namespace luastg
         if (m_AutoSizeRenderTargetSize.x == 0 || m_AutoSizeRenderTargetSize.y == 0)
         {
             // 初始化
-            m_AutoSizeRenderTargetSize = GetAppModel()->getSwapChain()->getCanvasSize();
+            m_AutoSizeRenderTargetSize = m_swap_chain->getCanvasSize();
         }
         return m_AutoSizeRenderTargetSize;
     }
@@ -132,7 +132,7 @@ namespace luastg
 
     void AppFrame::onSwapChainCreate()
     {
-        ResizeAutoSizeRenderTarget(GetAppModel()->getSwapChain()->getCanvasSize());
+        ResizeAutoSizeRenderTarget(m_swap_chain->getCanvasSize());
     }
     void AppFrame::onSwapChainDestroy() {}
 
@@ -147,7 +147,7 @@ namespace luastg
     void AppFrame::DebugSetGeometryRenderState()
     {
         using namespace core::Graphics;
-        auto* r2d = GetRenderer2D();
+        auto* r2d = getRenderer2D();
         r2d->setBlendState(IRenderer::BlendState::Alpha);
         r2d->setDepthState(IRenderer::DepthState::Disable);
         r2d->setFogState(IRenderer::FogState::Disable, {}, 0.0f, 0.0f);
@@ -160,7 +160,7 @@ namespace luastg
         {
             using namespace core;
             using namespace core::Graphics;
-            auto* r2d = GetRenderer2D();
+            auto* r2d = getRenderer2D();
             // 分割 32 份，圆周上 32 个点以及中心点，共 32 个三角形，需要 32 * 3 个索引
             IRenderer::DrawVertex* vert = nullptr;
             IRenderer::DrawIndex* vidx = nullptr;
@@ -195,7 +195,7 @@ namespace luastg
         {
             using namespace core;
             using namespace core::Graphics;
-            auto* r2d = GetRenderer2D();
+            auto* r2d = getRenderer2D();
             // 计算出矩形的4个顶点
             IRenderer::DrawVertex vert[4] = {
                 IRenderer::DrawVertex(-a, -b, 0.5f, 0.0f, 0.0f, color.color()),
@@ -223,7 +223,7 @@ namespace luastg
         {
             using namespace core;
             using namespace core::Graphics;
-            auto* r2d = GetRenderer2D();
+            auto* r2d = getRenderer2D();
             // 分割 36 份，椭圆周上 36 个点以及中心点，共 36 个三角形，需要 36 * 3 个索引
             IRenderer::DrawVertex* vert = nullptr;
             IRenderer::DrawIndex* vidx = nullptr;

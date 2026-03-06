@@ -2,13 +2,11 @@
 
 add_library(Microsoft.D3DCompiler.Redist SHARED IMPORTED GLOBAL)
 
-# 注意：从 Windows SDK 10.0.26100 开始，d3dcompiler_47.dll 不再静态链接 CRT，而是链接到 UCRT
-
 CPMAddPackage(
     NAME Microsoft.Windows.SDK.CPP
-    VERSION 10.0.22621.3233
-    URL https://www.nuget.org/api/v2/package/Microsoft.Windows.SDK.CPP/10.0.22621.3233
-    URL_HASH SHA256=E4EFE1768EA61F4F999DBEF61B09895320629F975F9CEED8290A9633E0C31623
+    VERSION 10.0.26100.7463
+    URL https://www.nuget.org/api/v2/package/Microsoft.Windows.SDK.CPP/10.0.26100.7463
+    URL_HASH SHA256=54C5E6EBFFF5E1A8A84CDBF8AB7A4E72419620A5B2D430A3AA88734C4C557CAB
     DOWNLOAD_ONLY YES
 )
 
@@ -19,9 +17,14 @@ endif ()
 set(d3dcompiler47_dll "d3dcompiler_47.dll")
 if(Microsoft.Windows.SDK.CPP_ADDED)
     set(windows_sdk_redist "${Microsoft.Windows.SDK.CPP_SOURCE_DIR}/c/Redist/D3D")
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    if(LUASTG_ARCH STREQUAL "amd64")
+        message(STATUS "Microsoft.D3DCompiler.Redist (amd64)")
         set(windows_sdk_redist "${windows_sdk_redist}/x64")
-    elseif (CMAKE_SIZEOF_VOID_P EQUAL 4)
+    elseif(LUASTG_ARCH STREQUAL "arm64")
+        message(STATUS "Microsoft.D3DCompiler.Redist (arm64)")
+        set(windows_sdk_redist "${windows_sdk_redist}/arm64")
+    elseif(LUASTG_ARCH STREQUAL "x86")
+        message(STATUS "Microsoft.D3DCompiler.Redist (x86)")
         set(windows_sdk_redist "${windows_sdk_redist}/x86")
     else ()
         message(FATAL_ERROR "unknown platform")

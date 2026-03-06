@@ -39,7 +39,7 @@ namespace luastg {
 	struct GameObject;
 
 	// 游戏对象回调函数集和调用链
-	struct CORE_NO_VIRTUAL_TABLE IGameObjectCallbacks {
+	CORE_INTERFACE IGameObjectCallbacks {
 		// 获取当前回调函数集的名称
 		virtual std::string_view getCallbacksName(GameObject* self) const noexcept = 0;
 		// 被标记为删除状态时调用

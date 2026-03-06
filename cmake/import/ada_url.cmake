@@ -2,9 +2,9 @@
 
 CPMAddPackage(
     NAME ada_url
-    VERSION 3.2.7
-    URL https://github.com/ada-url/ada/releases/download/v3.2.7/singleheader.zip
-    URL_HASH SHA256=464B59BE356C2CB176E3582D1EBF3D353C076AE5821A299E87B9AE8F691CDDBE
+    VERSION 3.3.0
+    URL https://github.com/ada-url/ada/releases/download/v3.3.0/singleheader.zip
+    URL_HASH SHA256=127994BE3CE79A0416FD5BCDBB4B10CEE84839C4EC8251E9C52AA8E6C6E16762
     DOWNLOAD_ONLY YES
 )
 

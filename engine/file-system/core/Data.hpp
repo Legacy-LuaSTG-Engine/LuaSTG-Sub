@@ -2,7 +2,7 @@
 #include "core/ReferenceCounted.hpp"
 
 namespace core {
-	struct CORE_NO_VIRTUAL_TABLE IData : IReferenceCounted {
+	CORE_INTERFACE IData : IReferenceCounted {
 		virtual void* data() = 0;
 		virtual size_t size() = 0;
 

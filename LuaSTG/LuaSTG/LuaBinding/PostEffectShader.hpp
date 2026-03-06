@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Graphics/Renderer.hpp"
+#include "core/Graphics/Renderer.hpp"
 #include "lua.hpp"
 
 namespace luastg::binding

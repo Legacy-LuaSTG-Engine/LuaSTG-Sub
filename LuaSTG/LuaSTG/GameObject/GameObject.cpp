@@ -511,6 +511,7 @@ namespace luastg {
 						blend_mode,
 						vertex_color
 					);
+					break;
 				case ResourceType::Animation:
 					static_cast<IResourceAnimation*>(res)->Render(
 						static_cast<int>(ani_timer),
@@ -552,7 +553,7 @@ namespace luastg {
 		if (auto const resource_type = res->GetType(); resource_type == ResourceType::Sprite) {
 			auto const sprite = static_cast<IResourceSprite*>(res);
 			sprite->SetBlendMode(blend);
-			sprite->GetSprite()->setColor(color);
+			sprite->SetColor(color);
 		}
 		else if (resource_type == ResourceType::Animation) {
 			auto const sprite_sequence = static_cast<IResourceAnimation*>(res);

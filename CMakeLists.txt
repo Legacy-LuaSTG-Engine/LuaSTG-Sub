@@ -1,31 +1,37 @@
-cmake_minimum_required(VERSION 3.22)
-project(LuaSTGSub)
+cmake_minimum_required(VERSION 3.31)
 
-#option(LUASTG_RESDIR "Custom configurations" "res")
+file(READ "${CMAKE_SOURCE_DIR}/version.json" version_json)
+string(JSON LUASTG_PACKAGE_NAME GET ${version_json} "package")
+string(JSON LUASTG_ORGNIZATION_NAME GET ${version_json} "organization")
+string(JSON LUASTG_VERSION_MAJOR GET ${version_json} "major")
+string(JSON LUASTG_VERSION_MINOR GET ${version_json} "minor")
+string(JSON LUASTG_VERSION_PATCH GET ${version_json} "patch")
+message(STATUS "LuaSTG Sub v${LUASTG_VERSION_MAJOR}.${LUASTG_VERSION_MINOR}.${LUASTG_VERSION_PATCH}")
 
-option(LUASTG_SUPPORTS_WINDOWS_7 "LuaSTG Sub Windows compatibility: Windows 7" ON)
-option(LUASTG_LINK_YY_THUNKS "Link to YY_Thunks for older Windows version (not recommended)" OFF)
-option(LUASTG_LINK_LUASOCKET "Link to luasocket" OFF)
-option(LUASTG_LINK_TRACY_CLIENT "Link to Tracy client" OFF)
-option(LUASTG_LINK_STEAM_API "Link to Steam API" OFF)
-
-if(LUASTG_SUPPORTS_WINDOWS_7)
-    message(STATUS "[LuaSTG] Windows compatibility: Windows 7")
-    add_compile_definitions(LUASTG_SUPPORTS_WINDOWS_7)
-endif()
+project(LuaSTGSub
+    VERSION      "${LUASTG_VERSION_MAJOR}.${LUASTG_VERSION_MINOR}.${LUASTG_VERSION_PATCH}"
+    DESCRIPTION  "LuaSTG Sub: Game engine for bullet hell games, using Lua as the scripting language"
+    HOMEPAGE_URL "https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub"
+)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-include(cmake/TargetCommonOptions.cmake)
-include(cmake/options.cmake)
-include(cmake/msvc.crt.cmake)
-#msvc_hybrid_runtime_library()
+
+# Although this project doesn't make use of C++20 Modules,
+# the module scanning process runs during every build, this increases the build time.
+# See: https://cmake.org/cmake/help/latest/manual/cmake-cxxmodules.7.html#scanning-without-modules
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
+include(cmake/architecture.cmake)
+include(cmake/luastg-options.cmake)
+include(cmake/luastg-utils.cmake)
+include(cmake/msvc-c-runtime.cmake)
+
 msvc_static_runtime_library()
 
 include(cmake/import/all.cmake)
 include(cmake/build/all.cmake)
 add_subdirectory(external)
 include(cmake/packages.lua.cmake)
-include(LuaSTG/shaders.cmake)
 add_subdirectory(imgui)
 
 add_subdirectory(engine)

@@ -69,7 +69,7 @@ namespace core {
 		}
 	};
 
-	struct CORE_NO_VIRTUAL_TABLE IMessageQueueBasedFileSystemWatcher : IReferenceCounted {
+	CORE_INTERFACE IMessageQueueBasedFileSystemWatcher : IReferenceCounted {
 		virtual bool next(FileNotifyInformation* info) = 0;
 
 		static bool create(std::string_view const& path, IMessageQueueBasedFileSystemWatcher** object);

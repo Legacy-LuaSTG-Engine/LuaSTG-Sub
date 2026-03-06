@@ -4,9 +4,6 @@
 using std::string_view_literals::operator ""sv;
 
 namespace {
-	int notSupported(lua_State* const vm) {
-		return luaL_error(vm, "not supported");
-	}
 	int ShowDemoWindow(lua_State* const vm) {
 		lua::stack_t const ctx(vm);
 		if (ctx.index_of_top() >= 1) {

@@ -1,7 +1,7 @@
 #pragma once
 #include <string_view>
 #include "lua.hpp"
-#include "Core/Graphics/Window.hpp"
+#include "core/Window.hpp"
 
 namespace luastg::binding {
 
@@ -9,7 +9,7 @@ namespace luastg::binding {
 
 		static std::string_view class_name;
 
-		[[maybe_unused]] core::Graphics::IWindow* data{};
+		[[maybe_unused]] core::IWindow* data{};
 
 		static bool is(lua_State* L, int index);
 
@@ -25,7 +25,7 @@ namespace luastg::binding {
 
 		static std::string_view class_name;
 
-		[[maybe_unused]] core::Graphics::IWindow* data{};
+		[[maybe_unused]] core::IWindow* data{};
 
 		static bool is(lua_State* L, int index);
 
@@ -41,7 +41,7 @@ namespace luastg::binding {
 
 		static std::string_view class_name;
 
-		[[maybe_unused]] core::Graphics::IWindow* data{};
+		[[maybe_unused]] core::IWindow* data{};
 
 		static bool is(lua_State* L, int index);
 
@@ -57,7 +57,7 @@ namespace luastg::binding {
 
 		static std::string_view class_name;
 
-		[[maybe_unused]] core::Graphics::IWindow* data{};
+		[[maybe_unused]] core::IWindow* data{};
 
 		static bool is(lua_State* L, int index);
 

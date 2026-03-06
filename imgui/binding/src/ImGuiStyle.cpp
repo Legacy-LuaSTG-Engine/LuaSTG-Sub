@@ -132,9 +132,11 @@ namespace imgui::binding {
 			GET_SCALAR(ColumnsMinSpacing);
 			GET_SCALAR(ScrollbarSize);
 			GET_SCALAR(ScrollbarRounding);
+			GET_SCALAR(ScrollbarPadding);
 			GET_SCALAR(GrabMinSize);
 			GET_SCALAR(GrabRounding);
 			GET_SCALAR(LogSliderDeadzone);
+			GET_SCALAR(ImageRounding);
 			GET_SCALAR(ImageBorderSize);
 			GET_SCALAR(TabRounding);
 			GET_SCALAR(TabBorderSize);
@@ -149,6 +151,10 @@ namespace imgui::binding {
 			GET_FLAG(TreeLinesFlags);
 			GET_SCALAR(TreeLinesSize);
 			GET_SCALAR(TreeLinesRounding);
+			GET_SCALAR(DragDropTargetRounding);
+			GET_SCALAR(DragDropTargetBorderSize);
+			GET_SCALAR(DragDropTargetPadding);
+			GET_SCALAR(ColorMarkerSize);
 			GET_FLAG(ColorButtonPosition);
 			GET_VEC2(ButtonTextAlign);
 			GET_VEC2(SelectableTextAlign);
@@ -283,9 +289,11 @@ namespace imgui::binding {
 			SET_SCALAR(ColumnsMinSpacing);
 			SET_SCALAR(ScrollbarSize);
 			SET_SCALAR(ScrollbarRounding);
+			SET_SCALAR(ScrollbarPadding);
 			SET_SCALAR(GrabMinSize);
 			SET_SCALAR(GrabRounding);
 			SET_SCALAR(LogSliderDeadzone);
+			SET_SCALAR(ImageRounding);
 			SET_SCALAR(ImageBorderSize);
 			SET_SCALAR(TabRounding);
 			SET_SCALAR(TabBorderSize);
@@ -300,6 +308,10 @@ namespace imgui::binding {
 			SET_FLAG(TreeLinesFlags);
 			SET_SCALAR(TreeLinesSize);
 			SET_SCALAR(TreeLinesRounding);
+			SET_SCALAR(DragDropTargetRounding);
+			SET_SCALAR(DragDropTargetBorderSize);
+			SET_SCALAR(DragDropTargetPadding);
+			SET_SCALAR(ColorMarkerSize);
 			SET_FLAG(ColorButtonPosition);
 			SET_VEC2(ButtonTextAlign);
 			SET_VEC2(SelectableTextAlign);

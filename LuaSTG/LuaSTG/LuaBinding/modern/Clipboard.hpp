@@ -7,7 +7,7 @@ namespace luastg::binding {
 
 		static std::string_view const class_name;
 
-		static void registerClass(lua_State* L);
+		static void registerClass(lua_State* vm);
 
 	};
 

@@ -11,6 +11,8 @@ namespace lua {
 
 		stack_index_t() = default;
 		constexpr stack_index_t(int32_t const index) : value(index) {}
+		constexpr stack_index_t(size_t const index) : value(static_cast<int32_t>(index)) {}
+		constexpr stack_index_t(uint32_t const index) : value(static_cast<int32_t>(index)) {}
 
 		bool operator>(int32_t const right) const {
 			return value > right;
@@ -162,6 +164,13 @@ namespace lua {
 
 		template<>
 		inline void set_array_value_zero_base(size_t c_index, std::string_view value) { lua_pushlstring(L, value.data(), value.size()); lua_rawseti(L, -2, static_cast<int>(c_index + 1)); }
+
+		template<typename T>
+		void set_array_value_zero_base(stack_index_t const array_index, stack_index_t const index, T const& value) const {
+			lua_pushinteger(L, index.value + 1);
+			push_value(value);
+			lua_settable(L, array_index.value);
+		}
 
 		template<typename T>
 		inline void set_array_value(stack_index_t index, T value) { typename T::__invalid_type__ _{}; }
@@ -426,4 +435,48 @@ namespace lua {
 		}
 
 	};
+
+	namespace methods {
+		// a + b
+		constexpr std::string_view add{"__add"};
+		// a - b
+		constexpr std::string_view sub{"__sub"};
+		// a * b
+		constexpr std::string_view mul{"__mul"};
+		// a / b
+		constexpr std::string_view div{"__div"};
+		// a % b
+		constexpr std::string_view mod{"__mod"};
+		// -n
+		constexpr std::string_view unm{"__unm"};
+		// #n
+		constexpr std::string_view len{"__len"};
+		// a .. b
+		constexpr std::string_view concat{"__concat"};
+		// a == b
+		constexpr std::string_view eq{"__eq"};
+		// a < b
+		constexpr std::string_view lt{"__lt"};
+		// a <= b
+		constexpr std::string_view le{"__le"};
+		// tostring(n)
+		constexpr std::string_view to_string{"__tostring"};
+		// n[k]
+		constexpr std::string_view index{"__index"};
+		// n[k] = v
+		constexpr std::string_view new_index{"__newindex"};
+		// n()
+		constexpr std::string_view call{"__call"};
+		// dispose
+		constexpr std::string_view gc{"__gc"};
+	}
+
+	namespace fields {
+		// n[k]
+		constexpr std::string_view index{"__index"};
+		// weak table
+		constexpr std::string_view mode{"__mode"};
+		// meta table
+		constexpr std::string_view meta_table{"__metatable"};
+	}
 }

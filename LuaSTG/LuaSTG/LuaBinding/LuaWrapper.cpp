@@ -7,6 +7,9 @@
 #include "LuaBinding/modern/Window.hpp"
 #include "LuaBinding/modern/SwapChain.hpp"
 #include "LuaBinding/modern/Texture2D.hpp"
+#include "LuaBinding/modern/VideoDecoder.hpp"
+#include "LuaBinding/modern/RenderTarget.hpp"
+#include "LuaBinding/modern/DepthStencilBuffer.hpp"
 #include "LuaBinding/modern/Mesh.hpp"
 #include "LuaBinding/modern/MeshRenderer.hpp"
 #include "LuaBinding/modern/Vector2.hpp"
@@ -17,6 +20,10 @@
 #include "LuaBinding/modern/FileSystemWatcher.hpp"
 #include "LuaBinding/modern/GameObject.hpp"
 #include "LuaBinding/modern/Well512.hpp"
+#include "LuaBinding/modern/ShellIntegration.hpp"
+#include "LuaBinding/modern/FontCollection.hpp"
+#include "LuaBinding/modern/TextLayout.hpp"
+#include "LuaBinding/modern/TextRenderer.hpp"
 
 namespace luastg::binding
 {
@@ -76,6 +83,9 @@ namespace luastg::binding
 		Window_Windows11Extension::registerClass(L);
 		SwapChain::registerClass(L);
 		Texture2D::registerClass(L);
+		VideoDecoder::registerClass(L);
+		RenderTarget::registerClass(L);
+		DepthStencilBuffer::registerClass(L);
 		Mesh::registerClass(L);
 		MeshRenderer::registerClass(L);
 		Vector2::registerClass(L);
@@ -88,5 +98,9 @@ namespace luastg::binding
 		FileSystemWatcher::registerClass(L);
 		GameObject::registerClass(L);
 		Well512::registerClass(L);
+		ShellIntegration::registerClass(L);
+		FontCollection::registerClass(L);
+		TextLayout::registerClass(L);
+		TextRenderer::registerClass(L);
 	}
 }

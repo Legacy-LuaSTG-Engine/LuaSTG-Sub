@@ -1,11 +1,17 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
 #include "LuaBinding/PostEffectShader.hpp"
+#include "LuaBinding/modern/Vector2.hpp"
+#include "LuaBinding/modern/Vector3.hpp"
+#include "LuaBinding/modern/Vector4.hpp"
+#include "LuaBinding/modern/RenderTarget.hpp"
+#include "LuaBinding/modern/DepthStencilBuffer.hpp"
 #include "AppFrame.h"
+#include "GameResource/Implement/ResourceTextureImpl.hpp"
 #include "GameResource/LegacyBlendStateHelper.hpp"
 
 namespace luastg {
-	inline core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
+	inline core::Graphics::IRenderer* LR2D() { return LAPP.getRenderer2D(); }
 	inline ResourceMgr& LRESMGR() { return LAPP.GetResourceMgr(); }
 
 #ifndef NDEBUG
@@ -521,7 +527,7 @@ namespace luastg {
 			return luaL_error(L, "can't find texture '%s'", name);
 		}
 		check_rendertarget_usage(ptex2dres);
-		core::Graphics::ITexture2D* ptex2d = ptex2dres->GetTexture();
+		core::ITexture2D* ptex2d = ptex2dres->GetTexture();
 		float const uscale = 1.0f / (float)ptex2d->getSize().x;
 		float const vscale = 1.0f / (float)ptex2d->getSize().y;
 		for (int i = 0; i < 4; ++i) {
@@ -674,14 +680,33 @@ namespace luastg {
 	static int compat_PushRenderTarget(lua_State* L)noexcept {
 		validate_render_scope();
 		LR2D()->flush();
-		core::SmartReference<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
-		if (!p)
-			return luaL_error(L, "rendertarget '%s' not found.", luaL_checkstring(L, 1));
-		if (!p->IsRenderTarget())
-			return luaL_error(L, "'%s' is not a rendertarget.", luaL_checkstring(L, 1));
+		if (lua_isstring(L, 1)) {
+			core::SmartReference<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
+			if (!p)
+				return luaL_error(L, "rendertarget '%s' not found.", luaL_checkstring(L, 1));
+			if (!p->IsRenderTarget())
+				return luaL_error(L, "'%s' is not a rendertarget.", luaL_checkstring(L, 1));
 
-		if (!LAPP.GetRenderTargetManager()->PushRenderTarget(p.get()))
-			return luaL_error(L, "push rendertarget '%s' failed.", luaL_checkstring(L, 1));
+			if (!LAPP.GetRenderTargetManager()->PushRenderTarget(p.get()))
+				return luaL_error(L, "push rendertarget '%s' failed.", luaL_checkstring(L, 1));
+		}
+		else {
+			auto const rt = luastg::binding::RenderTarget::as(L, 1);
+			luastg::binding::DepthStencilBuffer* ds{};
+			if (lua_isuserdata(L, 2)) {
+				ds = luastg::binding::DepthStencilBuffer::as(L, 2);
+				if (rt->data->getTexture()->getSize() != ds->data->getSize()) {
+					return luaL_error(L, "RenderTarget and DepthStencilBuffer size do not match.");
+				}
+			}
+			core::SmartReference<luastg::IResourceTexture> texture;
+			texture.attach(new luastg::RenderTargetStackResourceTextureImpl(rt->data, ds ? ds->data : nullptr));
+			if (!LAPP.GetRenderTargetManager()->PushRenderTarget(texture.get())) {
+				return luaL_error(L, ds
+								  ? "push RenderTarget and DepthStencilBuffer failed."
+								  : "push RenderTarget failed.");
+			}
+		}
 		LR2D()->setViewportAndScissorRect();
 		return 0;
 	}
@@ -744,13 +769,37 @@ namespace luastg {
 						check_rendertarget_usage(ptex);
 						p_effect->setTexture2D(key, ptex->GetTexture());
 					}
-					else if (lua_isuserdata(L, -1)) {
-						core::Color4B color = *binding::Color::Cast(L, -1);
+					else if (binding::Vector2::is(L, -1)) {
+						auto const p_value =  binding::Vector2::as(L, -1);
+						p_effect->setFloat2(key, core::Vector2F(
+							static_cast<float>(p_value->data.x),
+							static_cast<float>(p_value->data.y)
+						));
+					}
+					else if (binding::Vector3::is(L, -1)) {
+						auto const p_value = binding::Vector3::as(L, -1);
+						p_effect->setFloat3(key, core::Vector3F(
+							static_cast<float>(p_value->data.x),
+							static_cast<float>(p_value->data.y),
+							static_cast<float>(p_value->data.z)
+						));
+					}
+					else if (binding::Vector4::is(L, -1)) {
+						auto const p_value = binding::Vector4::as(L, -1);
 						p_effect->setFloat4(key, core::Vector4F(
-							float(color.r) / 255.0f,
-							float(color.g) / 255.0f,
-							float(color.b) / 255.0f,
-							float(color.a) / 255.0f
+							static_cast<float>(p_value->data.x),
+							static_cast<float>(p_value->data.y),
+							static_cast<float>(p_value->data.z),
+							static_cast<float>(p_value->data.w)
+						));
+					}
+					else if (lua_isuserdata(L, -1)) {
+						auto const color = *binding::Color::Cast(L, -1);
+						p_effect->setFloat4(key, core::Vector4F(
+							static_cast<float>(color.r) / 255.0f,
+							static_cast<float>(color.g) / 255.0f,
+							static_cast<float>(color.b) / 255.0f,
+							static_cast<float>(color.a) / 255.0f
 						));
 					}
 					else {
@@ -765,7 +814,7 @@ namespace luastg {
 			return 0;
 		}
 
-		// 下面是傻逼风格
+		// 下面是一是脑抽设计出来的，以后必须干掉
 
 		const char* ps_name = luaL_checkstring(L, 1);
 		const char* rt_name = luaL_checkstring(L, 2);
@@ -782,7 +831,7 @@ namespace luastg {
 		check_rendertarget_usage(prt);
 
 		core::Vector4F cbdata[8] = {};
-		core::Graphics::ITexture2D* tdata[4] = {};
+		core::ITexture2D* tdata[4] = {};
 		core::Graphics::IRenderer::SamplerState tsdata[4] = {};
 
 		size_t cbdata_n = lua_objlen(L, 5);

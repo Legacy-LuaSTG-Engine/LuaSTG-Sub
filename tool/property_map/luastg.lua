@@ -51,7 +51,7 @@ local GameObjectMember = property_map.Configuration()
     :addClassMember("B"       , nil, "b"       )
     :addClassMember("RECT"    , nil, "rect"    )
     :addClassMember("COLLIDER", nil, "collider") -- TODO: remove it
-    -- TODO: fuck ex+
+    -- TODO: deprecate ex+ properties
     :addClassMember("VANGLE"          , nil, "_angle" )
     :addClassMember("VSPEED"          , nil, "_speed" )
     :addClassMember("PAUSE"           , nil, "pause"  ) -- TODO: remove it

@@ -54,7 +54,7 @@ namespace luastg::binding {
 			if (texture->data) {
 				texture->data->retain();
 			}
-			return 0;
+			return 1;
 		}
 		static int setTextureRect(lua_State* vm) {
 			lua::stack_t const ctx(vm);
@@ -120,22 +120,22 @@ namespace luastg::binding {
 				auto const center_y = ctx.get_value<float>(7);
 				auto const unit_per_pixel = ctx.get_value<float>(8, 1.0f);
 				auto const self = Sprite::create(vm);
-				if (!core::Graphics::ISprite::create(LAPP.GetAppModel()->getRenderer(), texture->data, &self->data)) {
+				if (!core::Graphics::ISprite::create(texture->data, &self->data)) {
 					return luaL_error(vm, "create Sprite failed");
 				}
 				self->data->setTexture(texture->data);
-				self->data->setTextureRect(core::RectF(x, y, x + width, x + height));
+				self->data->setTextureRect(core::RectF(x, y, x + width, y + height));
 				self->data->setTextureCenter(core::Vector2F(center_x, center_y));
 				self->data->setUnitsPerPixel(unit_per_pixel);
 			}
 			else {
 				auto const unit_per_pixel = ctx.get_value<float>(6, 1.0f);
 				auto const self = Sprite::create(vm);
-				if (!core::Graphics::ISprite::create(LAPP.GetAppModel()->getRenderer(), texture->data, &self->data)) {
+				if (!core::Graphics::ISprite::create(texture->data, &self->data)) {
 					return luaL_error(vm, "create Sprite failed");
 				}
 				self->data->setTexture(texture->data);
-				self->data->setTextureRect(core::RectF(x, y, x + width, x + height));
+				self->data->setTextureRect(core::RectF(x, y, x + width, y + height));
 				self->data->setUnitsPerPixel(unit_per_pixel);
 			}
 			return 1;

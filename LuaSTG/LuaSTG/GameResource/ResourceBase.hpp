@@ -1,5 +1,4 @@
 #pragma once
-#include "Core/Type.hpp"
 #include "core/ReferenceCounted.hpp"
 
 namespace luastg {

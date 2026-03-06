@@ -131,6 +131,31 @@ namespace {
         return true;
     }
 
+    void normalizeNewLine(std::vector<uint8_t>& buffer) {
+        size_t i{};
+        size_t j{};
+        while (i < buffer.size()) {
+            if (buffer[i] == '\r') {
+                if ((i + 1) < buffer.size() && buffer[i + 1] == '\n') {
+                    buffer[j] = '\n';
+                    i += 2;
+                    j += 1;
+                    continue;
+                }
+                if ((i + 1) <= buffer.size()) {
+                    buffer[j] = '\n';
+                    i += 1;
+                    j += 1;
+                    break;
+                }
+            }
+            buffer[j] = buffer[i];
+            i += 1;
+            j += 1;
+        }
+        buffer.resize(j);
+    }
+
     class InternalLuaScriptsFileSystemBuilder {
     public:
         void addFile(std::string_view const& name, std::filesystem::path const& path) {
@@ -184,6 +209,9 @@ namespace {
                 std::vector<uint8_t> buffer;
                 if (!readAllBytes(entry.path, buffer)) {
                     return false;
+                }
+                if (entry.path.has_extension() && entry.path.extension() == ".lua"sv) {
+                    normalizeNewLine(buffer);
                 }
                 luastg::mask(buffer.data(), buffer.size());
                 entry.size = buffer.size();

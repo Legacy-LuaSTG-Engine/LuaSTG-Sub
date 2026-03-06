@@ -1,12 +1,13 @@
 ﻿#include "RuntimeCheck.hpp"
 #include "core/Configuration.hpp"
-#include "Platform/MessageBox.hpp"
-#include "Platform/WindowsVersion.hpp"
-#include "Platform/CleanWindows.hpp"
-#include "Platform/ModuleLoader.hpp"
+#include "core/GraphicsDeviceManager.hpp"
+#include "windows/MessageBox.hpp"
+#include "windows/WindowsVersion.hpp"
+#include "windows/CleanWindows.hpp"
+#include "windows/ModuleLoader.hpp"
 #include <dxgi1_6.h>
 #include <d3d11_4.h>
-#include "Platform/Direct3D11.hpp"
+#include "windows/Direct3D11.hpp"
 #include <shellapi.h>
 
 namespace luastg
@@ -274,24 +275,27 @@ namespace luastg
 		return is_all_satisfied;
 	}
 
-	bool checkEngineRuntimeRequirement()
-	{
-		if (!CheckSystem()) return false;
-		bool const chinese_simplified = is_chinese_simplified();
-		auto const title = make_message_box_title(chinese_simplified);
-		if (!Platform::Direct3D11::HasDevice(D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D_FEATURE_LEVEL_10_0))
-		{
+	bool checkEngineRuntimeRequirement() {
+		if (!CheckSystem()) {
+			return false;
+		}
+
+		const auto chinese_simplified = is_chinese_simplified();
+		const auto title = make_message_box_title(chinese_simplified);
+
+		core::GraphicsDeviceManager::refresh();
+		const auto physical_device_count = core::GraphicsDeviceManager::getPhysicalDeviceCount();
+
+		if (physical_device_count == 0) {
 			std::string_view text;
-			if (chinese_simplified)
-			{
+			if (chinese_simplified) {
 				text = "找不到可用的显卡：\n"
 					"1、显卡驱动程序可能未安装或未正确安装\n"
 					"2、显卡驱动程序可能未正常工作\n"
 					"3、显卡可能过于老旧，无法被识别\n"
 					"4、虚拟机或者云电脑可能不支持或未安装显卡\n";
 			}
-			else
-			{
+			else {
 				text = "No available Graphics Card found: \n"
 					"1. Graphics Driver may not be installed or installed incorrectly\n"
 					"2. Graphics Driver might not working correctly\n"
@@ -303,6 +307,7 @@ namespace luastg
 				return false;
 			}
 		}
+
 		return true;
 	}
 }

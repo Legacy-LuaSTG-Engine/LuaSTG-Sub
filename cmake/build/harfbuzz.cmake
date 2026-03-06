@@ -29,7 +29,13 @@ if(libharfbuzz_ADDED)
         COMMAND echo ${CMAKE_GENERATOR}
         COMMAND echo ${CMAKE_GENERATOR_PLATFORM}
         COMMAND echo $<CONFIG>
-        COMMAND cmake -S ${libharfbuzz_source_dir} -B ${libharfbuzz_build_dir} -G ${CMAKE_GENERATOR} -A ${CMAKE_GENERATOR_PLATFORM} ${libharfbuzz_options}
+        COMMAND ${CMAKE_COMMAND}
+            -S ${libharfbuzz_source_dir}
+            -B ${libharfbuzz_build_dir}
+            -G ${CMAKE_GENERATOR}
+            $<$<BOOL:${CMAKE_GENERATOR_PLATFORM}>:-A> ${CMAKE_GENERATOR_PLATFORM}
+            $<$<BOOL:${CMAKE_GENERATOR_TOOLSET}>:-T> ${CMAKE_GENERATOR_TOOLSET}
+            ${libharfbuzz_options}
         # magic target for MSVC
         COMMAND cmake --build   ${libharfbuzz_build_dir} --config $<CONFIG> --target ALL_BUILD
         COMMAND cmake --install ${libharfbuzz_build_dir} --config $<CONFIG> --prefix ${libharfbuzz_install_dir}
@@ -46,11 +52,7 @@ if(libharfbuzz_ADDED)
     set_target_properties(libharfbuzz_build PROPERTIES FOLDER external)
     set_target_properties(libharfbuzz_clean PROPERTIES FOLDER external)
 
-    # fuck cmake
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/include/harfbuzz/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Release/include/harfbuzz/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/RelWithDebInfo/include/harfbuzz/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/MinSizeRel/include/harfbuzz/placeholder "")
+    luastg_cmake_external_build_prepare_directories(include/harfbuzz)
 
     # libharfbuzz
     add_library(libharfbuzz STATIC IMPORTED GLOBAL)

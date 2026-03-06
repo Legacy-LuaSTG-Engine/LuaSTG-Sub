@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../LuaSTG/doc"
+		}
+	],
+	"settings": {
+		"Lua.runtime.version": "LuaJIT",
+		"Lua.workspace.library": [
+			"../../LuaSTG/doc"
+		]
+	}
+}

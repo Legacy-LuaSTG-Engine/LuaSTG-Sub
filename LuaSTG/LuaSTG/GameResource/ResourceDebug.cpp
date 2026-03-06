@@ -68,12 +68,12 @@ namespace luastg
 				ImGui::Text("Preview Scaling");
 				ImGui::PopID();
 			};
-			auto draw_texture0 = [](core::Graphics::ITexture2D* p_tex, float scale) -> void
+			auto draw_texture0 = [](core::ITexture2D* p_tex, float scale) -> void
 			{
 				auto const size = p_tex->getSize();
 				ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 1.0);
 				ImGui::Image(
-					reinterpret_cast<size_t>(p_tex->getNativeHandle()),
+					reinterpret_cast<size_t>(p_tex->getNativeView()),
 					ImVec2(scale * (float)size.x, scale * (float)size.y),
 					ImVec2(0.0f, 0.0f),
 					ImVec2(1.0f, 1.0f));
@@ -81,18 +81,21 @@ namespace luastg
 			};
 			auto draw_texture = [](IResourceTexture* p_res, bool show_info, float scale) -> void
 			{
-				auto const size = p_res->GetTexture()->getSize();
+				auto* p_tex = p_res->GetTexture();
+				auto const size = p_tex->getSize();
 				if (show_info)
 				{
 					ImGui::Text("Size: %u x %u", size.x, size.y);
-					ImGui::Text("RenderTarget: %s", p_res->IsRenderTarget() ? "Yes" : "Not");
-					ImGui::Text("Dynamic: %s", p_res->IsRenderTarget() ? "Yes" : "Not");
-					unsigned long long mem_usage = size.x * size.y * 4;
+					const char* type_str = p_res->IsRenderTarget() ? "RenderTarget" : "Texture";
+					ImGui::Text("Type: %s", type_str);
+					ImGui::Text("Dynamic: %s", p_tex->isDynamic() ? "Yes" : "Not");
+					unsigned long long display_mem = (unsigned long long)size.x * size.y * 4;
+					unsigned long long mem_usage = display_mem;
 					ImGui::Text("Adapter Memory Usage (Approximate): %s", bytes_count_to_string(mem_usage).c_str());
 				}
 				ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 1.0);
 				ImGui::Image(
-					reinterpret_cast<size_t>(p_res->GetTexture()->getNativeHandle()),
+					reinterpret_cast<size_t>(p_tex->getNativeView()),
 					ImVec2(scale * (float)size.x, scale * (float)size.y),
 					ImVec2(0.0f, 0.0f),
 					ImVec2(1.0f, 1.0f));
@@ -107,7 +110,7 @@ namespace luastg
 				auto* p_tex = p_res->getTexture();
 				auto tex_size = p_tex->getSize();
 				auto rc = p_res->getTextureRect();
-				auto cp = p_res->getTextureCenter() - rc.a;
+				auto cp = p_res->getTextureCenter();
 				if (show_info)
 				{
 					ImGui::Text("Pos: %.2f x %.2f", rc.a.x, rc.a.y);
@@ -118,7 +121,7 @@ namespace luastg
 				ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 1.0);
 				ImGui::PushStyleColor(ImGuiCol_Border, color);
 				ImGui::Image(
-					reinterpret_cast<size_t>(p_tex->getNativeHandle()),
+					reinterpret_cast<size_t>(p_tex->getNativeView()),
 					ImVec2(scale * (rc.b.x - rc.a.x), scale * (rc.b.y - rc.a.y)),
 					ImVec2(rc.a.x / (float)tex_size.x, rc.a.y / (float)tex_size.y),
 					ImVec2(rc.b.x / (float)tex_size.x, rc.b.y / (float)tex_size.y));

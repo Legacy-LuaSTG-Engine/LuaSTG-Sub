@@ -1,8 +1,5 @@
 # LuaSTG configurer
 
-add_subdirectory(Shader)
-include(Platform.cmake)
-include(Core.cmake)
 add_subdirectory(Configurer)
 
 # LuaSTG Engine
@@ -20,8 +17,27 @@ target_include_directories(LuaSTG PRIVATE
     LuaSTG
     LuaSTG/LuaBinding
 )
+target_include_directories(Setting PRIVATE
+    LuaSTG
+)
 target_compile_definitions(LuaSTG PRIVATE
     LDEVVERSION
+)
+
+configure_file(
+    "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/LConfig.h.in"
+    "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/LConfig.h"
+    @ONLY
+)
+configure_file(
+    "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/LuaSTG.manifest.in"
+    "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/LuaSTG.manifest"
+    @ONLY
+)
+configure_file(
+    "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/Custom/resource.rc.in"
+    "${CMAKE_CURRENT_LIST_DIR}/LuaSTG/Custom/resource.rc"
+    @ONLY
 )
 
 set(LUASTG_ENGINE_SOURCES
@@ -32,6 +48,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/Debugger/ImGuiExtension.h
     LuaSTG/Debugger/Logger.cpp
     LuaSTG/Debugger/Logger.hpp
+    LuaSTG/Debugger/FrameQuery.hpp
+    LuaSTG/Debugger/FrameQuery.cpp
 
     LuaSTG/GameObject/GameObject.cpp
     LuaSTG/GameObject/GameObject.hpp
@@ -53,6 +71,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameResource/ResourcePostEffectShader.hpp
     LuaSTG/GameResource/ResourceModel.hpp
     LuaSTG/GameResource/ResourceModel.cpp
+    LuaSTG/GameResource/SharedSpriteRenderer.hpp
+    LuaSTG/GameResource/SharedSpriteRenderer.cpp
 
     LuaSTG/GameResource/ResourceDebug.cpp
     LuaSTG/GameResource/ResourceManager.cpp
@@ -124,6 +144,14 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/modern/SwapChain.cpp
     LuaSTG/LuaBinding/modern/Texture2D.hpp
     LuaSTG/LuaBinding/modern/Texture2D.cpp
+    LuaSTG/LuaBinding/modern/VideoDecoder.hpp
+    LuaSTG/LuaBinding/modern/VideoDecoder.cpp
+    LuaSTG/LuaBinding/VideoBindingHelpers.hpp
+    LuaSTG/LuaBinding/VideoBindingHelpers.cpp
+    LuaSTG/LuaBinding/modern/RenderTarget.hpp
+    LuaSTG/LuaBinding/modern/RenderTarget.cpp
+    LuaSTG/LuaBinding/modern/DepthStencilBuffer.hpp
+    LuaSTG/LuaBinding/modern/DepthStencilBuffer.cpp
     LuaSTG/LuaBinding/modern/Mesh.hpp
     LuaSTG/LuaBinding/modern/Mesh.cpp
     LuaSTG/LuaBinding/modern/MeshRenderer.hpp
@@ -146,6 +174,14 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/modern/GameObject.cpp
     LuaSTG/LuaBinding/modern/Well512.hpp
     LuaSTG/LuaBinding/modern/Well512.cpp
+    LuaSTG/LuaBinding/modern/ShellIntegration.hpp
+    LuaSTG/LuaBinding/modern/ShellIntegration.cpp
+    LuaSTG/LuaBinding/modern/FontCollection.hpp
+    LuaSTG/LuaBinding/modern/FontCollection.cpp
+    LuaSTG/LuaBinding/modern/TextLayout.hpp
+    LuaSTG/LuaBinding/modern/TextLayout.cpp
+    LuaSTG/LuaBinding/modern/TextRenderer.hpp
+    LuaSTG/LuaBinding/modern/TextRenderer.cpp
 
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.hpp
@@ -177,6 +213,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/RuntimeCheck.cpp
     LuaSTG/Main.h
     LuaSTG/Main.cpp
+    LuaSTG/ApplicationRestart.hpp
+    LuaSTG/ApplicationRestart.cpp
     LuaSTG/WindowsMain.cpp
 
     LuaSTG/LuaSTG.manifest
@@ -186,26 +224,14 @@ target_sources(LuaSTG PRIVATE
     ${LUASTG_ENGINE_SOURCES}
 )
 
-set(LUASTG_RESDIR ${CMAKE_CURRENT_LIST_DIR}/LuaSTG/Custom CACHE PATH "LuaSTG custom build configuration")
-if(EXISTS ${LUASTG_RESDIR}/Custom.cmake)
-    message(STATUS "LuaSTG will using custom build configuration: " ${LUASTG_RESDIR}/Custom.cmake)
-    include(${LUASTG_RESDIR}/Custom.cmake)
-elseif(EXISTS ${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
-    message(STATUS "LuaSTG will using custom build configuration: " ${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
-    include(${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
-else()
-    message(FATAL_ERROR "LuaSTG can not find custom build configuration")
-endif()
-
 target_link_libraries(LuaSTG PRIVATE
     spdlog
     utility
     utf8
     win32
-    PlatformAPI
+    beautiful_win32_api
     DirectX::ToolKitMini
-    DirectX::TextureMini
-    Core
+    Microsoft::DirectXTexMini
     xmath
     lua51_static
     lua_plus
@@ -225,25 +251,15 @@ target_link_libraries(LuaSTG PRIVATE
     Core.Collection
     Core.Configuration
     Core.Clipboard
+    Core.ShellIntegration
     Core.Audio
+    Core.WindowSystem
+    Core.Graphics
     LuaSTG.InternalLuaScriptsFileSystem
 )
-if (LUASTG_LINK_YY_THUNKS)
-    target_link_libraries(LuaSTG PRIVATE YY_Thunks)
-    message(STATUS "[LuaSTG] Link: YY_Thunks")
-endif ()
-if (LUASTG_LINK_LUASOCKET)
-    target_compile_definitions(LuaSTG PRIVATE LUASTG_LINK_LUASOCKET)
-    target_link_libraries(LuaSTG PRIVATE luasocket)
-    message(STATUS "[LuaSTG] Link: luasocket")
-endif ()
 
-add_custom_command(TARGET LuaSTG POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.XAudio2.Redist>     $<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:Microsoft.XAudio2.Redist>
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.D3DCompiler.Redist> $<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:Microsoft.D3DCompiler.Redist>
-    COMMAND ${CMAKE_COMMAND} -E make_directory                                                ${CMAKE_BINARY_DIR}/bin
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:LuaSTG>                       ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:LuaSTG>
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.XAudio2.Redist>     ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:Microsoft.XAudio2.Redist>
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.D3DCompiler.Redist> ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:Microsoft.D3DCompiler.Redist>
-    VERBATIM
-)
+include(${CMAKE_CURRENT_LIST_DIR}/import_luastg_options.cmake)
+
+luastg_target_copy_to_bin_directory(LuaSTG LuaSTG)
+luastg_target_copy_to_bin_directory(LuaSTG Microsoft.XAudio2.Redist)
+luastg_target_copy_to_bin_directory(LuaSTG Microsoft.D3DCompiler.Redist)

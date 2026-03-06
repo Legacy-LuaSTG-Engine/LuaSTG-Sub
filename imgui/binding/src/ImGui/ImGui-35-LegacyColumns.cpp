@@ -4,10 +4,6 @@
 using std::string_view_literals::operator ""sv;
 
 namespace {
-	int notSupported(lua_State* const vm) {
-		return luaL_error(vm, "not supported");
-	}
-
 	int Columns(lua_State* const vm) {
 		lua::stack_t const ctx(vm);
 		auto const count = ctx.get_value<int>(1, 1);

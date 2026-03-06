@@ -77,6 +77,21 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			}
 			return 0;
 		}
+		static int CopySprite(lua_State* L) noexcept
+		{
+			const char* name = luaL_checkstring(L, 1);
+			const char* src_name = luaL_checkstring(L, 2);
+
+			ResourcePool* pActivedPool = LRES.GetActivedPool();
+			if (!pActivedPool)
+				return luaL_error(L, "can't load resource at this time.");
+
+			if (!pActivedPool->CopySprite(name, src_name))
+			{
+				return luaL_error(L, "copy image failed (name='%s', src='%s').", name, src_name);
+			}
+			return 0;
+		}
 		static int LoadAnimation(lua_State* L) noexcept
 		{
 			const char* name = luaL_checkstring(L, 1);
@@ -432,7 +447,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				else return luaL_error(L, "unknown sampler state '%s'", sampler_name.data());
 
 				// 设置
-				core::Graphics::ISamplerState* p_sampler = LAPP.GetRenderer2D()->getKnownSamplerState(state);
+				core::IGraphicsSampler* p_sampler = LAPP.getRenderer2D()->getKnownSamplerState(state);
 				p->GetTexture()->setSamplerState(p_sampler);
 
 				return 0;
@@ -556,6 +571,16 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return 1;
 			}
 		}
+		static int GetImageSize(lua_State* L) noexcept
+		{
+			core::SmartReference<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
+			if (!p)
+				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
+			core::RectF rect = p->GetSprite()->getTextureRect();
+			lua_pushnumber(L, rect.b.x - rect.a.x);
+			lua_pushnumber(L, rect.b.y - rect.a.y);
+			return 2;
+		}
 		static int SetImageState(lua_State* L) noexcept
 		{
 			core::SmartReference<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
@@ -563,17 +588,17 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
 
 			p->SetBlendMode(TranslateBlendMode(L, 2));
-			if (lua_gettop(L) == 3)
-				p->GetSprite()->setColor(*Color::Cast(L, 3));
+			if (lua_gettop(L) == 3) {
+				p->SetColor(*Color::Cast(L, 3));
+			}
 			else if (lua_gettop(L) == 6)
 			{
-				core::Color4B tColors[] = {
+				p->SetColor(
 					*Color::Cast(L, 3),
 					*Color::Cast(L, 4),
 					*Color::Cast(L, 5),
 					*Color::Cast(L, 6)
-				};
-				p->GetSprite()->setColor(tColors);
+				);
 			}
 			return 0;
 		}
@@ -583,8 +608,8 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			if (!p)
 				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
 			p->GetSprite()->setTextureCenter(core::Vector2F(
-				static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite()->getTextureRect().a.x),
-				static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite()->getTextureRect().a.y))
+				static_cast<float>(luaL_checknumber(L, 2)),
+				static_cast<float>(luaL_checknumber(L, 3)))
 			);
 			return 0;
 		}
@@ -644,8 +669,8 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			for (size_t i = 0; i < p->GetCount(); ++i)
 			{
 				p->GetSprite((uint32_t)i)->GetSprite()->setTextureCenter(core::Vector2F(
-					static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite((uint32_t)i)->GetSprite()->getTextureRect().a.x),
-					static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite((uint32_t)i)->GetSprite()->getTextureRect().a.y)
+					static_cast<float>(luaL_checknumber(L, 2)),
+					static_cast<float>(luaL_checknumber(L, 3))
 				));
 			}
 			return 0;
@@ -679,6 +704,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "GetResourceStatus", &Wrapper::GetResourceStatus },
 		{ "LoadTexture", &Wrapper::LoadTexture },
 		{ "LoadImage", &Wrapper::LoadSprite },
+		{ "CopyImage", &Wrapper::CopySprite },
 		{ "LoadAnimation", &Wrapper::LoadAnimation },
 		{ "LoadPS", &Wrapper::LoadPS },
 		{ "LoadSound", &Wrapper::LoadSound },
@@ -699,6 +725,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 
 		{ "SetImageScale", &Wrapper::SetImageScale },
 		{ "GetImageScale", &Wrapper::GetImageScale },
+		{ "GetImageSize", &Wrapper::GetImageSize },
 		{ "SetImageState", &Wrapper::SetImageState },
 		{ "SetImageCenter", &Wrapper::SetImageCenter },
 
@@ -710,6 +737,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "SetFontState", &Wrapper::SetFontState },
 
 		{ "CacheTTFString", &Wrapper::CacheTTFString },
+
 		{ NULL, NULL },
 	};
 

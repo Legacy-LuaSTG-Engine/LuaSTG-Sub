@@ -1,18 +1,57 @@
+#include "luastg_config_generated.h"
 #include "Debugger/Logger.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/sinks/wincolor_sink.h"
 #include "spdlog/sinks/msvc_sink.h"
-#include "Platform/HResultChecker.hpp"
+#include "windows/HResultChecker.hpp"
 #include "core/Configuration.hpp"
 #include "utf8.hpp"
 #include "win32/base.hpp"
 
 namespace {
 	std::filesystem::path rolling_file_root;
+	bool redirectStdOut();
 	bool openWin32Console();
 	void closeWin32Console();
-	std::string generateRollingFileName();
+	std::string generateRollingFileName() {
+	#if (defined LUASTG_COMPATIBILITY_MODE_WINDOWS7_SP1) || (defined LUASTG_COMPATIBILITY_MODE_WINDOWS10_PRE_1809)
+		std::time_t const t{ std::time(nullptr) };
+	#ifdef _WIN32
+		std::tm v_tm{};
+		if (auto const e = localtime_s(&v_tm, &t); e == 0) {
+			std::tm const* const tm{ &v_tm };
+	#else
+		if (std::tm const* const tm = std::localtime(&t); tm != nullptr) {
+	#endif
+			return std::format(
+				"engine-{:04}{:02}{:02}-{:02}{:02}{:02}.log",
+				1900 + tm->tm_year, 1 + tm->tm_mon, tm->tm_mday,
+				tm->tm_hour, tm->tm_min, tm->tm_sec
+			);
+		}
+		return std::format("engine-{}.log", t); // fallback
+	#else
+		auto const now = std::chrono::zoned_time{
+			std::chrono::current_zone(),
+			std::chrono::utc_clock::to_sys(std::chrono::utc_clock::now()),
+		};
+		auto const local_date_time = now.get_local_time();
+		auto const local_date_time_point = std::chrono::floor<std::chrono::days>(local_date_time);
+		auto const local_date = std::chrono::year_month_day{ local_date_time_point };
+		auto const local_time = std::chrono::hh_mm_ss{ local_date_time - local_date_time_point };
+		return std::format(
+			"engine-{:04}{:02}{:02}-{:02}{:02}{:02}.log",
+			static_cast<int>(local_date.year()),
+			static_cast<unsigned int>(local_date.month()),
+			static_cast<unsigned int>(local_date.day()),
+			local_time.hours().count(),
+			local_time.minutes().count(),
+			local_time.seconds().count()
+		);
+	#endif
+	}
 	spdlog::level::level_enum mapLevel(core::ConfigurationLoader::Logging::Level const level) {
 		switch (level) {
 		default:  // NOLINT(clang-diagnostic-covered-switch-default)
@@ -49,7 +88,7 @@ namespace luastg {
 		}
 	#endif
 
-	#ifdef USING_CONSOLE_OUTPUT
+	#ifdef LUASTG_LOGGING_CONSOLE_WINDOW_ALLOWED
 		if (auto const& logging_console = config.getConsole(); logging_console.isEnable() && openWin32Console()) {
 			auto sink = std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>();
 			sink->set_pattern("%^[%Y-%m-%d %H:%M:%S] [%L]%$ %v");
@@ -58,13 +97,20 @@ namespace luastg {
 		}
 	#endif
 
+		if (auto const& standard_output = config.getStandardOutput(); standard_output.isEnable() && redirectStdOut()) {
+			auto sink = std::make_shared<spdlog::sinks::stdout_sink_mt>();
+			sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
+			sink->set_level(mapLevel(standard_output.getThreshold()));
+			sinks.emplace_back(sink);
+		}
+
 		if (auto const& logging_file = config.getFile(); logging_file.isEnable()) {
 			std::filesystem::path file_path;
 			if (logging_file.hasPath()) {
 				core::ConfigurationLoader::resolveFilePathWithPredefinedVariables(logging_file.getPath(), file_path, true);
 			}
 			else {
-				file_path = (L"" LUASTG_LOG_FILE);
+				file_path = (L"" LUASTG_LOGGING_DEFAULT_FILE_PATH);
 			}
 			auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_path.generic_wstring(), true);
 			sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
@@ -115,7 +161,7 @@ namespace luastg {
 		spdlog::drop_all();
 		spdlog::shutdown();
 
-	#ifdef USING_CONSOLE_OUTPUT
+	#ifdef LUASTG_LOGGING_CONSOLE_WINDOW_ALLOWED
 		closeWin32Console();
 	#endif
 
@@ -140,9 +186,40 @@ namespace luastg {
 	}
 };
 
-#include "Platform/CleanWindows.hpp"
+#include <fcntl.h>
+#include "windows/CleanWindows.hpp"
 
 namespace {
+	bool redirectStdOut() {
+        const auto handle = GetStdHandle(STD_OUTPUT_HANDLE);
+        if (handle == nullptr || handle == INVALID_HANDLE_VALUE) {
+		#ifndef NDEBUG
+            OutputDebugStringA("GetStdHandle failed\n");
+		#endif
+            return false;
+        }
+
+        const auto fd = _open_osfhandle(reinterpret_cast<intptr_t>(handle), _O_WRONLY | _O_BINARY);
+        if (fd == -1) {
+		#ifndef NDEBUG
+            OutputDebugStringA("_open_osfhandle failed\n");
+		#endif
+            return false;
+        }
+
+        if (_dup2(fd, _fileno(stdout)) == -1) {
+		#ifndef NDEBUG
+            OutputDebugStringA("_dup2 failed\n");
+		#endif
+            _close(fd);
+            return false;
+        }
+
+        _close(fd);
+        setvbuf(stdout, nullptr, _IONBF, 0);
+        
+        return true;
+    }
 	bool g_alloc_console{ false };
 	bool openWin32Console() {
 		auto const& logging_console = core::ConfigurationLoader::getInstance().getLogging().getConsole();
@@ -173,28 +250,5 @@ namespace {
 			}
 			FreeConsole();
 		}
-	}
-	std::string generateRollingFileName() {
-		SYSTEMTIME current_time{};
-		GetLocalTime(&current_time);
-
-		std::array<char, 32> buffer{};
-		int const length = std::snprintf(
-			buffer.data(), buffer.size(),
-			"%04u-%02u-%02u-%02u-%02u-%02u-%03u",
-			current_time.wYear,
-			current_time.wMonth,
-			current_time.wDay,
-			current_time.wHour,
-			current_time.wMinute,
-			current_time.wSecond,
-			current_time.wMilliseconds);
-		assert(length > 0);
-
-		std::string path;
-		path.append("engine-");
-		path.append(std::string_view(buffer.data(), static_cast<size_t>(length)));
-		path.append(".log");
-		return path;
 	}
 }

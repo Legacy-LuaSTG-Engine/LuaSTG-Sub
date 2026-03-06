@@ -1,6 +1,6 @@
 #pragma once
 #include "lua.hpp"
-#include "Core/Graphics/Sprite.hpp"
+#include "core/Graphics/Sprite.hpp"
 
 namespace luastg::binding {
 	struct Sprite {

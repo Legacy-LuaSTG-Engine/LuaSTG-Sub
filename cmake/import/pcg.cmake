@@ -2,8 +2,8 @@
 
 CPMAddPackage(
     NAME pcg_cpp
-    GITHUB_REPOSITORY imneme/pcg-cpp
-    GIT_TAG 428802d1a5634f96bcd0705fab379ff0113bcf13
+    GITHUB_REPOSITORY Legacy-LuaSTG-Engine/pcg-cpp
+    GIT_TAG 69187835e14a8fa47f663ddf2647d100ec5f1eb0
     DOWNLOAD_ONLY YES
 )
 

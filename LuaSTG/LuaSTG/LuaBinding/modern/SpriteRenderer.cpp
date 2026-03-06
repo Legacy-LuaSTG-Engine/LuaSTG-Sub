@@ -124,7 +124,7 @@ namespace luastg::binding {
 				self->data->setTransform(self->position, self->scale, self->rotation);  // TODO: TBD
 				self->data->setZ(0.5); // TODO: allow custom
 			}
-			self->data->draw(LAPP.GetAppModel()->getRenderer());
+			self->data->draw(LAPP.getRenderer2D());
 			return 0;
 		}
 
@@ -277,7 +277,7 @@ namespace luastg::binding {
 		}
 		static int draw(lua_State* vm) {
 			auto const self = as(vm, 1);
-			self->data->draw(LAPP.GetAppModel()->getRenderer());
+			self->data->draw(LAPP.getRenderer2D());
 			return 0;
 		}
 
@@ -459,7 +459,7 @@ namespace luastg::binding {
 		}
 		static int draw(lua_State* vm) {
 			auto const self = as(vm, 1);
-			self->data->draw(LAPP.GetAppModel()->getRenderer());
+			self->data->draw(LAPP.getRenderer2D());
 			return 0;
 		}
 

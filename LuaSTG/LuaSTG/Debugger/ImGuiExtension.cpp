@@ -9,14 +9,14 @@
 #include "imgui.h"
 #include "imgui_stdlib.h"
 #include "imgui_freetype.h"
-#include "imgui_impl_win32ex.h"
+#include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 #include "implot.h"
 
 #include "lua.hpp"
 #include "lua_imgui.hpp"
 
-#include "Platform/XInput.hpp"
+#include "windows/XInput.hpp"
 #include "core/Configuration.hpp"
 #include "utf8.hpp"
 
@@ -135,7 +135,7 @@ namespace imgui {
 						ImGui::Text("Lua Virtual Machine: %s", format_size(size));
 					}
 					if (ImGui::CollapsingHeader("Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
-						auto const info = LAPP.GetAppModel()->getDevice()->getMemoryUsageStatistics();
+						auto const info = LAPP.getGraphicsDevice()->getMemoryStatistics();
 						if (m_more_details) ImGui::Text("Local Budget: %s", format_size(info.local.budget));
 						ImGui::Text("Local Current Usage: %s", format_size(info.local.current_usage));
 						if (m_more_details) ImGui::Text("Local Available For Reservation: %s", format_size(info.local.available_for_reservation));
@@ -355,6 +355,366 @@ namespace {
 		return 0;
 	}
 
+	class FrameStatisticsView {
+	public:
+		void reset() {
+			// frame data
+			m_frame_data.resize(3600);
+			for (auto& v : m_frame_data) {
+				v = {};
+			}
+			m_frame_data_begin = m_frame_data.size() - 1;
+			m_frame_data_view_begin = 0;
+			m_frame_data_view_count = 240;
+			// render data
+			m_render_data.resize(3600);
+			for (auto& v : m_render_data) {
+				v = {};
+			}
+			m_render_data_begin = m_render_data.size() - 1;
+			m_render_data_view_begin = 0;
+			m_render_data_view_count = 240;
+			// object data
+			m_object_data.resize(3600);
+			for (auto& v : m_object_data) {
+				v = {};
+			}
+			m_object_data_begin = m_object_data.size() - 1;
+			m_object_data_view_begin = 0;
+			m_object_data_view_count = 240;
+		}
+
+		void update() {
+			if (!m_initialized) {
+				reset();
+				m_initialized = true;
+			}
+			if (m_paused) {
+				return;
+			}
+			// frame data
+			m_frame_data_begin = (m_frame_data_begin + 1) % m_frame_data.size();
+			m_frame_data[m_frame_data_begin] = LAPP.getFrameStatistics();
+			// render data
+			m_render_data_begin = (m_render_data_begin + 1) % m_render_data.size();
+			m_render_data[m_render_data_begin] = LAPP.getFrameRenderStatistics();
+			// object data
+			m_object_data_begin = (m_object_data_begin + 1) % m_object_data.size();
+			m_object_data[m_object_data_begin] = LPOOL.DebugGetFrameStatistics();
+		}
+
+		static ImPlotPoint getPlotPointZero(const int idx, void*) {
+			return ImPlotPoint(static_cast<double>(idx), 0.0);
+		}
+
+		static ImPlotPoint getFrameDataUpdateTimeHigh(const int idx, void* const user_data) {
+			const auto self = static_cast<FrameStatisticsView*>(user_data);
+			const auto data_index = (self->m_frame_data_view_begin + idx) % self->m_frame_data.size();
+			const auto& data = self->m_frame_data[data_index];
+			return ImPlotPoint(static_cast<double>(idx), data.update_time * 1000.0);
+		}
+		static ImPlotPoint getFrameDataRenderTimeHigh(const int idx, void* const user_data) {
+			const auto self = static_cast<FrameStatisticsView*>(user_data);
+			const auto data_index = (self->m_frame_data_view_begin + idx) % self->m_frame_data.size();
+			const auto& data = self->m_frame_data[data_index];
+			return ImPlotPoint(static_cast<double>(idx), (data.update_time + data.render_time) * 1000.0);
+		}
+		static ImPlotPoint getFrameDataPresentTimeHigh(const int idx, void* const user_data) {
+			const auto self = static_cast<FrameStatisticsView*>(user_data);
+			const auto data_index = (self->m_frame_data_view_begin + idx) % self->m_frame_data.size();
+			const auto& data = self->m_frame_data[data_index];
+			return ImPlotPoint(static_cast<double>(idx), (data.update_time + data.render_time + data.present_time) * 1000.0);
+		}
+		static ImPlotPoint getFrameDataWaitTimeHigh(const int idx, void* const user_data) {
+			const auto self = static_cast<FrameStatisticsView*>(user_data);
+			const auto data_index = (self->m_frame_data_view_begin + idx) % self->m_frame_data.size();
+			const auto& data = self->m_frame_data[data_index];
+			return ImPlotPoint(static_cast<double>(idx), (data.update_time + data.render_time + data.present_time + + data.wait_time) * 1000.0);
+		}
+		void layoutFrameDataPlot() {
+			// setup
+			
+			if (m_frame_data_view_fit_x) {
+				ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, static_cast<double>(m_frame_data_view_count - 1), ImGuiCond_Always);
+			}
+			if (m_frame_data_view_fit_y) {
+				ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
+			}
+			else {
+				ImPlot::SetupAxes(nullptr, nullptr);
+			}
+			ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
+
+			// 60 fps reference line
+
+			ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
+			constexpr double fps_60_ms{ 1000.0 / 60.0 };
+			ImPlot::PlotInfLines("##60 FPS", &fps_60_ms, 1, ImPlotInfLinesFlags_Horizontal);
+
+			m_frame_data_view_begin = (m_frame_data_begin + m_frame_data.size() - m_frame_data_view_count + 1) % m_frame_data.size();
+
+			const int count = static_cast<int>(m_frame_data_view_count);
+			ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.25f);
+			//ImPlot::PlotShaded("Total", arr_x.data(), arr_wait_time.data(), arr_total_time.data(), (int)record_range);
+			ImPlot::PlotShadedG("Wait", &getFrameDataPresentTimeHigh, this, &getFrameDataWaitTimeHigh, this, count);
+			ImPlot::PopStyleVar();
+			ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
+			ImPlot::PlotShadedG("Present", &getFrameDataRenderTimeHigh, this, &getFrameDataPresentTimeHigh, this, count);
+			ImPlot::PlotShadedG("Render", &getFrameDataUpdateTimeHigh, this, &getFrameDataRenderTimeHigh, this, count);
+			ImPlot::PlotShadedG("Update", &getPlotPointZero, this, &getFrameDataUpdateTimeHigh, this, count);
+			ImPlot::PopStyleVar();
+
+			//ImPlot::PlotLine("Total", arr_total_time.data(), (int)record_range);
+			ImPlot::PlotLineG("Wait", &getFrameDataWaitTimeHigh, this, count);
+			ImPlot::PlotLineG("Present", &getFrameDataPresentTimeHigh, this, count);
+			ImPlot::PlotLineG("Render", &getFrameDataRenderTimeHigh, this, count);
+			ImPlot::PlotLineG("Update", &getFrameDataUpdateTimeHigh, this, count);
+		}
+		void layoutFrameData() {
+			if (!ImGui::CollapsingHeader("Frame Time", ImGuiTreeNodeFlags_DefaultOpen)) {
+				return;
+			}
+
+			const auto& current = m_frame_data[m_frame_data_begin];
+
+			if (!m_hide_current_values) {
+				ImGui::Text("Wait   : %.3fms", current.wait_time * 1000.0);
+				ImGui::Text("Update : %.3fms", current.update_time * 1000.0);
+				ImGui::Text("Render : %.3fms", current.render_time * 1000.0);
+				ImGui::Text("Present: %.3fms", current.present_time * 1000.0);
+				ImGui::Text("Total  : %.3fms", current.total_time * 1000.0);
+			}
+
+			if (!m_hide_controls) {
+				const size_t data_range_min{ 60 };
+				const size_t data_range_max{ m_frame_data.size() };
+				ImGui::SliderScalar("Data Range", sizeof(size_t) == 8 ? ImGuiDataType_U64 : ImGuiDataType_U32, &m_frame_data_view_count, &data_range_min, &data_range_max);
+
+				ImGui::SliderFloat("Timeline Height##Frame", &m_frame_data_view_height, 256.0f, 512.0f);
+
+				ImGui::Checkbox("Auto-Fit X Axis##Frame", &m_frame_data_view_fit_x);
+				ImGui::SameLine();
+				ImGui::Checkbox("Auto-Fit Y Axis##Frame", &m_frame_data_view_fit_y);
+			}
+
+			if (ImPlot::BeginPlot("##Frame", ImVec2(-1, m_frame_data_view_height))) {
+				layoutFrameDataPlot();
+				ImPlot::EndPlot();
+			}
+		}
+
+		static ImPlotPoint getRenderDataRenderTimeHigh(const int idx, void* const user_data) {
+			const auto self = static_cast<FrameStatisticsView*>(user_data);
+			const auto data_index = (self->m_render_data_view_begin + idx) % self->m_render_data.size();
+			const auto& data = self->m_render_data[data_index];
+			return ImPlotPoint(static_cast<double>(idx), data.render_time * 1000.0);
+		}
+		void layoutRenderDataPlot() {
+			// setup
+			
+			if (m_render_data_view_fit_x) {
+				ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, static_cast<double>(m_render_data_view_count - 1), ImGuiCond_Always);
+			}
+			if (m_render_data_view_fit_y) {
+				ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
+			}
+			else {
+				ImPlot::SetupAxes(nullptr, nullptr);
+			}
+			ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
+
+			// 60 fps reference line
+
+			ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
+			constexpr double fps_60_ms{ 1000.0 / 60.0 };
+			ImPlot::PlotInfLines("##60 FPS", &fps_60_ms, 1, ImPlotInfLinesFlags_Horizontal);
+
+			m_render_data_view_begin = (m_render_data_begin + m_render_data.size() - m_render_data_view_count + 1) % m_render_data.size();
+
+			const int count = static_cast<int>(m_render_data_view_count);
+			ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
+			ImPlot::PlotShadedG("Render", &getPlotPointZero, this, &getRenderDataRenderTimeHigh, this, count);
+			ImPlot::PopStyleVar();
+
+			ImPlot::PlotLineG("Render", &getRenderDataRenderTimeHigh, this, count);
+		}
+		void layoutRenderData() {
+			if (!ImGui::CollapsingHeader("GPU Time", ImGuiTreeNodeFlags_DefaultOpen)) {
+				return;
+			}
+
+			const auto& current = m_render_data[m_render_data_begin];
+
+			if (!m_hide_current_values) {
+				ImGui::Text("Render: %.3fms", current.render_time * 1000.0);
+			}
+
+			if (!m_hide_controls) {
+				const size_t data_range_min{ 60 };
+				const size_t data_range_max{ m_render_data.size() };
+				ImGui::SliderScalar("Data Range", sizeof(size_t) == 8 ? ImGuiDataType_U64 : ImGuiDataType_U32, &m_render_data_view_count, &data_range_min, &data_range_max);
+
+				ImGui::SliderFloat("Timeline Height##GPU", &m_render_data_view_height, 256.0f, 512.0f);
+
+				ImGui::Checkbox("Auto-Fit X Axis##GPU", &m_render_data_view_fit_x);
+				ImGui::SameLine();
+				ImGui::Checkbox("Auto-Fit Y Axis##GPU", &m_render_data_view_fit_y);
+			}
+
+			if (ImPlot::BeginPlot("##GPU", ImVec2(-1, m_render_data_view_height))) {
+				layoutRenderDataPlot();
+				ImPlot::EndPlot();
+			}
+		}
+
+		static ImPlotPoint getObjectDataAllocHigh(const int idx, void* const user_data) {
+			const auto self = static_cast<FrameStatisticsView*>(user_data);
+			const auto data_index = (self->m_object_data_view_begin + idx) % self->m_object_data.size();
+			const auto& data = self->m_object_data[data_index];
+			return ImPlotPoint(static_cast<double>(idx), static_cast<double>(data.object_alloc));
+		}
+		static ImPlotPoint getObjectDataFreeHigh(const int idx, void* const user_data) {
+			const auto self = static_cast<FrameStatisticsView*>(user_data);
+			const auto data_index = (self->m_object_data_view_begin + idx) % self->m_object_data.size();
+			const auto& data = self->m_object_data[data_index];
+			return ImPlotPoint(static_cast<double>(idx), static_cast<double>(data.object_free));
+		}
+		static ImPlotPoint getObjectDataAliveHigh(const int idx, void* const user_data) {
+			const auto self = static_cast<FrameStatisticsView*>(user_data);
+			const auto data_index = (self->m_object_data_view_begin + idx) % self->m_object_data.size();
+			const auto& data = self->m_object_data[data_index];
+			return ImPlotPoint(static_cast<double>(idx), static_cast<double>(data.object_alive));
+		}
+		static ImPlotPoint getObjectDataCheckHigh(const int idx, void* const user_data) {
+			const auto self = static_cast<FrameStatisticsView*>(user_data);
+			const auto data_index = (self->m_object_data_view_begin + idx) % self->m_object_data.size();
+			const auto& data = self->m_object_data[data_index];
+			return ImPlotPoint(static_cast<double>(idx), static_cast<double>(data.object_colli_check));
+		}
+		static ImPlotPoint getObjectDataCallbackHigh(const int idx, void* const user_data) {
+			const auto self = static_cast<FrameStatisticsView*>(user_data);
+			const auto data_index = (self->m_object_data_view_begin + idx) % self->m_object_data.size();
+			const auto& data = self->m_object_data[data_index];
+			return ImPlotPoint(static_cast<double>(idx), static_cast<double>(data.object_colli_callback));
+		}
+		void layoutObjectDataPlot() {
+			// setup
+			
+			if (m_object_data_view_fit_x) {
+				ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, static_cast<double>(m_object_data_view_count - 1), ImGuiCond_Always);
+			}
+			if (m_object_data_view_fit_y) {
+				ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
+			}
+			else {
+				ImPlot::SetupAxes(nullptr, nullptr);
+			}
+			ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
+
+			m_object_data_view_begin = (m_object_data_begin + m_object_data.size() - m_object_data_view_count + 1) % m_object_data.size();
+
+			const int count = static_cast<int>(m_render_data_view_count);
+			ImPlot::PlotLineG("Allocate", &getObjectDataAllocHigh, this, count);
+			ImPlot::PlotLineG("Return", &getObjectDataFreeHigh, this, count);
+			ImPlot::PlotLineG("Active", &getObjectDataAliveHigh, this, count);
+			ImPlot::PlotLineG("I.Check", &getObjectDataCheckHigh, this, count);
+			ImPlot::PlotLineG("I.Callback", &getObjectDataCallbackHigh, this, count);
+		}
+		void layoutObjectData() {
+			if (!ImGui::CollapsingHeader("GameObject", ImGuiTreeNodeFlags_DefaultOpen)) {
+				return;
+			}
+
+			const auto& current = m_object_data[m_object_data_begin];
+
+			if (!m_hide_current_values) {
+				ImGui::Text("Allocate From Pool: %llu", current.object_alloc);
+				ImGui::Text("Return To Pool: %llu", current.object_free);
+				ImGui::Text("Active: %llu", current.object_alive);
+				ImGui::Text("Intersection Detect: %llu", current.object_colli_check);
+				ImGui::Text("Intersection Callback: %llu", current.object_colli_callback);
+			}
+
+			if (!m_hide_controls) {
+				const size_t data_range_min{ 60 };
+				const size_t data_range_max{ m_object_data.size() };
+				ImGui::SliderScalar("Data Range", sizeof(size_t) == 8 ? ImGuiDataType_U64 : ImGuiDataType_U32, &m_object_data_view_count, &data_range_min, &data_range_max);
+
+				ImGui::SliderFloat("Timeline Height##GameObject", &m_object_data_view_height, 256.0f, 512.0f);
+
+				ImGui::Checkbox("Auto-Fit X Axis##GameObject", &m_object_data_view_fit_x);
+				ImGui::SameLine();
+				ImGui::Checkbox("Auto-Fit Y Axis##GameObject", &m_object_data_view_fit_y);
+			}
+
+			if (ImPlot::BeginPlot("##GameObject", ImVec2(-1, m_object_data_view_height))) {
+				layoutObjectDataPlot();
+				ImPlot::EndPlot();
+			}
+		}
+
+		void layoutMenuBar() {
+			if (ImGui::BeginMenuBar()) {
+				if (ImGui::BeginMenu("Data")) {
+					if (ImGui::MenuItem("Reset")) {
+						reset();
+					}
+					ImGui::MenuItem("Pause", nullptr, &m_paused);
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Setting")) {
+					ImGui::MenuItem("Hide Controls", nullptr, &m_hide_controls);
+					ImGui::MenuItem("Hide Current Values", nullptr, &m_hide_current_values);
+					ImGui::EndMenu();
+				}
+				ImGui::EndMenuBar();
+			}
+		}
+		void layout(bool& show) {
+			if (!show) {
+				return;
+			}
+			if (ImGui::Begin("Frame Statistics", &show, ImGuiWindowFlags_MenuBar)) {
+				layoutMenuBar();
+				layoutFrameData();
+				layoutRenderData();
+				layoutObjectData();
+			}
+			ImGui::End();
+		}
+
+	private:
+		std::vector<luastg::AppFrame::FrameStatistics> m_frame_data;
+		size_t m_frame_data_begin{};
+		size_t m_frame_data_view_begin{}; // cached calculated value
+		size_t m_frame_data_view_count{}; // update by user
+		float m_frame_data_view_height{ 256.0f };
+		bool m_frame_data_view_fit_x{ true };
+		bool m_frame_data_view_fit_y{ true };
+
+		std::vector<luastg::AppFrame::FrameRenderStatistics> m_render_data;
+		size_t m_render_data_begin{};
+		size_t m_render_data_view_begin{}; // cached calculated value
+		size_t m_render_data_view_count{}; // update by user
+		float m_render_data_view_height{ 256.0f };
+		bool m_render_data_view_fit_x{ true };
+		bool m_render_data_view_fit_y{ true };
+
+		std::vector<luastg::GameObjectPool::FrameStatistics> m_object_data;
+		size_t m_object_data_begin{};
+		size_t m_object_data_view_begin{}; // cached calculated value
+		size_t m_object_data_view_count{}; // update by user
+		float m_object_data_view_height{ 256.0f };
+		bool m_object_data_view_fit_x{ true };
+		bool m_object_data_view_fit_y{ true };
+
+		bool m_paused{};
+		bool m_hide_controls{};
+		bool m_hide_current_values{};
+
+		bool m_initialized{};
+	};
+
 	int lib_ShowTestInputWindow(lua_State* L) {
 		if (lua_gettop(L) >= 1) {
 			bool v = lua_toboolean(L, 1);
@@ -377,20 +737,9 @@ namespace {
 		constexpr size_t arr_size = 3600;
 		static bool is_init = false;
 		static std::vector<double> arr_x;
-		static std::vector<double> arr_wait_time;
-		static std::vector<double> arr_update_time;
-		static std::vector<double> arr_render_time;
-		static std::vector<double> arr_present_time;
-		static std::vector<double> arr_total_time;
 		static std::vector<double> arr_mem_mem;
 		static std::vector<double> arr_mem_gpu;
 		static std::vector<double> arr_mem_lua;
-		static std::vector<double> arr_obj_alloc;
-		static std::vector<double> arr_obj_free;
-		static std::vector<double> arr_obj_alive;
-		static std::vector<double> arr_obj_colli;
-		static std::vector<double> arr_obj_colli_cb;
-		static std::vector<double> arr_gpu_render_time;
 		static size_t arr_index = 0;
 		static size_t record_range = 240;
 		constexpr size_t record_range_min = 60;
@@ -402,8 +751,10 @@ namespace {
 		static bool auto_fit_gpu = true;
 		static bool auto_fit_2 = true;
 
+		static FrameStatisticsView s_view;
+
 		bool v = (lua_gettop(L) >= 1) ? lua_toboolean(L, 1) : true;
-		if (v) {
+		if constexpr (false) {
 			if (ImGui::Begin("Frame Statistics", &v)) {
 				// data buffer
 
@@ -415,149 +766,20 @@ namespace {
 						arr_x[x] = (double)x;
 					}
 
-					arr_wait_time.resize(arr_size);
-					arr_update_time.resize(arr_size);
-					arr_render_time.resize(arr_size);
-					arr_present_time.resize(arr_size);
-					arr_total_time.resize(arr_size);
-
 					arr_mem_mem.resize(arr_size);
 					arr_mem_gpu.resize(arr_size);
 					arr_mem_lua.resize(arr_size);
-
-					arr_obj_alloc.resize(arr_size);
-					arr_obj_free.resize(arr_size);
-					arr_obj_alive.resize(arr_size);
-					arr_obj_colli.resize(arr_size);
-					arr_obj_colli_cb.resize(arr_size);
-
-					arr_gpu_render_time.resize(arr_size);
 				}
 
 				ImGui::SliderScalar("Record Range", sizeof(size_t) == 8 ? ImGuiDataType_U64 : ImGuiDataType_U32, &record_range, &record_range_min, &record_range_max);
 				record_range = std::clamp<size_t>(record_range, 2, record_range_max);
-
-				// frame time
-
-				if (ImGui::CollapsingHeader("Frame Time")) {
-					auto info = LAPP.GetAppModel()->getFrameStatistics();
-
-					ImGui::Text("Wait   : %.3fms", info.wait_time * 1000.0);
-					ImGui::Text("Update : %.3fms", info.update_time * 1000.0);
-					ImGui::Text("Render : %.3fms", info.render_time * 1000.0);
-					ImGui::Text("Present: %.3fms", info.present_time * 1000.0);
-					ImGui::Text("Total  : %.3fms", info.total_time * 1000.0);
-
-					ImGui::SliderFloat("Timeline Height", &height, 256.0f, 512.0f);
-					ImGui::Checkbox("Auto-Fit Y Axis", &auto_fit);
-
-					arr_update_time[arr_index] = 1000.0 * (info.update_time);
-					arr_render_time[arr_index] = 1000.0 * (info.update_time + info.render_time);
-					arr_present_time[arr_index] = 1000.0 * (info.update_time + info.render_time + info.present_time);
-					arr_wait_time[arr_index] = 1000.0 * (info.update_time + info.render_time + info.present_time + info.wait_time);
-					arr_total_time[arr_index] = 1000.0 * (info.total_time);
-
-					if (ImPlot::BeginPlot("##Frame Statistics", ImVec2(-1, height), 0)) {
-						//ImPlot::SetupAxes("Frame", "Time", flags, flags);
-						ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range - 1), ImGuiCond_Always);
-						//ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
-						if (auto_fit)
-							ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
-						else
-							ImPlot::SetupAxes(NULL, NULL);
-
-						ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
-
-						static double arr_ms[] = {
-							1000.0 / 60.0,
-							1000.0 / 30.0,
-							1000.0 / 20.0,
-						};
-						ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
-						ImPlot::PlotInfLines("##60 FPS", arr_ms, 1, ImPlotInfLinesFlags_Horizontal);
-						//ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
-						//ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
-						//ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
-						//ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
-
-						ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.25f);
-						ImPlot::PlotShaded("Total", arr_x.data(), arr_wait_time.data(), arr_total_time.data(), (int)record_range);
-						ImPlot::PlotShaded("Wait", arr_x.data(), arr_present_time.data(), arr_wait_time.data(), (int)record_range);
-						ImPlot::PopStyleVar();
-						ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
-						ImPlot::PlotShaded("Present", arr_x.data(), arr_render_time.data(), arr_present_time.data(), (int)record_range);
-						ImPlot::PlotShaded("Render", arr_x.data(), arr_update_time.data(), arr_render_time.data(), (int)record_range);
-						ImPlot::PlotShaded("Update", arr_x.data(), arr_update_time.data(), (int)record_range);
-						ImPlot::PopStyleVar();
-
-						ImPlot::PlotLine("Total", arr_total_time.data(), (int)record_range);
-						ImPlot::PlotLine("Wait", arr_wait_time.data(), (int)record_range);
-						ImPlot::PlotLine("Present", arr_present_time.data(), (int)record_range);
-						ImPlot::PlotLine("Render", arr_render_time.data(), (int)record_range);
-						ImPlot::PlotLine("Update", arr_update_time.data(), (int)record_range);
-
-						ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-						ImPlot::PlotInfLines("##Current Time", &arr_index, 1, ImPlotInfLinesFlags_None);
-
-						ImPlot::EndPlot();
-					}
-				}
-
-				// gpu time
-
-				if (ImGui::CollapsingHeader("GPU Time")) {
-					auto info = LAPP.GetAppModel()->getFrameRenderStatistics();
-
-					ImGui::Text("Render : %.3fms", info.render_time * 1000.0);
-
-					ImGui::SliderFloat("Timeline Height##GPU Time", &height_gpu, 256.0f, 512.0f);
-					ImGui::Checkbox("Auto-Fit Y Axis##GPU Time", &auto_fit_gpu);
-
-					// 还得再往前一帧
-					arr_gpu_render_time[(arr_index + record_range - 1) % record_range] = 1000.0 * (info.render_time);
-
-					if (ImPlot::BeginPlot("##Frame Render Statistics", ImVec2(-1, height_gpu), 0)) {
-						//ImPlot::SetupAxes("Frame", "Time", flags, flags);
-						ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range - 1), ImGuiCond_Always);
-						//ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
-						if (auto_fit_gpu)
-							ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
-						else
-							ImPlot::SetupAxes(NULL, NULL);
-
-						ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
-
-						static double arr_ms[] = {
-							1000.0 / 60.0,
-							1000.0 / 30.0,
-							1000.0 / 20.0,
-						};
-						ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
-						ImPlot::PlotInfLines("##60 FPS", arr_ms, 1, ImPlotInfLinesFlags_Horizontal);
-						//ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
-						//ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
-						//ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
-						//ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
-
-						ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
-						ImPlot::PlotShaded("Render", arr_x.data(), arr_gpu_render_time.data(), arr_gpu_render_time.data(), (int)record_range);
-						ImPlot::PopStyleVar();
-
-						ImPlot::PlotLine("Render", arr_gpu_render_time.data(), (int)record_range);
-
-						ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-						ImPlot::PlotInfLines("##Current Time", &arr_index, 1, ImPlotInfLinesFlags_None);
-
-						ImPlot::EndPlot();
-					}
-				}
 
 				// memory
 
 				if (ImGui::CollapsingHeader("Memory Usage")) {
 					MEMORYSTATUSEX mem_info = { sizeof(MEMORYSTATUSEX) };
 					GlobalMemoryStatusEx(&mem_info);
-					auto gpu_info = LAPP.GetAppModel()->getDevice()->getMemoryUsageStatistics();
+					auto gpu_info = LAPP.getGraphicsDevice()->getMemoryStatistics();
 					lua_State* L_ = LAPP.GetLuaEngine();
 					int lua_infokb = lua_gc(L_, LUA_GCCOUNT, 0);
 					int lua_infob = lua_gc(L_, LUA_GCCOUNTB, 0);
@@ -601,69 +823,14 @@ namespace {
 					}
 				}
 
-				// object
-
-				if (ImGui::CollapsingHeader("GameObject")) {
-					auto obj_info = LAPP.GetGameObjectPool().DebugGetFrameStatistics();
-
-					ImGui::Text("Create : %llu", obj_info.object_alloc);
-					ImGui::Text("Return : %llu", obj_info.object_free);
-					ImGui::Text("Active : %llu", obj_info.object_alive);
-					ImGui::Text("Colli Check : %llu", obj_info.object_colli_check);
-					ImGui::Text("Colli Callback : %llu", obj_info.object_colli_callback);
-
-					ImGui::SliderFloat("Timeline Height##GameObject", &height_2, 256.0f, 512.0f);
-					ImGui::Checkbox("Auto-Fit Y Axis##GameObject", &auto_fit_2);
-
-					arr_obj_alloc[arr_index] = (double)obj_info.object_alloc;
-					arr_obj_free[arr_index] = (double)obj_info.object_free;
-					arr_obj_alive[arr_index] = (double)obj_info.object_alive;
-					arr_obj_colli[arr_index] = (double)obj_info.object_colli_check;
-					arr_obj_colli_cb[arr_index] = (double)obj_info.object_colli_callback;
-
-					if (ImPlot::BeginPlot("##GameObject Statistics", ImVec2(-1, height_2), 0)) {
-						//ImPlot::SetupAxes("Frame", "Time", flags, flags);
-						ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range - 1), ImGuiCond_Always);
-						//ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
-						if (auto_fit_2)
-							ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
-						else
-							ImPlot::SetupAxes(NULL, NULL);
-
-						ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
-
-						static double arr_ms[] = {
-							1000.0 / 60.0,
-							1000.0 / 30.0,
-							1000.0 / 20.0,
-						};
-						//ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
-						//ImPlot::PlotHLines("##60 FPS", arr_ms, 1);
-						//ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
-						//ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
-						//ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
-						//ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
-
-						ImPlot::PlotLine("Create", arr_obj_alloc.data(), (int)record_range);
-						ImPlot::PlotLine("Return", arr_obj_free.data(), (int)record_range);
-						ImPlot::PlotLine("Active", arr_obj_alive.data(), (int)record_range);
-						ImPlot::PlotLine("Colli Check", arr_obj_colli.data(), (int)record_range);
-						ImPlot::PlotLine("Colli Callback", arr_obj_colli_cb.data(), (int)record_range);
-
-						ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-						ImPlot::PlotInfLines("##Current Time", &arr_index, 1, ImPlotInfLinesFlags_None);
-
-						ImPlot::EndPlot();
-					}
-
-				}
-
 				// move next
 
 				arr_index = (arr_index + 1) % record_range;
 			}
 			ImGui::End();
 		}
+		s_view.update();
+		s_view.layout(v);
 		lua_pushboolean(L, v);
 		return 1;
 	}
@@ -718,7 +885,7 @@ namespace {
 
 // imgui backend binding
 
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace {
 	bool g_imgui_initialized = false;
@@ -727,18 +894,18 @@ namespace {
 
 namespace imgui {
 	class ImGuiBackendEventListener
-		: public core::Graphics::IDeviceEventListener
-		, public core::Graphics::IWindowEventListener {
+		: public core::IGraphicsDeviceEventListener
+		, public core::IWindowEventListener {
 	public:
-		// IDeviceEventListener
+		// IGraphicsDeviceEventListener
 
-		void onDeviceDestroy() override {
+		void onGraphicsDeviceDestroy() override {
 			g_imgui_impl_dx11_initialized = false;
 			ImGui_ImplDX11_Shutdown();
 		}
-		void onDeviceCreate() override {
+		void onGraphicsDeviceCreate() override {
 			g_imgui_impl_dx11_initialized = false;
-			auto const device = static_cast<ID3D11Device*>(LAPP.GetAppModel()->getDevice()->getNativeHandle());
+			auto const device = static_cast<ID3D11Device*>(LAPP.getGraphicsDevice()->getNativeDevice());
 			ID3D11DeviceContext* context{};
 			device->GetImmediateContext(&context);
 			ImGui_ImplDX11_Init(device, context);
@@ -748,17 +915,17 @@ namespace imgui {
 		// IWindowEventListener
 
 		void onWindowCreate() override {
-			ImGui_ImplWin32Ex_Init(LAPP.GetAppModel()->getWindow()->getNativeHandle());
+			ImGui_ImplWin32_Init(LAPP.getWindow()->getNativeHandle());
 		}
 		void onWindowDestroy() override {
-			ImGui_ImplWin32Ex_Shutdown();
+			ImGui_ImplWin32_Shutdown();
 			m_dpi_changed.store(0);
 		}
 		void onWindowDpiChange() override {
 			m_dpi_changed.fetch_or(0x1);
 		}
 		NativeWindowMessageResult onNativeWindowMessage(void* const window, uint32_t const message, uintptr_t const arg1, intptr_t const arg2) override {
-			if (auto const result = ImGui_ImplWin32Ex_WndProcHandler(static_cast<HWND>(window), message, arg1, arg2))
+			if (auto const result = ImGui_ImplWin32_WndProcHandler(static_cast<HWND>(window), message, arg1, arg2))
 				return { result, true };
 			return {};
 		}
@@ -834,10 +1001,8 @@ namespace {
 		style.FrameBorderSize = 1.0f;
 		style.TabBorderSize = 1.0f;
 
-		if (auto const framework = LAPP.GetAppModel()) {
-			style.FontScaleDpi = framework->getWindow()->getDPIScaling();
-			style.ScaleAllSizes(framework->getWindow()->getDPIScaling());
-		}
+		style.FontScaleDpi = LAPP.getWindow()->getDPIScaling();
+		style.ScaleAllSizes(LAPP.getWindow()->getDPIScaling());
 
 		ImGui::GetStyle() = style;
 	}
@@ -858,11 +1023,11 @@ namespace imgui {
 		applyStyle();
 
 		g_imgui_backend_event_listener.onWindowCreate();
-		auto const window = LAPP.GetAppModel()->getWindow();
+		auto const window = LAPP.getWindow();
 		window->addEventListener(&g_imgui_backend_event_listener);
 
-		g_imgui_backend_event_listener.onDeviceCreate();
-		auto const device = LAPP.GetAppModel()->getDevice();
+		g_imgui_backend_event_listener.onGraphicsDeviceCreate();
+		auto const device = LAPP.getGraphicsDevice();
 		device->addEventListener(&g_imgui_backend_event_listener);
 
 		auto const vm = LAPP.GetLuaEngine();
@@ -873,17 +1038,19 @@ namespace imgui {
 		g_imgui_initialized = true;
 	}
 	void unbindEngine() {
-		if (LAPP.GetAppModel()) {
-			auto const device = LAPP.GetAppModel()->getDevice();
+		if (const auto device = LAPP.getGraphicsDevice(); device != nullptr) {
 			device->removeEventListener(&g_imgui_backend_event_listener);
-			g_imgui_backend_event_listener.onDeviceDestroy();
+			g_imgui_backend_event_listener.onGraphicsDeviceDestroy();
+		}
+		else {
+			g_imgui_backend_event_listener.onGraphicsDeviceDestroy();
+		}
 
-			auto const window = LAPP.GetAppModel()->getWindow();
+		if (const auto window = LAPP.getWindow(); window != nullptr) {
 			window->removeEventListener(&g_imgui_backend_event_listener);
 			g_imgui_backend_event_listener.onWindowDestroy();
 		}
 		else {
-			g_imgui_backend_event_listener.onDeviceDestroy();
 			g_imgui_backend_event_listener.onWindowDestroy();
 		}
 
@@ -919,16 +1086,16 @@ namespace imgui {
 
 			{
 				tracy_zone_scoped_with_name("imgui.backend.NewFrame-WIN32");
-				auto const ws = LAPP.GetAppModel()->getSwapChain()->getCanvasSize();
+				auto const ws = LAPP.getSwapChain()->getCanvasSize();
 				auto const mt = LAPP.GetMousePositionTransformF();
-				ImGui_ImplWin32Ex_FrameData dt;
-				dt.view_size.x = static_cast<float>(ws.x);
-				dt.view_size.y = static_cast<float>(ws.y);
-				dt.mouse_offset.x = mt.x;
-				dt.mouse_offset.y = mt.y;
-				dt.mouse_scale.x = mt.z;
-				dt.mouse_scale.y = mt.w;
-				ImGui_ImplWin32Ex_NewFrame(&dt);
+				ImGui_ImplWin32_FrameOverride dt{};
+				dt.DisplaySize.x = static_cast<float>(ws.x);
+				dt.DisplaySize.y = static_cast<float>(ws.y);
+				dt.MouseOffset.x = mt.x;
+				dt.MouseOffset.y = mt.y;
+				dt.MouseScale.x = mt.z;
+				dt.MouseScale.y = mt.w;
+				ImGui_ImplWin32_NewFrame(&dt);
 			}
 
 			g_imgui_impl_dx11_initialized = true;
@@ -940,9 +1107,9 @@ namespace imgui {
 	}
 	void drawEngine() {
 		if (g_imgui_initialized && g_imgui_impl_dx11_initialized) {
-			LAPP.GetAppModel()->getRenderer()->endBatch();
+			LAPP.getRenderer2D()->endBatch();
 			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-			LAPP.GetAppModel()->getRenderer()->beginBatch(); // restore
+			LAPP.getRenderer2D()->beginBatch(); // restore
 		}
 	}
 

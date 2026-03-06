@@ -1,4 +1,5 @@
 #pragma once
+#include "core/SmartReference.hpp"
 #include "GameResource/ResourceMusic.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 #include "core/AudioDecoder.hpp"

@@ -1,3 +1,5 @@
+local lstg = require("lstg")
+
 ---@class test.Window
 window = {}
 window.width = 1920
@@ -136,6 +138,7 @@ require("test.graphics")
 require("test.audio")
 require("test.input")
 require("test.gameplay")
+require("test.os")
 
 function GameInit()
     window:init()

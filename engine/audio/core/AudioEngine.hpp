@@ -12,12 +12,12 @@ namespace core {
 		count = 3,
 	};
 
-	struct CORE_NO_VIRTUAL_TABLE IAudioEngineEventListener {
+	CORE_INTERFACE IAudioEngineEventListener {
 		virtual void onAudioEngineCreate() = 0;
 		virtual void onAudioEngineDestroy() = 0;
 	};
 
-	struct CORE_NO_VIRTUAL_TABLE IAudioEngine : IReferenceCounted {
+	CORE_INTERFACE IAudioEngine : IReferenceCounted {
 		virtual void addEventListener(IAudioEngineEventListener* listener) = 0;
 		virtual void removeEventListener(IAudioEngineEventListener* listener) = 0;
 
