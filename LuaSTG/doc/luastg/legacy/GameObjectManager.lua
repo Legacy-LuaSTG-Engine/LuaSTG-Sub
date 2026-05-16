@@ -1,3 +1,5 @@
+---@diagnostic disable: duplicate-set-field, unused-local
+
 --------------------------------------------------------------------------------
 --- LuaSTG Sub 游戏对象管理器
 --- 璀境石
@@ -10,7 +12,7 @@ local M = {}
 --------------------------------------------------------------------------------
 --- 游戏对象管理器
 
----获取申请的对象数
+--- 获取申请的对象数
 ---@return number
 function M.GetnObj()
 end
@@ -23,29 +25,118 @@ end
 function M.ObjList(group_id)
 end
 
----回收所有对象，并释放绑定的资源
+--- 回收所有对象，并释放绑定的资源
 function M.ResetPool()
 end
 
---- 【禁止在协同程序中调用此方法】  
+--- **禁止在协同程序（continue）中调用此方法**  
+--- 
 --- 更新所有游戏对象并触发游戏对象的frame回调函数  
---- 从 LuaSTG Sub v0.21.13（第二代游戏循环更新顺序）开始，可以传递版本参数 `version`：  
---- * 不传递 `version` 参数或参数为 1 时，遵循旧逻辑  
---- * `version` 参数或参数为 2 时，启用新逻辑  
+--- 从 LuaSTG Sub v0.21.13（第二代游戏循环更新顺序）开始，可以传递版本参数 `version`
+--- 
+--- * 不传递 `version` 参数或参数值为 `1` 时，逻辑伪代码  
+---     ```lua
+---     for object in lstg.ObjList() do
+---         -- 执行 frame 回调函数
+---         object:frame()
+---         -- 根据 ax、ay、ag 更新 vx、vy
+---         object.vx = object.vx + object.ax
+---         object.vy = object.vy + object.ay - object.ag
+---         -- 根据 maxv 限制 vx、vy
+---         local speed = sqrt(object.vx * object.vx + object.vy * object.vy)
+---         if speed > maxv then
+---             local scale = maxv / speed
+---             object.vx = object.vx * scale
+---             object.vy = object.vy * scale
+---         end
+---         -- 根据 maxvx、maxvy 限制 vx、vy 范围
+---         object.vx = clamp(object.vx, -object.maxvx, object.maxvx)
+---         object.vy = clamp(object.vy, -object.maxvy, object.maxvy)
+---         -- 根据 vx、vy 更新 x、y
+---         object.x = object.x + object.vx
+---         object.y = object.y + object.vy
+---         -- 根据 omega（omiga）更新 rot
+---         object.rot = object.rot + object.omega
+---         -- 更新粒子系统（若有）
+---         updateParticleSystem(object)
+---     end
+---     ```
+--- * `version` 参数值为 `2` 时，逻辑伪代码  
+---     ```lua
+---     for object in lstg.ObjList() do
+---         -- 执行 frame 回调函数
+---         object:frame()
+---     end
+---     for object in lstg.ObjList() do
+---         -- 根据 ax、ay、ag 更新 vx、vy
+---         object.vx = object.vx + object.ax
+---         object.vy = object.vy + object.ay - object.ag
+---         -- 根据 maxv 限制 vx、vy
+---         local speed = sqrt(object.vx * object.vx + object.vy * object.vy)
+---         if speed > maxv then
+---             local scale = maxv / speed
+---             object.vx = object.vx * scale
+---             object.vy = object.vy * scale
+---         end
+---         -- 根据 maxvx、maxvy 限制 vx、vy 范围
+---         object.vx = clamp(object.vx, -object.maxvx, object.maxvx)
+---         object.vy = clamp(object.vy, -object.maxvy, object.maxvy)
+---         -- 根据 vx、vy 更新 x、y
+---         object.x = object.x + object.vx
+---         object.y = object.y + object.vy
+---         -- 根据 omega（omiga）更新 rot
+---         object.rot = object.rot + object.omega
+---         -- 根据 navi 更新 rot
+---         if object.navi then
+---             object.rot = atan2(object.dy, object.dx)
+---         end
+---         -- 更新粒子系统（若有）
+---         updateParticleSystem(object)
+---     end
+---     ````
+--- 
 ---@param version integer?
 function M.ObjFrame(version)
 end
 
----【禁止在协同程序中调用此方法】
----绘制所有游戏对象并触发游戏对象的render回调函数
+--- **禁止在协同程序（continue）中调用此方法**  
+---
+--- 绘制所有游戏对象并触发游戏对象的render回调函数
 function M.ObjRender()
 end
 
---- 【禁止在协同程序中调用此方法】  
+--- **禁止在协同程序（continue）中调用此方法**  
+--- 
 ---  对所有游戏对象进行出界判断，如果离开场景边界，将会触发对象的 del 回调函数  
---- 从 LuaSTG Sub v0.21.13（第二代游戏循环更新顺序）开始，可以传递版本参数 `version`：  
---- * 不传递 `version` 参数或参数为 1 时，遵循旧逻辑  
---- * `version` 参数或参数为 2 时，启用新逻辑  
+--- 从 LuaSTG Sub v0.21.13（第二代游戏循环更新顺序）开始，可以传递版本参数 `version`  
+--- 
+--- * 不传递 `version` 参数或参数值为 `1` 时，逻辑伪代码  
+---     ```lua
+---     for object in lstg.ObjList() do
+---         -- 判断游戏对象中心位置是否离开世界边界
+---         if not isInWorldBoundary(object) then
+---             -- 标记删除游戏对象
+---             lstg.Del(object)
+---         end
+---     end
+---     ```
+--- * `version` 参数值为 `2` 时，逻辑伪代码  
+---     ```lua
+---     -- 第一步
+---     local results = {}
+---     for object in lstg.ObjList() do
+---         -- 判断游戏对象中心位置是否离开世界边界
+---         if not isInWorldBoundary(object) then
+---             table.insert(results, object)
+---         end
+---     end
+---     -- 第二步
+---     for _, object in ipairs(results) do
+---         -- 标记删除游戏对象
+---         lstg.Del(object)
+---     end
+---     ```
+--- 
 ---@param version integer?
 function M.BoundCheck(version)
 end
@@ -60,26 +151,136 @@ end
 function M.SetBound(left, right, bottom, top)
 end
 
----【禁止在协同程序中调用此方法】  
---- 对两个碰撞组的对象进行碰撞检测  
---- 如果发生碰撞则触发groupidA内的对象的colli回调函数，并传入groupidB内的对象作为参数
----@param groupidA number @只能为0到15范围内的整数
----@param groupidB number @只能为0到15范围内的整数
-function M.CollisionCheck(groupidA, groupidB)
+--- **禁止在协同程序（continue）中调用此方法**  
+---
+--- 对两个碰撞组的对象进行相交检测  
+--- `group1` 和 `group2` 的取值范围是 0 到 15 的整数  
+--- 
+--- * 逻辑伪代码
+---     ```lua
+---     for object1 in lstg.ObjList(group1) do
+---         for object2 in lstg.ObjList(group2) do
+---             if hasIntersection(object1, object2) then
+---                 object1:colli(object2)
+---             end
+---         end
+---     end
+---     ```
+--- 
+---@param group1 number
+---@param group2 number
+function M.CollisionCheck(group1, group2)
 end
 
---- 【禁止在协同程序中调用此方法】  
---- 保存游戏对象的x, y坐标并计算dx, dy  
---- 从 LuaSTG Sub v0.21.13（第二代游戏循环更新顺序）开始，如果启用新逻辑，  
---- 请勿调用 `lstg.UpdateXY` 方法，相关逻辑已合并到 `lstg.AfterFrame` 中  
-function M.UpdateXY()
+--- **禁止在协同程序（continue）中调用此方法**  
+--- 
+--- 从 LuaSTG Sub v0.21.13（第二代游戏循环更新顺序）开始，该方法重载可用  
+--- 一次性对多个碰撞组对的对象进行相交检测  
+--- `group_pairs` 参数是碰撞组对列表，每个碰撞组对是一个长度为 2 的数组，分别代表 `group1` 和 `group2`  
+--- 
+--- * 逻辑伪代码
+---     ```lua
+---     -- 第一步
+---     local results = {}
+---     for group_pair in ipairs(group_pairs) do
+---         for object1 in lstg.ObjList(group_pair[1]) do
+---             for object2 in lstg.ObjList(group_pair[2]) do
+---                 if hasIntersection(object1, object2) then
+---                     table.insert(results, { object1, object2 })
+---                 end
+---             end
+---         end
+---     end
+---     -- 第二步
+---     for _, result in ipairs(results) do
+---         result[1]:colli(result[2])
+---     end
+---     ```
+--- 
+---@param group_pairs { [1]: number, [2]: number }[]
+function M.CollisionCheck(group_pairs)
 end
 
---- 【禁止在协同程序中调用此方法】  
---- 增加游戏对象的timer, ani计数器，如果对象被标记为kill或者del，则回收该对象  
+--- **禁止在协同程序（continue）中调用此方法**  
+--- 
+--- 从 LuaSTG Sub v0.21.13（第二代游戏循环更新顺序）开始，可以传递版本参数 `version`  
+--- 
+--- * 不传递 `version` 参数或参数值为 `1` 时，逻辑伪代码  
+---     ```lua
+---     for object in lstg.ObjList() do
+---         -- 更新 dx、dy（注意 lastx、lasty 在 lua 层不可访问）
+---         object.dx = object.x - object.lastx
+---         object.dy = object.y - object.lasty
+---         object.lastx = object.x
+---         object.lasty = object.y
+---         -- 根据 navi 更新 rot
+---         if object.navi then
+---             object.rot = atan2(object.dy, object.dx)
+---         end
+---     end
+---     ```
+--- * `version` 参数值为 `2` 时，逻辑伪代码  
+---     ```lua
+---     for object in lstg.ObjList() do
+---         -- 更新 dx、dy，注意 lastx、lasty 在 lua 层不可访问
+---         object.dx = object.x - object.lastx
+---         object.dy = object.y - object.lasty
+---         object.lastx = object.x
+---         object.lasty = object.y
+---         -- 更新计时器
+---         object.timer = object.timer + 1
+---         object.ani = object.ani + 1
+---     end
+---     ```
+--- 
+---@param version integer?
+function M.UpdateXY(version)
+end
+
+--- **禁止在协同程序（continue）中调用此方法**  
+--- 
 --- 从 LuaSTG Sub v0.21.13（第二代游戏循环更新顺序）开始，可以传递版本参数 `version`：  
---- * 不传递 `version` 参数或参数为 1 时，遵循旧逻辑  
---- * `version` 参数或参数为 2 时，启用新逻辑  
+--- 
+--- * 不传递 `version` 参数或参数值为 `1` 时，逻辑伪代码  
+---     ```lua
+---     for object in lstg.ObjList() do
+---         -- 更新计时器
+---         object.timer = object.timer + 1
+---         object.ani = object.ani + 1
+---         -- 如果对象标记为删除（不是正常状态），回收对象
+---         if object.status ~= "normal" then
+---             freeGameObject(object)
+---         end
+---     end
+---     ```
+--- * `version` 参数值为 `2` 时，逻辑伪代码  
+---     ```lua
+---     for object in lstg.ObjList() do
+---         -- 如果游戏对象是正常状态，执行更新，否则回收对象
+---         if object.status == "normal" then
+---             -- 更新 dx、dy，注意 lastx、lasty 在 lua 层不可访问
+---             object.dx = object.x - object.lastx
+---             object.dy = object.y - object.lasty
+---             object.lastx = object.x
+---             object.lasty = object.y
+---             -- 更新计时器
+---             object.timer = object.timer + 1
+---             object.ani = object.ani + 1
+---         else
+---             -- 回收对象
+---             freeGameObject(object)
+---         end
+---     end
+---     ```
+--- * `version` 参数值为 `3` 时，逻辑伪代码  
+---     ```lua
+---     for object in lstg.ObjList() do
+---         if object.status ~= "normal" then
+---             freeGameObject(object)
+---         end
+---     end
+---     ```
+--- 
 ---@param version integer?
 function M.AfterFrame(version)
 end

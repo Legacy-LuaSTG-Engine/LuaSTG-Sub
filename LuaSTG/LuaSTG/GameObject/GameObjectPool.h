@@ -318,7 +318,10 @@ namespace luastg
 		// 对象更新：传统模式新旧帧衔接
 		void updateNextLegacy();
 
-		// 对象更新：新旧帧衔接
+		// 对象更新：新旧帧衔接（带对象回收）
+		void updateNextOld();
+
+		// 对象更新：新旧帧衔接（不带对象回收）
 		void updateNext();
 
 		// 渲染所有游戏对象
@@ -354,10 +357,10 @@ namespace luastg
 		// 检测所有 -> 回调所有
 		void detectIntersection(std::pmr::vector<IntersectionDetectionGroupPair> const& group_pairs);
 
-		/// @brief 更新对象的XY坐标偏移量
+		// 更新对象的XY坐标偏移量
 		void UpdateXY() noexcept;
 	
-		//重置对象的各项属性，并释放资源，保留uid和id
+		// 重置对象的各项属性，并释放资源，保留uid和id
 		void DirtResetObject(GameObject* p) noexcept;
 
 		// 修改游戏对象所在的碰撞组：从原碰撞组链表移除，插入到新碰撞组链表，并更新 group 属性
@@ -366,7 +369,10 @@ namespace luastg
 		// 修改游戏对象渲染图层：从有序渲染链表移除，更新 layer 属性，重新插入有序渲染链表
 		void setLayer(GameObject* object, double layer);
 
-		/// @brief 清空对象池
+		// 回收标记为删除的游戏对象
+		void freeMarkedForDeletion();
+
+		// 清空并重置对象池
 		void ResetPool() noexcept;
 
 		[[nodiscard]] GameObject* allocate() { return allocateWithCallbacks(nullptr); }

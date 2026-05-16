@@ -120,12 +120,32 @@ local function buildGameObjectScene()
         end
     end)
 end
-local function updateGameObject()
-    lstg.AfterFrame(2) -- TODO: remove (2)
-    lstg.ObjFrame(2) -- TODO: remove (2)
+local function updateGameObjectV1()
+    lstg.ObjFrame()
     lstg.SetBound(0, window.width, 0, window.height)
+    lstg.BoundCheck()
     lstg.CollisionCheck(GROUP_PLAYER, GROUP_ENEMY_BULLET)
-    lstg.BoundCheck(2) -- TODO: remove (2)
+    lstg.UpdateXY()
+    lstg.AfterFrame()
+end
+local function updateGameObjectV2()
+    lstg.AfterFrame(2)
+    lstg.ObjFrame(2)
+    lstg.SetBound(0, window.width, 0, window.height)
+    lstg.CollisionCheck({
+        {GROUP_PLAYER, GROUP_ENEMY_BULLET},
+    })
+    lstg.BoundCheck(2)
+end
+local function updateGameObjectV3()
+    lstg.UpdateXY(2)
+    lstg.ObjFrame(2)
+    lstg.SetBound(0, window.width, 0, window.height)
+    lstg.CollisionCheck({
+        {GROUP_PLAYER, GROUP_ENEMY_BULLET},
+    })
+    lstg.BoundCheck(2)
+    lstg.AfterFrame(3)
 end
 local function renderGameObject()
     lstg.ObjRender()
@@ -207,7 +227,7 @@ function FrameFunc()
     global_tasks:resume()
     global_tasks:gc()
     updateBackground()
-    updateGameObject()
+    updateGameObjectV3()
     if Keyboard.GetKeyState(Keyboard.Escape) then
         return true -- exit
     end

@@ -845,15 +845,43 @@ namespace luastg::binding {
 			ctx.push_value(has_callback);
 			return 1;
 		}
-		static int updateNext(lua_State* const vm) {
+		
+		static int apiUpdateXY(lua_State* const vm) {
 			// TODO: 移动到 GameObjectManager 绑定
 			// version 2
 			if (lua::stack_t const ctx(vm); ctx.is_number(1)) {
-				if (auto const version = ctx.get_value<int32_t>(1); version == 2) {
+				const auto version = ctx.get_value<int32_t>(1);
+				if (version == 2) {
 					GameObjectManagerCallbacks::getInstance().lua_vm.push_back(vm);
 					LPOOL.updateNext();
 					GameObjectManagerCallbacks::getInstance().lua_vm.pop_back();
 					return 0;
+				}
+				else {
+					return luaL_error(vm, "unknown version number %d", version);
+				}
+			}
+			// version 1
+			LPOOL.UpdateXY();
+			return 0;
+		}
+		static int apiAfterFrame(lua_State* const vm) {
+			// TODO: 移动到 GameObjectManager 绑定
+			// version 2
+			if (lua::stack_t const ctx(vm); ctx.is_number(1)) {
+				const auto version = ctx.get_value<int32_t>(1);
+				if (version == 2) {
+					GameObjectManagerCallbacks::getInstance().lua_vm.push_back(vm);
+					LPOOL.updateNextOld();
+					GameObjectManagerCallbacks::getInstance().lua_vm.pop_back();
+					return 0;
+				}
+				else if (version == 3) {
+					LPOOL.freeMarkedForDeletion();
+					return 0;
+				}
+				else {
+					return luaL_error(vm, "unknown version number %d", version);
 				}
 			}
 			// version 1
@@ -1091,7 +1119,8 @@ namespace luastg::binding {
 		ctx.set_map_value(lstg_table, "ResetObject"sv, &GameObjectBinding::dirtyReset); // TODO: WTF?
 		ctx.set_map_value(lstg_table, "_Del"sv, &GameObjectBinding::queueToFree);
 		ctx.set_map_value(lstg_table, "_Kill"sv, &GameObjectBinding::queueToFreeLegacyKillMode);
-		ctx.set_map_value(lstg_table, "AfterFrame"sv, &GameObjectBinding::updateNext);
+		ctx.set_map_value(lstg_table, "UpdateXY"sv, &GameObjectBinding::apiUpdateXY);
+		ctx.set_map_value(lstg_table, "AfterFrame"sv, &GameObjectBinding::apiAfterFrame);
 		ctx.set_map_value(lstg_table, "ResetPool"sv, &GameObjectBinding::resetGameObjectManager);
 		ctx.set_map_value(lstg_table, "ObjFrame"sv, &GameObjectBinding::updateGameObjectManager);
 		ctx.set_map_value(lstg_table, "ObjRender"sv, &GameObjectBinding::renderGameObjectManager);

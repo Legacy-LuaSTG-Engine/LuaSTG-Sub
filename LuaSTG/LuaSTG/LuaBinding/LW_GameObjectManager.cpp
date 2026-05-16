@@ -22,11 +22,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 			);
 			return 0;
 		}
-		static int UpdateXY(lua_State* L) noexcept
-		{
-			LPOOL.UpdateXY();
-			return 0;
-		}
 		// EX+ 对象更新相关，影响 frame 回调函数以及对象更新
 		static int GetSuperPause(lua_State* L) noexcept
 		{
@@ -103,7 +98,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		// 对象管理器
 		{ "GetnObj", &Wrapper::GetnObj },
 		{ "SetBound", &Wrapper::SetBound },
-		{ "UpdateXY", &Wrapper::UpdateXY },
 		// EX+
 		{ "GetSuperPause", &Wrapper::GetSuperPause },
 		{ "SetSuperPause", &Wrapper::SetSuperPause },
