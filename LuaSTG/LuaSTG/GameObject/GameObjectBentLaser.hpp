@@ -4,6 +4,7 @@
 #include "core/FixedCircularQueue.hpp"
 #include "GameResource/ResourceBase.hpp"
 #include "lua.hpp"
+#include <vector>
 
 #define LGOBJ_MAXLASERNODE 512  // 曲线激光最大节点数
 
@@ -25,9 +26,18 @@ namespace luastg
 			bool active = true;		//节点活动状况
 			bool sharp = false;		//相对上一个节点的朝向成钝角
 		};
+		// 切割区：队列空间中的索引区间 [start, end)
+		// 断口是激光本体的一部分，随队列滑动而移动（每个节点仍然像未断开一样跟随本体移动）
+		struct CutRange
+		{
+			size_t start = 0;
+			size_t end = 0;
+		};
 	private:
 		core::FixedCircularQueue<LaserNode, LGOBJ_MAXLASERNODE> m_Queue;
 		float m_fLength = 0.0f; // 记录激光长度
+		std::vector<CutRange> m_CutRanges; // 切割区列表
+		size_t m_CutRangesLastSize = 0; // 上次应用切割区时的队列大小（用于断口锚定激光尾部）
 	private:
 		float m_fEnvelopeHeight = 0.0f;
 		float m_fEnvelopeBase = 1.0f;
@@ -45,6 +55,8 @@ namespace luastg
 		void _UpdateNodeVertexExtend(size_t i) noexcept; // 计算节点的渲染顶点
 		void _UpdateAllNode() noexcept; // 重新计算所有节点的朝向和距离
 		void _PopHead() noexcept; // 弹出头部节点，较早的节点
+		void _ApplyCutRanges() noexcept; // 重新应用切割区（断口锚定激光尾部，随激光本体移动）
+		void _MergeCutRange(size_t start, size_t end, float bridge_distance) noexcept; // 合并切割区（带世界距离桥接）
 	public:
 		// 读取
 		int GetSize() noexcept; // 获取节点数量
@@ -55,6 +67,8 @@ namespace luastg
 		bool Update(size_t id, int length, float width, bool active) noexcept; // 根据新的位置更新节点
 		bool Update(float x, float y, float rot, int length, float width, bool active) noexcept;
 		void SetAllWidth(float width) noexcept; // 更改所有节点的碰撞和渲染宽度
+		size_t CutByPoint(float x, float y, float radius, std::vector<core::Vector2F>* out_cut_positions = nullptr) noexcept; // 切断指定半径内的节点，返回切断数量
+		size_t GetActiveNodeCount() noexcept; // 获取活动节点数量
 		// 渲染
 		bool Render(const char* tex_name, BlendMode blend, core::Color4B c, float tex_left, float tex_top, float tex_width, float tex_height, float scale) noexcept;
 		void RenderCollider(core::Color4B fillColor) noexcept;
@@ -73,6 +87,7 @@ namespace luastg
 
 		int api_UpdateSingleNode(lua_State* L);
 		int api_UpdateAllNodeByList(lua_State* L);
+		int api_GetActiveNodes(lua_State* L);
 
 	protected:
 		GameObjectBentLaser() noexcept;

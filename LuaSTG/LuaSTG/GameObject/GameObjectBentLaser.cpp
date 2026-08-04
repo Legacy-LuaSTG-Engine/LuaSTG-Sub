@@ -1,5 +1,6 @@
 #include "GameObject/GameObjectBentLaser.hpp"
 #include "AppFrame.h"
+#include <algorithm>
 
 using namespace luastg;
 
@@ -374,6 +375,13 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 			last.active = node.active;
 			// 不更新节点，等节点数量超过 1 再更新
 		}
+		// 重新应用最新节点的活动状态（如熄灭状态）
+		if (!m_Queue.empty())
+		{
+			m_Queue.tail().active = active;
+		}
+		// 重新应用切割区：断口随激光本体移动（最后应用，切割区内的节点保持不活动）
+		_ApplyCutRanges();
 		return true;
 	}
 
@@ -423,6 +431,13 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 			// 插入但不更新节点，等节点数量超过 1 再更新
 			m_Queue.pushTail(node);
 		}
+		// 重新应用最新节点的活动状态（如熄灭状态）
+		if (!m_Queue.empty())
+		{
+			m_Queue.tail().active = active;
+		}
+		// 重新应用切割区：断口随激光本体移动（最后应用，切割区内的节点保持不活动）
+		_ApplyCutRanges();
 		return true;
 	}
 }
@@ -433,6 +448,151 @@ void GameObjectBentLaser::SetAllWidth(float width)  noexcept
 	{
 		m_Queue[i].half_width = width / 2.0f;
 	}
+}
+
+size_t GameObjectBentLaser::CutByPoint(float x, float y, float radius, std::vector<core::Vector2F>* out_cut_positions) noexcept
+{
+	// 切断指定半径内的节点，被切断的节点不再参与渲染和碰撞
+	// 切断以切割区（队列空间索引区间）记录，断口锚定激光尾部，随激光本体移动而移动
+	size_t cut_count = 0;
+	float const r2 = radius * radius;
+	size_t const size = m_Queue.size();
+	size_t cut_start = size;
+	size_t cut_end = 0;
+	for (size_t i = 0; i < size; i += 1)
+	{
+		LaserNode& node = m_Queue[i];
+		if (!node.active)
+		{
+			continue;
+		}
+		float const dx = node.pos.x - x;
+		float const dy = node.pos.y - y;
+		if ((dx * dx + dy * dy) <= r2)
+		{
+			node.active = false;
+			cut_count += 1;
+			if (out_cut_positions)
+			{
+				out_cut_positions->emplace_back(node.pos);
+			}
+			cut_start = std::min(cut_start, i);
+			cut_end = std::max(cut_end, i + 1);
+		}
+	}
+	if (cut_count > 0)
+	{
+		// 先应用已有切割区（含尾部锚定位移），再添加新切割区（新切割区在当前队列空间，不需要位移）
+		_ApplyCutRanges();
+		_MergeCutRange(cut_start, cut_end, radius * 2.0f);
+		_ApplyCutRanges();
+	}
+	return cut_count;
+}
+
+void GameObjectBentLaser::_MergeCutRange(size_t start, size_t end, float bridge_distance) noexcept
+{
+	// 与最近的已有切割区做世界距离桥接：同一消除过程（如 cleaner 的一次穿过）造成的断口应连成一条带
+	size_t const size = m_Queue.size();
+	auto gap_length = [&](size_t a, size_t b) -> float {
+		if (a >= size || b >= size)
+		{
+			return std::numeric_limits<float>::max();
+		}
+		return (m_Queue[b].pos - m_Queue[a].pos).length();
+	};
+	for (CutRange const& r : m_CutRanges)
+	{
+		if (r.end <= start)
+		{
+			// 已有切割区在当前切割区之前
+			size_t const a = r.end > 0 ? r.end - 1 : 0;
+			if (gap_length(a, start) <= bridge_distance)
+			{
+				start = std::min(start, r.start);
+				end = std::max(end, r.end);
+			}
+		}
+		else if (r.start >= end)
+		{
+			// 已有切割区在当前切割区之后
+			size_t const b = end < size ? end : (size > 0 ? size - 1 : 0);
+			if (gap_length(b, r.start) <= bridge_distance)
+			{
+				start = std::min(start, r.start);
+				end = std::max(end, r.end);
+			}
+		}
+	}
+
+	m_CutRanges.push_back(CutRange{ start, end });
+	std::sort(m_CutRanges.begin(), m_CutRanges.end(),
+		[](CutRange const& a, CutRange const& b) { return a.start < b.start; });
+	std::vector<CutRange> merged;
+	for (CutRange const& r : m_CutRanges)
+	{
+		if (!merged.empty() && r.start <= merged.back().end)
+		{
+			merged.back().end = std::max(merged.back().end, r.end);
+		}
+		else
+		{
+			merged.push_back(r);
+		}
+	}
+	m_CutRanges = std::move(merged);
+}
+
+void GameObjectBentLaser::_ApplyCutRanges() noexcept
+{
+	size_t const size = m_Queue.size();
+	if (m_CutRanges.empty())
+	{
+		m_CutRangesLastSize = size;
+		return;
+	}
+	// 断口锚定激光尾部：队列增长（激光生成阶段只插入不弹出）或滑动（弹出+插入）时，
+	// 切割区保持与尾部的距离不变，断口随激光本体前进
+	if (size != m_CutRangesLastSize)
+	{
+		ptrdiff_t const shift = (ptrdiff_t)size - (ptrdiff_t)m_CutRangesLastSize;
+		for (CutRange& r : m_CutRanges)
+		{
+			r.start = (size_t)std::max<ptrdiff_t>(0, (ptrdiff_t)r.start + shift);
+			r.end = (size_t)std::max<ptrdiff_t>(0, (ptrdiff_t)r.end + shift);
+		}
+		m_CutRangesLastSize = size;
+	}
+	// 恢复所有节点为活动状态，只保留切割区覆盖的节点为不活动
+	// 切割区位于队列空间的固定索引区间（锚定激光尾部），随队列滑动（激光前进/后退）而移动
+	for (size_t i = 0; i < size; i += 1)
+	{
+		m_Queue[i].active = true;
+	}
+	for (CutRange const& r : m_CutRanges)
+	{
+		size_t const a = std::min(r.start, size);
+		size_t const b = std::min(r.end, size);
+		for (size_t i = a; i < b; i += 1)
+		{
+			m_Queue[i].active = false;
+		}
+	}
+	// 移除已完全弹出队列的切割区（激光前进越过断口后自动愈合）
+	std::erase_if(m_CutRanges, [size](CutRange const& r) { return r.start >= size; });
+}
+
+size_t GameObjectBentLaser::GetActiveNodeCount() noexcept
+{
+	size_t count = 0;
+	for (size_t i = 0; i < m_Queue.size(); i += 1)
+	{
+		if (m_Queue[i].active)
+		{
+			count += 1;
+		}
+	}
+	return count;
 }
 
 bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, core::Color4B c, float tex_left, float tex_top, float tex_width, float tex_height, float scale) noexcept
@@ -457,19 +617,46 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, core::Co
 	LAPP.updateGraph2DBlendMode(blend);
 	renderer->setTexture(pTex->GetTexture());
 
+	// 把连续的活动节点切分为若干段，每段作为一条独立的条带渲染
+	// 段内节点数少于 2 的段不参与渲染（与碰撞规则保持一致）
+	size_t const node_count = m_Queue.size();
+	size_t seg_count = 0;
+	size_t active_count = 0;
+	for (size_t i = 0; i < node_count;)
+	{
+		if (!m_Queue[i].active)
+		{
+			i += 1;
+			continue;
+		}
+		size_t const seg_start = i;
+		while (i < node_count && m_Queue[i].active)
+		{
+			i += 1;
+		}
+		if ((i - seg_start) >= 2)
+		{
+			seg_count += 1;
+			active_count += (i - seg_start);
+		}
+	}
+
+	// 没有可渲染的段
+	if (seg_count == 0)
+		return true;
+
 	// 分配顶点和索引
-	// 顶点总共需要：节点数 * 2
-	// 索引总共需要：(节点数 - 1) * 3 * 2
+	// 顶点总共需要：活动节点数 * 2
+	// 索引总共需要：(活动节点数 - 段数) * 3 * 2
 	// 两个节点之间组成一个四边形
-	uint16_t const node_count = (uint16_t)m_Queue.size();
 	// 注意：从显卡映射的缓冲区，只能写入，禁止读取
 	IRenderer::DrawVertex* p_vertex = nullptr;
 	// 注意：从显卡映射的缓冲区，只能写入，禁止读取
 	IRenderer::DrawIndex* p_index = nullptr;
 	uint16_t index_offset = 0;
 	if (!renderer->drawRequest(
-		node_count * 2,
-		(node_count - 1) * 6,
+		(uint16_t)(active_count * 2),
+		(uint16_t)((active_count - seg_count) * 6),
 		&p_vertex,
 		&p_index,
 		&index_offset)) return false; // 分配空间失败了
@@ -480,97 +667,131 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, core::Co
 	float const v_top = tex_top * v_scale;
 	float const v_bottom = (tex_top + tex_height) * v_scale;
 
-	// TODO: 原 Ex Plus 的逻辑里还有跳过连续的非 active 的节点的优化
-	// if (!cur.active || !next.active) continue;
-	// 得思考一下如何加进去
+	// 注意：从显卡映射的缓冲区，只能写入，禁止读取
+	IRenderer::DrawVertex* p_vert = p_vertex;
+	IRenderer::DrawIndex* p_vidx = p_index;
+	uint32_t const vertex_color = c.color();
+	uint16_t vertex_offset = 0;
 
-	// 第一部分：填充顶点，从老节点到新节点
+	// 逐段填充顶点和索引，从老节点到新节点
 	// 0---2---4---6
 	// |\  |\  |\  |
 	// | \ | \ | \ |
 	// |  \|  \|  \|
 	// 1---3---5---7
-	float total_length = 0.0f;
-	bool flip = false;
-	uint32_t const vertex_color = c.color();
-	c.a = 0;
-	uint32_t const vertex_color_alpha = c.color();
-	// 注意：从显卡映射的缓冲区，只能写入，禁止读取
-	IRenderer::DrawVertex* p_vert = p_vertex;
-	for (size_t i = 0; i < node_count; i += 1)
+	for (size_t i = 0; i < node_count;)
 	{
-		LaserNode& node = m_Queue[i];
-
-		// 拐成钝角，需要翻转一下延展方向
-		if (node.sharp)
+		if (!m_Queue[i].active)
 		{
-			flip = !flip;
+			i += 1;
+			continue;
+		}
+		size_t const seg_start = i;
+		while (i < node_count && m_Queue[i].active)
+		{
+			i += 1;
+		}
+		size_t const seg_len = i - seg_start;
+		if (seg_len < 2)
+		{
+			continue; // 单节点段不渲染
 		}
 
-		// 计算总长度，尾部节点到上一个节点的距离固定为 0
-		total_length += node.dis;
-
-		// 计算 u 坐标（像素坐标）
-		float tex_u = tex_left + (total_length / m_fLength) * tex_width;
-
-		// 计算延展向量，逆时针垂直于节点朝向
-		float pos_x = node.x_dir * scale * node.half_width;
-		float pos_y = node.y_dir * scale * node.half_width;
-		if (flip)
+		// 段内总长度（段首节点的 dis 是到段外节点的距离，不参与段内长度）
+		float seg_length = 0.0f;
+		for (size_t j = seg_start + 1; j < i; j += 1)
 		{
-			pos_x = -pos_x;
-			pos_y = -pos_y;
+			seg_length += m_Queue[j].dis;
 		}
 
-		// 填充顶点，顶点沿着节点向两侧延展
-		const IRenderer::DrawVertex vert2[2]{
-			IRenderer::DrawVertex(
-				node.pos.x - pos_x,
-				node.pos.y - pos_y,
-				0.5f,
-				tex_u * u_scale,
-				v_top,
-				node.active ? vertex_color : vertex_color_alpha
-			),
-			IRenderer::DrawVertex(
-				node.pos.x + pos_x,
-				node.pos.y + pos_y,
-				0.5f,
-				tex_u * u_scale,
-				v_bottom,
-				node.active ? vertex_color : vertex_color_alpha
-			),
-		};
-		std::memcpy(p_vert, vert2, sizeof(vert2)); // 尽可能使用内存复制，避免出现意外的读取
+		// 段内 uv 从 0 到 1，每段拥有独立的头/身体/尾渐变
+		float local_length = 0.0f;
+		bool flip = false;
+		for (size_t j = seg_start; j < i; j += 1)
+		{
+			LaserNode& node = m_Queue[j];
 
-		// 已使用 2 个顶点，接下来不要再修改这些顶点
-		p_vert += 2;
-	}
+			// 拐成钝角，需要翻转一下延展方向
+			if (node.sharp)
+			{
+				flip = !flip;
+			}
 
-	// 第二部分：填充索引
-	// 0 0-->2 2 2-->4 4 4-->6
-	// |\ \  | |\ \  | |\ \  |
-	// | \ \ | | \ \ | | \ \ |
-	// |  \ \| |  \ \| |  \ \|
-	// 1<--3 3 3<--5 5 5<--7 7
-	// 注意：从显卡映射的缓冲区，只能写入，禁止读取
-	IRenderer::DrawIndex* p_vidx = p_index;
-	uint16_t quad_offset = 0;
-	for (size_t i = 0; i < (node_count - 1u); i += 1)
-	{
-		// 0-2-3
-		p_vidx[0] = index_offset + quad_offset; // + 0
-		p_vidx[1] = index_offset + quad_offset + 2;
-		p_vidx[2] = index_offset + quad_offset + 3;
+			// 计算段内累计长度
+			if (j > seg_start)
+			{
+				local_length += node.dis;
+			}
 
-		// 3-1-0
-		p_vidx[3] = index_offset + quad_offset + 3;
-		p_vidx[4] = index_offset + quad_offset + 1;
-		p_vidx[5] = index_offset + quad_offset; // + 0
+			// 计算 u 坐标（像素坐标）
+			float tex_u = tex_left;
+			if (seg_length > std::numeric_limits<float>::min())
+			{
+				tex_u = tex_left + (local_length / seg_length) * tex_width;
+			}
 
-		// 已使用 6 个索引，接下来不要再修改这些索引
-		p_vidx += 6;
-		quad_offset += 2;
+			// 计算延展向量，逆时针垂直于节点朝向
+			float pos_x = node.x_dir * scale * node.half_width;
+			float pos_y = node.y_dir * scale * node.half_width;
+			if (flip)
+			{
+				pos_x = -pos_x;
+				pos_y = -pos_y;
+			}
+
+			// 填充顶点，顶点沿着节点向两侧延展
+			const IRenderer::DrawVertex vert2[2]{
+				IRenderer::DrawVertex(
+					node.pos.x - pos_x,
+					node.pos.y - pos_y,
+					0.5f,
+					tex_u * u_scale,
+					v_top,
+					vertex_color
+				),
+				IRenderer::DrawVertex(
+					node.pos.x + pos_x,
+					node.pos.y + pos_y,
+					0.5f,
+					tex_u * u_scale,
+					v_bottom,
+					vertex_color
+				),
+			};
+			std::memcpy(p_vert, vert2, sizeof(vert2)); // 尽可能使用内存复制，避免出现意外的读取
+
+			// 已使用 2 个顶点，接下来不要再修改这些顶点
+			p_vert += 2;
+		}
+
+		// 填充段内索引
+		// 0 0-->2 2 2-->4 4 4-->6
+		// |\ \  | |\ \  | |\ \  |
+		// | \ \ | | \ \ | | \ \ |
+		// |  \ \| |  \ \| |  \ \|
+		// 1<--3 3 3<--5 5 5<--7 7
+		// 注意：从显卡映射的缓冲区，只能写入，禁止读取
+		// 段内第 j 个四边形连接顶点 [vertex_offset + j*2, vertex_offset + j*2 + 3]
+		// （本段第 j、j+1 个节点），其中 vertex_offset 是本段首个顶点的全局索引
+		for (size_t j = 0; j < (seg_len - 1); j += 1)
+		{
+			uint16_t const quad_offset = static_cast<uint16_t>(vertex_offset + j * 2);
+
+			// 0-2-3
+			p_vidx[0] = index_offset + quad_offset; // + 0
+			p_vidx[1] = index_offset + quad_offset + 2;
+			p_vidx[2] = index_offset + quad_offset + 3;
+
+			// 3-1-0
+			p_vidx[3] = index_offset + quad_offset + 3;
+			p_vidx[4] = index_offset + quad_offset + 1;
+			p_vidx[5] = index_offset + quad_offset; // + 0
+
+			// 已使用 6 个索引，接下来不要再修改这些索引
+			p_vidx += 6;
+		}
+		// 本段实际写入了 seg_len 个节点，即 seg_len * 2 个顶点
+		vertex_offset += static_cast<uint16_t>(seg_len * 2);
 	}
 
 	return true;
@@ -594,6 +815,8 @@ void GameObjectBentLaser::RenderCollider(core::Color4B fillColor) noexcept
 	{
 		LaserNode& n = m_Queue[i];
 		if (!n.active) continue;
+		// 单节点段不参与碰撞（与渲染规则保持一致）
+		if (!((i > 0u && m_Queue[i - 1u].active) || ((i + 1u) < m_Queue.size() && m_Queue[i + 1u].active))) continue;
 		/*
 		if (i > 0) {
 			LaserNode& last = m_Queue[i - 1];
@@ -648,6 +871,8 @@ bool GameObjectBentLaser::CollisionCheck(float x, float y, float rot, float a, f
 	{
 		LaserNode& n = m_Queue[i];
 		if (!n.active)continue;
+		// 单节点段不参与碰撞（与渲染规则保持一致）
+		if (!((i > 0u && m_Queue[i - 1u].active) || ((i + 1u) < sn && m_Queue[i + 1u].active)))continue;
 		/*
 		if (i > 0) {
 			LaserNode& last = m_Queue[i - 1];
@@ -706,6 +931,8 @@ bool GameObjectBentLaser::CollisionCheckW(float x, float y, float rot, float a, 
 	{
 		LaserNode& n = m_Queue[i];
 		if (!n.active)continue;
+		// 单节点段不参与碰撞（与渲染规则保持一致）
+		if (!((i > 0u && m_Queue[i - 1u].active) || ((i + 1u) < sn && m_Queue[i + 1u].active)))continue;
 		/*
 		if (i > 0) {
 			LaserNode& last = m_Queue[i - 1];
@@ -963,6 +1190,30 @@ int GameObjectBentLaser::api_UpdateSingleNode(lua_State* L)
 	}
 
 	return 0;
+}
+
+int GameObjectBentLaser::api_GetActiveNodes(lua_State* L)
+{
+	// 返回活动节点的位置表，供 Lua 在 kill 时生成奖励
+	// 奖励只在实际存在的（活动）节点上生成，无论通过何种方式消灭，奖励数量只取决于激光当前状态
+	lua_newtable(L); // t
+	int count = 0;
+	for (size_t i = 0; i < m_Queue.size(); i += 1)
+	{
+		LaserNode const& node = m_Queue[i];
+		if (!node.active)
+		{
+			continue;
+		}
+		count += 1;
+		lua_newtable(L); // t t(node)
+		lua_pushnumber(L, node.pos.x);
+		lua_setfield(L, -2, "x");
+		lua_pushnumber(L, node.pos.y);
+		lua_setfield(L, -2, "y");
+		lua_rawseti(L, -2, count); // t
+	}
+	return 1;
 }
 
 int GameObjectBentLaser::api_UpdateAllNodeByList(lua_State* L)
