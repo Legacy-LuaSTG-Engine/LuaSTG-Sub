@@ -1,50 +1,76 @@
 local imgui_exist, imgui = pcall(require, "imgui")
-
----@class test.Base
-local T = {}
-
-function T:onCreate() end
-
-function T:onDestroy() end
-
-function T:onUpdate() end
-
-function T:onRender() end
+local Blank = require("test.Blank")
 
 ---@class test
 local M = {}
 
----@type table<string, { [1]: string, [2]: test.Base, [3]: string }>
+---@class test.TestRecord
+local TestRecord = {
+    id = "test.Blank",
+    type = Blank,
+    name = "Blank",
+    path = "test/Blank.lua",
+}
+
+---@type test.TestRecord[]
 local tests = {
-    { "test.Base", T, "test.Base" },
+    TestRecord,
 }
 
 ---@type test.Base
-local current_test = T
+local current_test = Blank
 
----@param name string
----@param test_class test.Base
----@param display_name string?
-function M.registerTest(name, test_class, display_name)
+---@param id string
+---@param type test.Base
+---@param name string?
+function M.registerTest(id, type, name)
     for _, v in ipairs(tests) do
-        if v[1] == name then
-            assert(false)
-            v[2] = test_class
+        if v.id == id then
+            lstg.Log(2, ("test '%s' replace with newer one"):format(id))
+            v.type = type
+            v.name = name or id
             return
         end
     end
-    local entry = { name, test_class, display_name or name }
-    table.insert(tests, entry)
+    local record = {
+        id = id,
+        type = type,
+        name = name or id,
+        path = "",
+    }
+    table.insert(tests, record)
+end
+
+---@param id string
+---@param path string
+---@param name string?
+function M.registerDynamicTest(id, path, name)
+    for _, v in ipairs(tests) do
+        if v.id == id then
+            lstg.Log(2, ("test '%s' replace with newer one"):format(id))
+            v.type = Blank
+            v.name = name or id
+            v.path = path
+            return
+        end
+    end
+    local record = {
+        id = id,
+        type = Blank,
+        name = name or id,
+        path = path,
+    }
+    table.insert(tests, record)
 end
 
 function M.onCreate()
-    current_test = T
+    current_test = Blank
     current_test:onCreate()
 end
 
 function M.onDestroy()
     current_test:onDestroy()
-    current_test = T
+    current_test = Blank
 end
 
 function M.onUpdate()
@@ -53,8 +79,8 @@ function M.onUpdate()
         local ImGui = imgui.ImGui
         if ImGui.Begin("Select Test") then
             for _, v in ipairs(tests) do
-                if ImGui.Button(v[3]) then
-                    M.setTest(v[1])
+                if ImGui.Button(v.name) then
+                    M.setTest(v.id)
                 end
             end
         end
@@ -67,12 +93,21 @@ function M.onRender()
     current_test:onRender()
 end
 
-function M.setTest(name)
+---@param id string
+function M.setTest(id)
     for _, v in ipairs(tests) do
-        if v[1] == name then
+        if v.id == id then
             current_test:onDestroy()
-            current_test = {}
-            setmetatable(current_test, { __index = v[2] })
+
+            if v.path:len() > 0 then
+                local success, result = pcall(function()
+                    v.type = lstg.DoFile(v.path)
+                end)
+                if not success then
+                    lstg.Log(4, ("load test script '%s' failed: %s"):format(v.path, tostring(result)))
+                end
+            end
+            current_test = setmetatable({}, { __index = v.type })
             current_test:onCreate()
             return
         end
