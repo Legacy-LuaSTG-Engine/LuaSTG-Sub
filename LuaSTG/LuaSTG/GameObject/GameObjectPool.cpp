@@ -200,8 +200,8 @@ namespace luastg
 		}
 		dispatchOnAfterBatchDestroy();
 	}
-	void GameObjectPool::updateNext() {
-		tracy_zone_scoped_with_name("LOBJMGR.AfterFrame(New)");
+	void GameObjectPool::updateNextOld() {
+		tracy_zone_scoped_with_name("LOBJMGR.AfterFrame(V2)");
 		dispatchOnBeforeBatchDestroy();
 		auto const super_pause_time = UpdateSuperPause(); // 更新超级暂停
 		for (auto p = m_update_list.first(); p != nullptr;) {
@@ -217,6 +217,18 @@ namespace luastg
 			p = p->update_list_next;
 		}
 		dispatchOnAfterBatchDestroy();
+	}
+	void GameObjectPool::updateNext() {
+		tracy_zone_scoped_with_name("LOBJMGR.UpdateXY(V2)");
+		auto const super_pause_time = UpdateSuperPause(); // 更新超级暂停
+		for (auto p = m_update_list.first(); p != nullptr;) {
+			if (super_pause_time > 0 && !p->ignore_super_pause) {
+				p = p->update_list_next;
+				continue;
+			}
+			p->UpdateLastV2();
+			p = p->update_list_next;
+		}
 	}
 	void GameObjectPool::detectOutOfWorldBoundLegacy() {
 		tracy_zone_scoped_with_name("LOBJMGR.BoundCheck");
@@ -469,6 +481,23 @@ namespace luastg
 		auto const has_callback_destroy = !legacy_kill_mode && object->features.has_callback_destroy;
 		auto const has_callback_legacy_kill = legacy_kill_mode && object->features.has_callback_legacy_kill;
 		return has_callback_destroy || has_callback_legacy_kill;
+	}
+	void GameObjectPool::freeMarkedForDeletion() {
+		tracy_zone_scoped_with_name("LOBJMGR.AfterFrame(V3)");
+		dispatchOnBeforeBatchDestroy();
+		const auto super_pause_time = GetSuperPauseTime();
+		for (auto p = m_update_list.first(); p != nullptr;) {
+			if (super_pause_time > 0 && !p->ignore_super_pause) {
+				p = p->update_list_next;
+				continue;
+			}
+			if (p->status != GameObjectStatus::Active) {
+				p = freeWithCallbacks(p);
+				continue;
+			}
+			p = p->update_list_next;
+		}
+		dispatchOnAfterBatchDestroy();
 	}
 
 	void GameObjectPool::DrawCollider()
