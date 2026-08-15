@@ -260,6 +260,9 @@ target_link_libraries(LuaSTG PRIVATE
 
 include(${CMAKE_CURRENT_LIST_DIR}/import_luastg_options.cmake)
 
+luastg_target_copy_to_target_directory(LuaSTG Microsoft.XAudio2.Redist     LuaSTG)
+luastg_target_copy_to_target_directory(LuaSTG Microsoft.D3DCompiler.Redist LuaSTG)
+
 luastg_target_copy_to_bin_directory(LuaSTG LuaSTG)
 luastg_target_copy_to_bin_directory(LuaSTG Microsoft.XAudio2.Redist)
 luastg_target_copy_to_bin_directory(LuaSTG Microsoft.D3DCompiler.Redist)

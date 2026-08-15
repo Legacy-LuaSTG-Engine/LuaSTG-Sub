@@ -40,6 +40,12 @@ function(luastg_target_copy_to_bin_directory after_target target)
     )
 endfunction()
 
+function(luastg_target_copy_to_target_directory after_target from_target to_target)
+    add_custom_command(TARGET ${after_target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:${from_target}>" "$<TARGET_FILE_DIR:${to_target}>"
+    )
+endfunction()
+
 function(luastg_target_platform_windows_7 __TARGET__)
     target_compile_definitions(${__TARGET__}
     PRIVATE
