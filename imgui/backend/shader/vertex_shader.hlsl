@@ -20,7 +20,7 @@ struct PS_INPUT
 PS_INPUT main(VS_INPUT input)
 {
     PS_INPUT output;
-    output.pos = mul(ProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));
+    output.pos = mul(ProjectionMatrix, float4(input.pos.xy, 0.0f, 1.0f));
     output.col = input.col;
     output.uv  = input.uv;
     return output;
