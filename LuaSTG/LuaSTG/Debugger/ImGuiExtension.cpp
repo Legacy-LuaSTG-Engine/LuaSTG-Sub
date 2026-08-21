@@ -447,22 +447,17 @@ namespace {
 
 			// 60 fps reference line
 
-			ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
 			constexpr double fps_60_ms{ 1000.0 / 60.0 };
-			ImPlot::PlotInfLines("##60 FPS", &fps_60_ms, 1, ImPlotInfLinesFlags_Horizontal);
+			ImPlot::PlotInfLines("##60 FPS", &fps_60_ms, 1, ImPlotSpec(ImPlotProp_LineColor, ImVec4(0.2f, 1.0f, 0.2f, 1.0f), ImPlotProp_Flags, ImPlotInfLinesFlags_Horizontal));
 
 			m_frame_data_view_begin = (m_frame_data_begin + m_frame_data.size() - m_frame_data_view_count + 1) % m_frame_data.size();
 
 			const int count = static_cast<int>(m_frame_data_view_count);
-			ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.25f);
 			//ImPlot::PlotShaded("Total", arr_x.data(), arr_wait_time.data(), arr_total_time.data(), (int)record_range);
-			ImPlot::PlotShadedG("Wait", &getFrameDataPresentTimeHigh, this, &getFrameDataWaitTimeHigh, this, count);
-			ImPlot::PopStyleVar();
-			ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
-			ImPlot::PlotShadedG("Present", &getFrameDataRenderTimeHigh, this, &getFrameDataPresentTimeHigh, this, count);
-			ImPlot::PlotShadedG("Render", &getFrameDataUpdateTimeHigh, this, &getFrameDataRenderTimeHigh, this, count);
-			ImPlot::PlotShadedG("Update", &getPlotPointZero, this, &getFrameDataUpdateTimeHigh, this, count);
-			ImPlot::PopStyleVar();
+			ImPlot::PlotShadedG("Wait", &getFrameDataPresentTimeHigh, this, &getFrameDataWaitTimeHigh, this, count, ImPlotSpec(ImPlotProp_FillAlpha, 0.25f));
+			ImPlot::PlotShadedG("Present", &getFrameDataRenderTimeHigh, this, &getFrameDataPresentTimeHigh, this, count, ImPlotSpec(ImPlotProp_FillAlpha, 0.5f));
+			ImPlot::PlotShadedG("Render", &getFrameDataUpdateTimeHigh, this, &getFrameDataRenderTimeHigh, this, count, ImPlotSpec(ImPlotProp_FillAlpha, 0.5f));
+			ImPlot::PlotShadedG("Update", &getPlotPointZero, this, &getFrameDataUpdateTimeHigh, this, count, ImPlotSpec(ImPlotProp_FillAlpha, 0.5f));
 
 			//ImPlot::PlotLine("Total", arr_total_time.data(), (int)record_range);
 			ImPlot::PlotLineG("Wait", &getFrameDataWaitTimeHigh, this, count);
@@ -525,16 +520,13 @@ namespace {
 
 			// 60 fps reference line
 
-			ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
 			constexpr double fps_60_ms{ 1000.0 / 60.0 };
-			ImPlot::PlotInfLines("##60 FPS", &fps_60_ms, 1, ImPlotInfLinesFlags_Horizontal);
+			ImPlot::PlotInfLines("##60 FPS", &fps_60_ms, 1, ImPlotSpec(ImPlotProp_LineColor, ImVec4(0.2f, 1.0f, 0.2f, 1.0f), ImPlotProp_Flags, ImPlotInfLinesFlags_Horizontal));
 
 			m_render_data_view_begin = (m_render_data_begin + m_render_data.size() - m_render_data_view_count + 1) % m_render_data.size();
 
 			const int count = static_cast<int>(m_render_data_view_count);
-			ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
-			ImPlot::PlotShadedG("Render", &getPlotPointZero, this, &getRenderDataRenderTimeHigh, this, count);
-			ImPlot::PopStyleVar();
+			ImPlot::PlotShadedG("Render", &getPlotPointZero, this, &getRenderDataRenderTimeHigh, this, count, ImPlotSpec(ImPlotProp_FillAlpha, 0.5f));
 
 			ImPlot::PlotLineG("Render", &getRenderDataRenderTimeHigh, this, count);
 		}
@@ -816,8 +808,7 @@ namespace {
 						ImPlot::PlotLine("GPU (MiB)", arr_mem_gpu.data(), (int)record_range);
 						ImPlot::PlotLine("Lua (MiB)", arr_mem_lua.data(), (int)record_range);
 
-						ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-						ImPlot::PlotInfLines("##Current Time", &arr_index, 1, ImPlotInfLinesFlags_None);
+						ImPlot::PlotInfLines("##Current Time", &arr_index, 1, ImPlotSpec(ImPlotProp_LineColor, ImVec4(0.2f, 0.2f, 0.2f, 1.0f), ImPlotProp_Flags, ImPlotInfLinesFlags_None));
 
 						ImPlot::EndPlot();
 					}

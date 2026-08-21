@@ -58,6 +58,14 @@ namespace {
 		ctx.push_value(result);
 		return 1;
 	}
+	int GetItemClickedCountWithSingleClickDelay(lua_State* const vm) {
+		lua::stack_t const ctx(vm);
+		auto const mouse_button = ctx.get_value<ImGuiMouseButton>(1, 0);
+		auto const delay = ctx.get_value<float>(2, -1.0f);
+		auto const result = ImGui::GetItemClickedCountWithSingleClickDelay(mouse_button, delay);
+		ctx.push_value(result);
+		return 1;
+	}
 }
 
 namespace imgui::binding {
@@ -84,5 +92,6 @@ namespace imgui::binding {
 		ctx.set_map_value(m, "GetItemRectMax"sv, &GetItemRectMax);
 		ctx.set_map_value(m, "GetItemRectSize"sv, &GetItemRectSize);
 		ctx.set_map_value(m, "GetItemFlags"sv, &GetItemFlags);
+		ctx.set_map_value(m, "GetItemClickedCountWithSingleClickDelay"sv, &GetItemClickedCountWithSingleClickDelay);
 	}
 }

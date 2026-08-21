@@ -30,22 +30,25 @@ namespace {
 	int OpenPopup(lua_State* const vm) {
 		lua::stack_t const ctx(vm);
 		auto const popup_flags = ctx.get_value<ImGuiPopupFlags>(2, 0);
+		auto result = false;
 		if (ctx.is_string(1)) {
 			auto const str_id = ctx.get_value<std::string_view>(1);
-			ImGui::OpenPopup(str_id.data(), popup_flags);
+			result = ImGui::OpenPopup(str_id.data(), popup_flags);
 		}
 		else {
 			auto const id = ctx.get_value<ImGuiID>(1);
-			ImGui::OpenPopup(id, popup_flags);
+			result = ImGui::OpenPopup(id, popup_flags);
 		}
-		return 0;
+		ctx.push_value(result);
+		return 1;
 	}
 	int OpenPopupOnItemClick(lua_State* const vm) {
 		lua::stack_t const ctx(vm);
 		auto const str_id = ctx.get_value<std::string_view>(1, {});
 		auto const popup_flags = ctx.get_value<ImGuiPopupFlags>(2, 1); // MAGIC NUMBER
-		ImGui::OpenPopupOnItemClick(str_id.data(), popup_flags);
-		return 0;
+		auto const result = ImGui::OpenPopupOnItemClick(str_id.data(), popup_flags);
+		ctx.push_value(result);
+		return 1;
 	}
 	int CloseCurrentPopup(lua_State*) {
 		ImGui::CloseCurrentPopup();

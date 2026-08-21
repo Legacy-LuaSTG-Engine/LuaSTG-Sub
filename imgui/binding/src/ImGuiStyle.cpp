@@ -151,6 +151,8 @@ namespace imgui::binding {
 			GET_FLAG(TreeLinesFlags);
 			GET_SCALAR(TreeLinesSize);
 			GET_SCALAR(TreeLinesRounding);
+			GET_SCALAR(MenuItemRounding);
+			GET_SCALAR(SelectableRounding);
 			GET_SCALAR(DragDropTargetRounding);
 			GET_SCALAR(DragDropTargetBorderSize);
 			GET_SCALAR(DragDropTargetPadding);
@@ -158,6 +160,8 @@ namespace imgui::binding {
 			GET_FLAG(ColorButtonPosition);
 			GET_VEC2(ButtonTextAlign);
 			GET_VEC2(SelectableTextAlign);
+			GET_SCALAR(InputTextCursorSize);
+			GET_SCALAR(SeparatorSize);
 			GET_SCALAR(SeparatorTextBorderSize);
 			GET_VEC2(SeparatorTextAlign);
 			GET_VEC2(SeparatorTextPadding);
@@ -308,6 +312,8 @@ namespace imgui::binding {
 			SET_FLAG(TreeLinesFlags);
 			SET_SCALAR(TreeLinesSize);
 			SET_SCALAR(TreeLinesRounding);
+			SET_SCALAR(MenuItemRounding);
+			SET_SCALAR(SelectableRounding);
 			SET_SCALAR(DragDropTargetRounding);
 			SET_SCALAR(DragDropTargetBorderSize);
 			SET_SCALAR(DragDropTargetPadding);
@@ -315,6 +321,8 @@ namespace imgui::binding {
 			SET_FLAG(ColorButtonPosition);
 			SET_VEC2(ButtonTextAlign);
 			SET_VEC2(SelectableTextAlign);
+			SET_SCALAR(InputTextCursorSize);
+			SET_SCALAR(SeparatorSize);
 			SET_SCALAR(SeparatorTextBorderSize);
 			SET_VEC2(SeparatorTextAlign);
 			SET_VEC2(SeparatorTextPadding);
