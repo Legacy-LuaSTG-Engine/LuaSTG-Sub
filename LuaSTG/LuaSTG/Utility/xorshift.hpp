@@ -37,11 +37,11 @@ namespace random
         std::string_view name() override { return "splitmix64"; }
 
     public:
-        static uint64_t min()
+        static constexpr uint64_t min()
         {
             return UINT64_C(0);
         }
-        static uint64_t max()
+        static constexpr uint64_t max()
         {
             return UINT64_MAX;
         }
@@ -171,11 +171,11 @@ namespace random
         virtual std::string_view name() { return "xoshiro128"; }
 
     public:
-        static uint32_t min()
+        static constexpr uint32_t min()
         {
             return UINT32_C(0);
         }
-        static uint32_t max()
+        static constexpr uint32_t max()
         {
             return UINT32_MAX;
         }
@@ -389,11 +389,11 @@ namespace random
         virtual std::string_view name() { return "xoroshiro128"; }
 
     public:
-        static uint64_t min()
+        static constexpr uint64_t min()
         {
             return UINT64_C(0);
         }
-        static uint64_t max()
+        static constexpr uint64_t max()
         {
             return UINT64_MAX;
         }
@@ -622,11 +622,11 @@ namespace random
         virtual std::string_view name() { return "xoshiro256"; }
 
     public:
-        static uint64_t min()
+        static constexpr uint64_t min()
         {
             return UINT64_C(0);
         }
-        static uint64_t max()
+        static constexpr uint64_t max()
         {
             return UINT64_MAX;
         }
@@ -840,11 +840,11 @@ namespace random
         virtual std::string_view name() { return "xoshiro512"; }
 
     public:
-        static uint64_t min()
+        static constexpr uint64_t min()
         {
             return UINT64_C(0);
         }
-        static uint64_t max()
+        static constexpr uint64_t max()
         {
             return UINT64_MAX;
         }
@@ -1083,11 +1083,11 @@ namespace random
         virtual std::string_view name() { return "xoroshiro1024"; }
 
     public:
-        static uint64_t min()
+        static constexpr uint64_t min()
         {
             return UINT64_C(0);
         }
-        static uint64_t max()
+        static constexpr uint64_t max()
         {
             return UINT64_MAX;
         }
