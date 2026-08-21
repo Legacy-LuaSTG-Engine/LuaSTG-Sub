@@ -75,8 +75,9 @@ namespace {
 	int SetItemKeyOwner(lua_State* const vm) {
 		lua::stack_t const ctx(vm);
 		auto const key = ctx.get_value<ImGuiKey>(1);
-		ImGui::SetItemKeyOwner(key);
-		return 0;
+		auto const result = ImGui::SetItemKeyOwner(key);
+		ctx.push_value(result);
+		return 1;
 	}
 
 	int IsMouseDown(lua_State* const vm) {
@@ -111,7 +112,7 @@ namespace {
 	int IsMouseReleasedWithDelay(lua_State* const vm) {
 		lua::stack_t const ctx(vm);
 		auto const button = ctx.get_value<ImGuiMouseButton>(1);
-		auto const delay = ctx.get_value<float>(2);
+		auto const delay = ctx.get_value<float>(2, -1.0f);
 		auto const result = ImGui::IsMouseReleasedWithDelay(button, delay);
 		ctx.push_value(result);
 		return 1;

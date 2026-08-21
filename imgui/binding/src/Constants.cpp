@@ -54,7 +54,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "NavFlattened"sv, ImGuiChildFlags_NavFlattened);
 	}
 	{
-		auto const e = ctx.create_map(8);
+		auto const e = ctx.create_map(11);
 		ctx.set_map_value(m, "ImGuiItemFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiItemFlags_None);
 		ctx.set_map_value(e, "NoTabStop"sv, ImGuiItemFlags_NoTabStop);
@@ -64,6 +64,9 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "AutoClosePopups"sv, ImGuiItemFlags_AutoClosePopups);
 		ctx.set_map_value(e, "AllowDuplicateId"sv, ImGuiItemFlags_AllowDuplicateId);
 		ctx.set_map_value(e, "Disabled"sv, ImGuiItemFlags_Disabled);
+		ctx.set_map_value(e, "LiveEditOnInputText"sv, ImGuiItemFlags_LiveEditOnInputText);
+		ctx.set_map_value(e, "LiveEditOnInputScalar"sv, ImGuiItemFlags_LiveEditOnInputScalar);
+		ctx.set_map_value(e, "LiveEditOnInput"sv, ImGuiItemFlags_LiveEditOnInput);
 	}
 	{
 		auto const e = ctx.create_map(26);
@@ -96,7 +99,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "WordWrap"sv, ImGuiInputTextFlags_WordWrap);
 	}
 	{
-		auto const e = ctx.create_map(24);
+		auto const e = ctx.create_map(23);
 		ctx.set_map_value(m, "ImGuiTreeNodeFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiTreeNodeFlags_None);
 		ctx.set_map_value(e, "Selected"sv, ImGuiTreeNodeFlags_Selected);
@@ -230,7 +233,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "NoSharedDelay"sv, ImGuiHoveredFlags_NoSharedDelay);
 	}
 	{
-		auto const e = ctx.create_map(15);
+		auto const e = ctx.create_map(14);
 		ctx.set_map_value(m, "ImGuiDragDropFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiDragDropFlags_None);
 		ctx.set_map_value(e, "SourceNoPreviewTooltip"sv, ImGuiDragDropFlags_SourceNoPreviewTooltip);
@@ -488,7 +491,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "RendererHasTextures"sv, ImGuiBackendFlags_RendererHasTextures);
 	}
 	{
-		auto const e = ctx.create_map(65);
+		auto const e = ctx.create_map(66);
 		ctx.set_map_value(m, "ImGuiCol"sv, e);
 		ctx.set_map_value(e, "Text"sv, ImGuiCol_Text);
 		ctx.set_map_value(e, "TextDisabled"sv, ImGuiCol_TextDisabled);
@@ -509,6 +512,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "ScrollbarGrabHovered"sv, ImGuiCol_ScrollbarGrabHovered);
 		ctx.set_map_value(e, "ScrollbarGrabActive"sv, ImGuiCol_ScrollbarGrabActive);
 		ctx.set_map_value(e, "CheckMark"sv, ImGuiCol_CheckMark);
+		ctx.set_map_value(e, "CheckboxSelectedBg"sv, ImGuiCol_CheckboxSelectedBg);
 		ctx.set_map_value(e, "SliderGrab"sv, ImGuiCol_SliderGrab);
 		ctx.set_map_value(e, "SliderGrabActive"sv, ImGuiCol_SliderGrabActive);
 		ctx.set_map_value(e, "Button"sv, ImGuiCol_Button);
@@ -553,7 +557,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "COUNT"sv, ImGuiCol_COUNT);
 	}
 	{
-		auto const e = ctx.create_map(41);
+		auto const e = ctx.create_map(45);
 		ctx.set_map_value(m, "ImGuiStyleVar"sv, e);
 		ctx.set_map_value(e, "Alpha"sv, ImGuiStyleVar_Alpha);
 		ctx.set_map_value(e, "DisabledAlpha"sv, ImGuiStyleVar_DisabledAlpha);
@@ -590,15 +594,19 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "TableAngledHeadersTextAlign"sv, ImGuiStyleVar_TableAngledHeadersTextAlign);
 		ctx.set_map_value(e, "TreeLinesSize"sv, ImGuiStyleVar_TreeLinesSize);
 		ctx.set_map_value(e, "TreeLinesRounding"sv, ImGuiStyleVar_TreeLinesRounding);
+		ctx.set_map_value(e, "MenuItemRounding"sv, ImGuiStyleVar_MenuItemRounding);
+		ctx.set_map_value(e, "SelectableRounding"sv, ImGuiStyleVar_SelectableRounding);
+		ctx.set_map_value(e, "DragDropTargetRounding"sv, ImGuiStyleVar_DragDropTargetRounding);
 		ctx.set_map_value(e, "ButtonTextAlign"sv, ImGuiStyleVar_ButtonTextAlign);
 		ctx.set_map_value(e, "SelectableTextAlign"sv, ImGuiStyleVar_SelectableTextAlign);
+		ctx.set_map_value(e, "SeparatorSize"sv, ImGuiStyleVar_SeparatorSize);
 		ctx.set_map_value(e, "SeparatorTextBorderSize"sv, ImGuiStyleVar_SeparatorTextBorderSize);
 		ctx.set_map_value(e, "SeparatorTextAlign"sv, ImGuiStyleVar_SeparatorTextAlign);
 		ctx.set_map_value(e, "SeparatorTextPadding"sv, ImGuiStyleVar_SeparatorTextPadding);
 		ctx.set_map_value(e, "COUNT"sv, ImGuiStyleVar_COUNT);
 	}
 	{
-		auto const e = ctx.create_map(6);
+		auto const e = ctx.create_map(7);
 		ctx.set_map_value(m, "ImGuiButtonFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiButtonFlags_None);
 		ctx.set_map_value(e, "MouseButtonLeft"sv, ImGuiButtonFlags_MouseButtonLeft);
@@ -606,9 +614,10 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "MouseButtonMiddle"sv, ImGuiButtonFlags_MouseButtonMiddle);
 		ctx.set_map_value(e, "MouseButtonMask_"sv, ImGuiButtonFlags_MouseButtonMask_);
 		ctx.set_map_value(e, "EnableNav"sv, ImGuiButtonFlags_EnableNav);
+		ctx.set_map_value(e, "AllowOverlap"sv, ImGuiButtonFlags_AllowOverlap);
 	}
 	{
-		auto const e = ctx.create_map(33);
+		auto const e = ctx.create_map(34);
 		ctx.set_map_value(m, "ImGuiColorEditFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiColorEditFlags_None);
 		ctx.set_map_value(e, "NoAlpha"sv, ImGuiColorEditFlags_NoAlpha);
@@ -634,6 +643,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "Float"sv, ImGuiColorEditFlags_Float);
 		ctx.set_map_value(e, "PickerHueBar"sv, ImGuiColorEditFlags_PickerHueBar);
 		ctx.set_map_value(e, "PickerHueWheel"sv, ImGuiColorEditFlags_PickerHueWheel);
+		ctx.set_map_value(e, "PickerNoRotate"sv, ImGuiColorEditFlags_PickerNoRotate);
 		ctx.set_map_value(e, "InputRGB"sv, ImGuiColorEditFlags_InputRGB);
 		ctx.set_map_value(e, "InputHSV"sv, ImGuiColorEditFlags_InputHSV);
 		ctx.set_map_value(e, "DefaultOptions_"sv, ImGuiColorEditFlags_DefaultOptions_);
@@ -794,7 +804,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "NoSetTableRowCounters"sv, ImGuiListClipperFlags_NoSetTableRowCounters);
 	}
 	{
-		auto const e = ctx.create_map(18);
+		auto const e = ctx.create_map(22);
 		ctx.set_map_value(m, "ImGuiMultiSelectFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiMultiSelectFlags_None);
 		ctx.set_map_value(e, "SingleSelect"sv, ImGuiMultiSelectFlags_SingleSelect);
@@ -810,10 +820,13 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "ClearOnClickVoid"sv, ImGuiMultiSelectFlags_ClearOnClickVoid);
 		ctx.set_map_value(e, "ScopeWindow"sv, ImGuiMultiSelectFlags_ScopeWindow);
 		ctx.set_map_value(e, "ScopeRect"sv, ImGuiMultiSelectFlags_ScopeRect);
-		ctx.set_map_value(e, "SelectOnClick"sv, ImGuiMultiSelectFlags_SelectOnClick);
+		ctx.set_map_value(e, "SelectOnAuto"sv, ImGuiMultiSelectFlags_SelectOnAuto);
+		ctx.set_map_value(e, "SelectOnClickAlways"sv, ImGuiMultiSelectFlags_SelectOnClickAlways);
 		ctx.set_map_value(e, "SelectOnClickRelease"sv, ImGuiMultiSelectFlags_SelectOnClickRelease);
 		ctx.set_map_value(e, "NavWrapX"sv, ImGuiMultiSelectFlags_NavWrapX);
 		ctx.set_map_value(e, "NoSelectOnRightClick"sv, ImGuiMultiSelectFlags_NoSelectOnRightClick);
+		ctx.set_map_value(e, "SelectOnMask_"sv, ImGuiMultiSelectFlags_SelectOnMask_);
+		ctx.set_map_value(e, "CheckboxMode_"sv, ImGuiMultiSelectFlags_CheckboxMode_);
 	}
 	{
 		auto const e = ctx.create_map(3);
@@ -823,31 +836,33 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "SetRange"sv, ImGuiSelectionRequestType_SetRange);
 	}
 	{
-		auto const e = ctx.create_map(14);
+		auto const e = ctx.create_map(15);
 		ctx.set_map_value(m, "ImDrawFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImDrawFlags_None);
-		ctx.set_map_value(e, "Closed"sv, ImDrawFlags_Closed);
 		ctx.set_map_value(e, "RoundCornersTopLeft"sv, ImDrawFlags_RoundCornersTopLeft);
 		ctx.set_map_value(e, "RoundCornersTopRight"sv, ImDrawFlags_RoundCornersTopRight);
 		ctx.set_map_value(e, "RoundCornersBottomLeft"sv, ImDrawFlags_RoundCornersBottomLeft);
 		ctx.set_map_value(e, "RoundCornersBottomRight"sv, ImDrawFlags_RoundCornersBottomRight);
 		ctx.set_map_value(e, "RoundCornersNone"sv, ImDrawFlags_RoundCornersNone);
+		ctx.set_map_value(e, "RoundCornersAll"sv, ImDrawFlags_RoundCornersAll);
+		ctx.set_map_value(e, "RoundCornersDefault_"sv, ImDrawFlags_RoundCornersDefault_);
 		ctx.set_map_value(e, "RoundCornersTop"sv, ImDrawFlags_RoundCornersTop);
 		ctx.set_map_value(e, "RoundCornersBottom"sv, ImDrawFlags_RoundCornersBottom);
 		ctx.set_map_value(e, "RoundCornersLeft"sv, ImDrawFlags_RoundCornersLeft);
 		ctx.set_map_value(e, "RoundCornersRight"sv, ImDrawFlags_RoundCornersRight);
-		ctx.set_map_value(e, "RoundCornersAll"sv, ImDrawFlags_RoundCornersAll);
-		ctx.set_map_value(e, "RoundCornersDefault_"sv, ImDrawFlags_RoundCornersDefault_);
 		ctx.set_map_value(e, "RoundCornersMask_"sv, ImDrawFlags_RoundCornersMask_);
+		ctx.set_map_value(e, "Closed"sv, ImDrawFlags_Closed);
+		ctx.set_map_value(e, "InvalidMask_"sv, ImDrawFlags_InvalidMask_);
 	}
 	{
-		auto const e = ctx.create_map(5);
+		auto const e = ctx.create_map(6);
 		ctx.set_map_value(m, "ImDrawListFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImDrawListFlags_None);
 		ctx.set_map_value(e, "AntiAliasedLines"sv, ImDrawListFlags_AntiAliasedLines);
 		ctx.set_map_value(e, "AntiAliasedLinesUseTex"sv, ImDrawListFlags_AntiAliasedLinesUseTex);
 		ctx.set_map_value(e, "AntiAliasedFill"sv, ImDrawListFlags_AntiAliasedFill);
 		ctx.set_map_value(e, "AllowVtxOffset"sv, ImDrawListFlags_AllowVtxOffset);
+		ctx.set_map_value(e, "TextNoPixelSnap"sv, ImDrawListFlags_TextNoPixelSnap);
 	}
 	{
 		auto const e = ctx.create_map(2);
@@ -873,12 +888,13 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "NoBakedLines"sv, ImFontAtlasFlags_NoBakedLines);
 	}
 	{
-		auto const e = ctx.create_map(4);
+		auto const e = ctx.create_map(5);
 		ctx.set_map_value(m, "ImFontFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImFontFlags_None);
 		ctx.set_map_value(e, "NoLoadError"sv, ImFontFlags_NoLoadError);
 		ctx.set_map_value(e, "NoLoadGlyphs"sv, ImFontFlags_NoLoadGlyphs);
 		ctx.set_map_value(e, "LockBakedSizes"sv, ImFontFlags_LockBakedSizes);
+		ctx.set_map_value(e, "ImplicitRefSize"sv, ImFontFlags_ImplicitRefSize);
 	}
 	{
 		auto const e = ctx.create_map(4);

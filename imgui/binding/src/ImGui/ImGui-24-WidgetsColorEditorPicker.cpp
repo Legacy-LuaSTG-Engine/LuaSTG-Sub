@@ -126,12 +126,6 @@ namespace {
 		ctx.push_value(result);
 		return 1;
 	}
-	int SetColorEditOptions(lua_State* const vm) {
-		lua::stack_t const ctx(vm);
-		auto const flags = ctx.get_value<ImGuiColorEditFlags>(1);
-		ImGui::SetColorEditOptions(flags);
-		return 0;
-	}
 }
 
 namespace imgui::binding {
@@ -145,6 +139,5 @@ namespace imgui::binding {
 		ctx.set_map_value(m, "ColorPicker3"sv, &ColorPicker3);
 		ctx.set_map_value(m, "ColorPicker4"sv, &ColorPicker4);
 		ctx.set_map_value(m, "ColorButton"sv, &ColorButton);
-		ctx.set_map_value(m, "SetColorEditOptions"sv, &SetColorEditOptions);
 	}
 }

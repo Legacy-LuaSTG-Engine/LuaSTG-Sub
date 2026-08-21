@@ -104,6 +104,13 @@ namespace {
 		ImGui::SetNextItemStorageID(storage_id);
 		return 0;
 	}
+	int TreeNodeGetOpen(lua_State* const vm) {
+		lua::stack_t const ctx(vm);
+		auto const storage_id = ctx.get_value<ImGuiID>(1);
+		auto const result = ImGui::TreeNodeGetOpen(storage_id);
+		ctx.push_value(result);
+		return 1;
+	}
 }
 
 namespace imgui::binding {
@@ -122,6 +129,7 @@ namespace imgui::binding {
 		ctx.set_map_value(m, "CollapsingHeader"sv, &CollapsingHeader);
 		ctx.set_map_value(m, "SetNextItemOpen"sv, &SetNextItemOpen);
 		ctx.set_map_value(m, "SetNextItemStorageID"sv, &SetNextItemStorageID);
+		ctx.set_map_value(m, "TreeNodeGetOpen"sv, &TreeNodeGetOpen);
 
 		luaL_dostring(vm, R"(
 local select = select

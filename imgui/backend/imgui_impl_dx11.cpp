@@ -161,6 +161,14 @@ static void ImGui_ImplDX11_SetupRenderState(const ImDrawData* draw_data, ID3D11D
     device_ctx->RSSetState(bd->pRasterizerState);
 }
 
+// Standard draw callbacks registered in platform_io (as of 1.92.8).
+// DrawCallback_ResetRenderState is intentionally empty; it is only used as an identifier so
+// the rendering loop can detect it and call SetupRenderState().
+static void ImGui_ImplDX11_DrawCallback_ResetRenderState(const ImDrawList*, const ImDrawCmd*) {}
+static void ImGui_ImplDX11_DrawCallback_SetSamplerLinear(const ImDrawList*, const ImDrawCmd*) { ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData(); bd->pd3dDeviceContext->PSSetSamplers(0, 1, &bd->pTexSamplerLinear); }
+static void ImGui_ImplDX11_DrawCallback_SetSamplerNearest(const ImDrawList*, const ImDrawCmd*) { ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData(); bd->pd3dDeviceContext->PSSetSamplers(0, 1, &bd->pTexSamplerNearest); }
+
+
 // Render function
 void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 {
@@ -296,8 +304,8 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
             if (pcmd->UserCallback != nullptr)
             {
                 // User callback, registered via ImDrawList::AddCallback()
-                // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
-                if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+                // (The reset-render-state callback is used by the user to request the renderer to reset render state.)
+                if (pcmd->UserCallback == ImGui::GetPlatformIO().DrawCallback_ResetRenderState)
                     ImGui_ImplDX11_SetupRenderState(draw_data, device);
                 else
                     pcmd->UserCallback(draw_list, pcmd);
@@ -644,6 +652,9 @@ bool    ImGui_ImplDX11_Init(ID3D11Device* device, ID3D11DeviceContext* device_co
 
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
     platform_io.Renderer_TextureMaxWidth = platform_io.Renderer_TextureMaxHeight = D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
+    platform_io.DrawCallback_ResetRenderState  = ImGui_ImplDX11_DrawCallback_ResetRenderState;
+    platform_io.DrawCallback_SetSamplerLinear  = ImGui_ImplDX11_DrawCallback_SetSamplerLinear;
+    platform_io.DrawCallback_SetSamplerNearest = ImGui_ImplDX11_DrawCallback_SetSamplerNearest;
 
     // Get factory from device
     IDXGIDevice* pDXGIDevice = nullptr;
