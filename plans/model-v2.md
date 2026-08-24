@@ -146,7 +146,131 @@ struct IModelRenderer : IReferenceCounted {
 
 ---
 
-## 五、配套 / 新增 API 汇总
+## 五、顶点输入配置（glTF 2.0）
+
+> 来源：`Specification.adoc` 的 Buffers/Accessors/Geometry/Meshes 章节 + `schema/accessor.schema.json`、`schema/mesh.primitive.schema.json`。
+> 目标：梳理 `IModel` 加载层需要支持的顶点输入全部配置，作为输入布局/PSO 缓存设计的依据。
+
+### 5.1 语义槽位（`primitive.attributes`）
+`attributes` 是一个键值映射：**语义名 → accessor 索引**。
+
+Spec 定义的标准语义：
+
+| 语义 | Accessor 类型 | 组件类型 | 说明 |
+|------|--------------|---------|------|
+| `POSITION` | VEC3 | float | 单位无关 XYZ 位置（**必含 min/max**） |
+| `NORMAL` | VEC3 | float | 单位化法线 |
+| `TANGENT` | VEC4 | float | XYZW，W=±1 表示切空间手性 |
+| `TEXCOORD_n` | VEC2 | float / ubyte* / ushort* | ST 纹理坐标 |
+| `COLOR_n` | VEC3 / VEC4 | float / ubyte* / ushort* | 顶点色线性倍率（VEC3 时 alpha 视为 1.0） |
+| `JOINTS_n` | VEC4 | ubyte / ushort | 骨架关节索引 |
+| `WEIGHTS_n` | VEC4 | float / ubyte* / ushort* | 骨骼权重 |
+
+(\* = `normalized` 整型)
+
+- 应用自定义语义必须以 `_` 开头（如 `_TEMPERATURE`），**不得**用 unsigned int 组件。
+- 索引起始 0 且连续（`TEXCOORD_0, TEXCOORD_1, ...`），无前导零（`TEXCOORD_01` 非法）。
+- 实现应至少支持 **2 套 TEXCOORD、1 套 COLOR、1 套 JOINTS/WEIGHTS**。
+
+**映射到当前 Model 输入布局**：
+
+| 语义 | 槽位 | 当前格式 |
+|------|------|---------|
+| `POSITION` | 0 | `R32G32B32_FLOAT` |
+| `NORMAL` | 1 | `R32G32B32_FLOAT` |
+| `TEXCOORD_0` | 2 | `R32G32_FLOAT` |
+| `COLOR_0` | 3 | `R32G32B32_FLOAT` |
+
+### 5.2 数据类型（`componentType` × `type`）
+组件类型：
+
+| 值 | 类型 | 有无符号 | 位 |
+|----|------|---------|----|
+| 5120 | signed byte | 有 | 8 |
+| 5121 | unsigned byte | 无 | 8 |
+| 5122 | signed short | 有 | 16 |
+| 5123 | unsigned short | 无 | 16 |
+| 5125 | unsigned int | 无 | 32 |
+| 5126 | float | — | 32 |
+
+（**32 位有符号整数不支持**）
+
+`type`：SCALAR(1) / VEC2(2) / VEC3(3) / VEC4(4) / MAT2(4) / MAT3(9) / MAT4(16)。
+元素字节 = 组件字节 × 组件数。二进制统一**小端**字节序（GLB BIN chunk）。
+
+### 5.3 `normalized` 标志
+- `true` → 整型访问时归一化：
+  - **无符号 → [0,1]**（除以 `2^n−1`：ubyte/255、ushort/65535）
+  - **有符号 → [−1,1]**（除以 `2^(n−1)−1`）
+- **禁止对 FLOAT / UNSIGNED_INT 置 true**
+- 对 `min/max` 无影响
+- 适用于 TEXCOORD / COLOR / WEIGHTS（morph 的 COLOR/TEXCOORD 允许有符号变体）
+
+**对引擎的关键影响**：`TEXCOORD_0` / `COLOR_0` 允许 normalized 整型（ubyte/ushort）。当前 `Model_D3D11` 用固定 float 格式读缓冲，遇整型源会格式错乱。v2 需二选一：
+- (a) **加载期展开为 float** —— 简单、兼容现有输入布局；
+- (b) 用对应 DXGI 格式（`R8G8B8A8_UNORM` 等）由 GPU 硬件归一化 —— 省内存/带宽，但输入布局随组件类型变化 → PSO 变体增多。
+
+### 5.4 布局 / 交错（`bufferView.byteStride`）
+- 属性 accessor 用 `byteStride` 定义顶点间距；**未定义 → 紧密排列**（stride = 元素大小）。
+- **2+ 个属性共享同一 bufferView → byteStride 必定义**（交错布局）。
+- `byteStride` 必须是组件类型大小的倍数；建议每顶点 **4 字节对齐**（`byteStride`/`byteOffset` 为 4 的倍数）。
+- `accessor.byteOffset` 定位于 bufferView 内。
+
+### 5.5 索引 accessor
+- 类型 `SCALAR` + **无符号整型**组件（5121 / 5123 / 5125）。
+- 仅索引图元使用；`count` = 索引数。
+- 索引**不得**含组件类型的最大值（255 / 65535 / 4294967295）—— 该值触发 primitive restart。
+- 无索引时：属性 `count` = 待渲染顶点数（隐式索引 `[0..count)`）；有索引时：索引值 `< 属性 count`。
+
+### 5.6 属性一致性 / 缺失处理
+- 同一 primitive 所有属性 accessor 的 `count` **必须一致**。
+- 缺 `POSITION` → 实现应**跳过**该 primitive（除非扩展提供位置）。
+- 缺 `NORMAL` → 必须计算平面法线（basecolor 最简模式可忽略，需文档化该豁免）。
+
+### 5.7 对管线缓存 / 输入布局的本质影响
+- **输入布局的格式由 accessor 的（componentType × type × normalized）共同决定，无法静态唯一**。
+  → PSO 需按 **「属性签名」**（存在哪些语义 + 各自格式）缓存；叠加 §四 拓扑 → 缓存键 = `属性签名 × 拓扑 × fog × alpha × 单双面`。
+- 索引格式由索引 accessor 组件类型决定：ubyte→扩 ushort / ushort→`r16_uint` / uint→`r32_uint`。
+
+### 5.8 覆盖性排查结论（GPU 抽象层 VertexInput vs glTF 2.0）
+
+**范围收敛**：本项目只需**网格 + basecolor** 基础渲染，即保证 `POSITION` + `TEXCOORD_0`（+ 可选 `COLOR_0`）可渲染即可，法线/切线/蒙皮/多 texcoord 集合非必需。
+
+**格式覆盖矩阵**：
+
+| 需求 | glTF 语义 / 类型 | 抽象层 `GraphicsFormat` | `toFormat → DXGI` | 覆盖 |
+|------|------------------|------------------------|-------------------|------|
+| 顶点位置 | POSITION VEC3 float | `r32_g32_b32_float` | `R32G32B32_FLOAT` | ✅ |
+| 纹理坐标 (float) | TEXCOORD_0 VEC2 float | `r32_g32_float` | `R32G32_FLOAT` | ✅ |
+| 纹理坐标 (ubyte norm) | TEXCOORD_0 VEC2 ubyte | `r8_g8_unorm` | `R8G8_UNORM` | ✅ |
+| 纹理坐标 (ushort norm) | TEXCOORD_0 VEC2 ushort | `r16_g16_unorm` | `R16G16_UNORM` | ✅ |
+| 顶点色 (VEC3 float) | COLOR_0 VEC3 float | `r32_g32_b32_float` | `R32G32B32_FLOAT` | ✅ |
+| 顶点色 (VEC4 float) | COLOR_0 VEC4 float | `r32_g32_b32_a32_float` | `R32G32B32A32_FLOAT` | ✅ |
+| 顶点色 (ubyte norm) | COLOR_0 VEC4 ubyte | `r8_g8_b8_a8_unorm` | `R8G8B8A8_UNORM` | ✅ |
+| 顶点色 (ushort norm) | COLOR_0 VEC4 ushort | `r16_g16_b16_a16_unorm` | `R16G16B16A16_UNORM` | ✅ |
+| （可选）法线 | NORMAL VEC3 float | `r32_g32_b32_float` | `R32G32B32_FLOAT` | ✅ |
+| 索引 ubyte | ubyte | 加载期扩→ushort | `r16_uint`（buffer stride 2） | ✅ |
+| 索引 ushort | ushort | `r16_uint` | `R16_UINT` | ✅ |
+| 索引 uint | uint | `r32_uint` | `R32_UINT` | ✅ |
+
+**结构覆盖**：
+- 逐槽 stride：由 **buffer 自身 `getBufferStride()`（创建时设定）** 提供，多属性独立 buffer 均可 ✅
+- 交错布局：同 bufferView 多属性交错 `byteStride` → 单个 `IGraphicsBuffer` + 多 element 共享 `buffer_slot` + `offset` 偏移 ✅（`InputSlot` + `AlignedByteOffset` 支持）
+- 多 UV/color 集合：`semantic_index`（`TEXCOORD_0/1...`）支持 ✅
+- 实例数据：`input_rate=instance` + `instance_step_rate` 支持 ✅（最小需求暂用不到）
+
+**结论**：`GraphicsVertexInputState` / `GraphicsFormat` **完全覆盖** glTF 2.0 最小（mesh + basecolor）渲染需求，**无需改动**。
+  - `GraphicsFormat` 已含 `r8_g8_unorm / r16_g16_unorm / r8_g8_b8_a8_unorm / r16_g16_b16_a16_unorm`，可直接由 GPU 硬件归一化整型 TEXCOORD/COLOR（免加载期展开）。
+  - 所需的逐槽 stride 与结构（独立/交错、多槽、instance）均已具备。
+
+**剩下的都是加载层的职责（非抽象层）**：
+  1. 每属性 `IGraphicsBuffer` 的 stride 须按元素大小（紧密）或 `bufferView.byteStride`（交错）设定。
+  2. 索引 ubyte 需扩展为 ushort（`r16`），并排除 primitive-restart 最大值。
+  3. normalized 整型：「直接用 unorm 格式」或「展开为 float」二选一。
+
+---
+
+## 六、配套 / 新增 API 汇总
 
 ### GPU 抽象层
 | # | API | 类型 | 状态 |
@@ -182,7 +306,7 @@ IRenderer::withRawDraw(fn);
 
 ---
 
-## 六、数据流设计
+## 七、数据流设计
 
 ### 每帧绘制流程（IModelRenderer::draw 内部）
 ```
@@ -213,7 +337,7 @@ PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
 
 ---
 
-## 七、迁移步骤（里程碑）
+## 八、迁移步骤（里程碑）
 
 ### M0：准备工作
 - [ ] 确认 `IModel / IModelRenderer` 接口 UUID（`getInterfaceId` 特化）
@@ -226,6 +350,7 @@ PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
 
 ### M2：拆分 Model / ModelRenderer
 - [ ] `IModel` 实现：从 `Model_D3D11` 迁移加载 + 数据持有（缓冲、材质、local_matrix、纹理）
+- [ ] 顶点输入：按 §五 处理组件类型 × normalized（整型 TEXCOORD/COLOR 展开为 float，或映射 DXGI 归一化格式）；索引 ubyte→ushort 扩展 / r16 / r32（见 §五）
 - [ ] 加载期转换 LINE_LOOP / TRIANGLE_FAN（索引展开 + `Logger::warn`），移除 `assert(false)`（见 §四）
 - [ ] `IModelRenderer` 实现：迁移绘制循环到 PSO 路径
 - [ ] 移除 `Model_D3D11`（或保留一段兼容壳）
@@ -242,7 +367,7 @@ PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
 
 ---
 
-## 八、风险与注意事项
+## 九、风险与注意事项
 - **拓扑切换语义**：`setPrimitiveTopology` 与既有 PSO 烘焙 `primitive_type` 可能产生"两处真理"；需明确 PSO 内 `primitive_type` 不再参与判断或保持默认，避免二义性。
 - **PSO 缓存 hash**：`GraphicsPipelineState` 含指针数组（缓冲/元素列表），缓存键需对**解引用后的内容**哈希，而非指针值。
 - **兼容壳**：M2 移除旧类前，先确认 `Renderer_D3D11.hpp` / Lua 绑定无遗漏引用。
