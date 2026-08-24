@@ -181,6 +181,9 @@ Spec 定义的标准语义：
 | `TEXCOORD_0` | 2 | `R32G32_FLOAT` |
 | `COLOR_0` | 3 | `R32G32B32_FLOAT` |
 
+> 上表为**当前（旧 Model_D3D11）基线**；v2 起槽位不变，但各属性格式由 accessor 的 `componentType × type × normalized` **动态推导**（见 §5.9.1），不再固定为上述值。
+> v2 最小实现只需 `POSITION + TEXCOORD_0（+可选 COLOR_0）`（见 §5.8），上面 spec 「至少 2 套 TEXCOORD」为一般实现建议，超出最小范围。
+
 ### 5.2 数据类型（`componentType` × `type`）
 组件类型：
 
@@ -229,7 +232,8 @@ Spec 定义的标准语义：
 
 ### 5.7 对管线缓存 / 输入布局的本质影响
 - **输入布局的格式由 accessor 的（componentType × type × normalized）共同决定，无法静态唯一**。
-  → PSO 需按 **「属性签名」**（存在哪些语义 + 各自格式）缓存；叠加 §四 拓扑 → 缓存键 = `属性签名 × 拓扑 × fog × alpha × 单双面`。
+  → PSO 需按 **「属性签名」**（存在哪些语义 + 各自格式）缓存；缓存键 = `属性签名 × fog × alpha × 单双面`。
+  - ⚠️ **拓扑不进入 PSO 缓存键**：拓扑经 `setPrimitiveTopology` 在 PSO 绑定后**动态**设置（见 §2.1 / 四 / §七），不烘焙进 PSO，因此也不进缓存键——避免 §2.1 所述的 "PSO × 拓扑数" 组合爆炸。
 - 索引格式由索引 accessor 组件类型决定：ubyte→扩 ushort / ushort→`r16_uint` / uint→`r32_uint`。
 
 ### 5.8 覆盖性排查结论（GPU 抽象层 VertexInput vs glTF 2.0）
@@ -266,7 +270,7 @@ Spec 定义的标准语义：
 **剩下的都是加载层的职责（非抽象层）**：
   1. 每属性 `IGraphicsBuffer` 的 stride 须按元素大小（紧密）或 `bufferView.byteStride`（交错）设定。
   2. 索引 ubyte 需扩展为 ushort（`r16`），并排除 primitive-restart 最大值。
-  3. normalized 整型：「直接用 unorm 格式」或「展开为 float」二选一。
+  3. normalized 整型策略已定（见 §5.9）：**直接映射 unorm 格式**；无对应 N 通道（VEC3 normalized）**扩展 VEC4 补 alpha=1.0**，不转 float。
 
 ### 5.9 加载层设计（normalized 整型直接使用 GPU 格式）
 
@@ -335,7 +339,7 @@ struct ModelPrimitive {
    - normalized 整型：**原始字节原样上传**（GPU 按 unorm 格式归一化）。
    - VEC3 normalized：每元素拷贝 RGB，末尾补 alpha=1.0（ubyte→`0xFF`，ushort→`0xFFFF`）**扩展为 VEC4** 后按 `r8_g8_b8_a8_unorm` / `r16_g16_b16_a16_unorm` 上传（不做 float 展开，避免体积膨胀）。
 4. **索引**：无 `indices` → `has_index=false`，`index_count` = 属性 `count`；有则按组件类型 ushort→`r16_uint` / uint→`r32_uint` / ubyte→扩 ushort（排除 255）。
-5. **构建 `ModelPrimitive`**：材质块（base_color / alpha_mode / double_sided / 纹理）赋值；`local_matrix` = §四的 TRS + 右手→左手术式。
+5. **构建 `ModelPrimitive`**：材质块（base_color / alpha_mode / double_sided / 纹理）赋值；`local_matrix` = TRS 累积 + 右手→左手术式（见 `reviews/model.md` §一 / §八）。
 6. **计算 `attribute_signature`**（见 5.9.4）。
 
 #### 5.9.4 属性签名（PSO 缓存键的一部分）
@@ -344,7 +348,7 @@ struct ModelPrimitive {
 // 用槽位(0..3) + format 构造确定性签名，供 createGraphicsPipelineCached 复用
 uint64_t attr_sig = FNV1a(slot0_format) ^ FNV1a(slot1_format) ...;
 ```
-- PSO 缓存键 = `attribute_signature × topology × fog × alpha_mode × double_sided`（见 §5.7）。
+- PSO 缓存键 = `attribute_signature × fog × alpha_mode × double_sided`（见 §5.7；拓扑经 `setPrimitiveTopology` 动态设置，**不进缓存键**）。
 - 纹理有无 / 顶点色有无天然编码在签名中（未声明该槽位即缺该属性）。
 
 #### 5.9.5 缺省/降级（basecolor 语义）
@@ -352,6 +356,7 @@ uint64_t attr_sig = FNV1a(slot0_format) ^ FNV1a(slot1_format) ...;
 - 无 `COLOR_0` → 无顶点色变体（顶点色恒白）。
 - 无 `POSITION` → 跳过该 primitive + `Logger::warn`。
 - 无 `NORMAL` → basecolor 最简模式**豁免**（不计算法线，不做光照）；如需光照再补平面法线。
+- ⚠️ **basecolor 最简模式下 `IModelRenderer::setAmbient / setDirectionalLight` 为占位接口**（§3.2 因修复 `reviews` P2#五 移入渲染器，但最小实现暂不用，仅存储供将来启用）；开启光照才需要 NORMAL 与法线矩阵、PS `b3` 上传。
 
 ---
 
