@@ -46,6 +46,7 @@ virtual void setPrimitiveTopology(GraphicsPrimitiveType topology) = 0;
 - 与 D3D11 `IASetPrimitiveTopology` 语义一致，也贴合 `Mesh.cpp` 先例
 - PSO 里的 `primitive_type` 保留为默认值，或不再参与调用侧判断
 - `GraphicsPrimitiveType` 枚举位于 `core/GraphicsPipeline.hpp`
+- **注意**：`GraphicsPrimitiveType` 目前只有 `triangle_list / triangle_strip / line_list / line_strip / point_list`，**不含 LINE_LOOP / TRIANGLE_FAN**；此二者在 `IModel` 加载期**转换**为可表达拓扑（见 §四），不进入 `setPrimitiveTopology`
 
 ### 2.2【建议】通用管线缓存
 2D 预生成 704 个 PSO；模型迁移 PSO 后，属性组合（pos + normal/uv/color 可选 → 8 组合）× 雾 × alpha × 单双面会再扩出几十上百个 PSO。
@@ -108,7 +109,44 @@ struct IModelRenderer : IReferenceCounted {
 
 ---
 
-## 四、配套 / 新增 API 汇总
+## 四、图元拓扑支持矩阵（glTF 2.0）
+
+> 来源：`specification/2.0/schema/mesh.primitive.schema.json`（`mode`）与 `Specification.adoc` 网格/图元章节。
+> glTF 2.0 `mode` 枚举共 7 种，默认 `4`（TRIANGLES）。
+
+| mode | 名称 | D3D11 原生拓扑 | 抽象层 `GraphicsPrimitiveType` | 支持策略 |
+|------|------|----------------|-------------------------------|----------|
+| 0 | POINTS | ✅ `POINTLIST` | 有（`point_list`） | 原生支持 |
+| 1 | LINES | ✅ `LINELIST` | 有（`line_list`） | 原生支持 |
+| 2 | LINE_LOOP | ❌ 无 | 无 | 转换 → LINES + log 警告 |
+| 3 | LINE_STRIP | ✅ `LINESTRIP` | 有（`line_strip`） | 原生支持 |
+| 4 | TRIANGLES（默认） | ✅ `TRIANGLELIST` | 有（`triangle_list`） | 原生支持（核心） |
+| 5 | TRIANGLE_STRIP | ✅ `TRIANGLESTRIP` | 有（`triangle_strip`） | 原生支持 |
+| 6 | TRIANGLE_FAN | ❌ 无 | 无 | 转换 → TRIANGLES + log 警告 |
+
+### 结论
+- **5 种原生支持**：POINTS / LINES / LINE_STRIP / TRIANGLES / TRIANGLE_STRIP —— D3D11 原生拓扑直接映射，零成本，抽象层 `GraphicsPrimitiveType` 均已具备。
+- **2 种需转换 + log 警告**：LINE_LOOP、TRIANGLE_FAN —— D3D11 **和** 抽象层 `GraphicsPrimitiveType` **都无对应值**，必须转换为可表达的拓扑。
+  - **LINE_LOOP**：展开索引，追加首段闭合环（末顶点→首顶点），按 LINES 提交。
+  - **TRIANGLE_FAN**：以首顶点为扇心展开，按 TRIANGLES 提交（**需保持绕序/面朝向**）。
+  - **策略确定**：二者一律做转换并 `Logger::warn` 记录（说明发生转换、文件/primitive、耗时影响），**不报错拒绝、不静默跳过**。这样既保证不被丢弃，也避免隐藏问题。
+
+### 顶点数校验（spec 强制）
+| 拓扑 | 顶点限制 |
+|------|---------|
+| 点 | 非 0 |
+| 线 / line loop / line strip | ≥ 2 |
+| 三角形 / triangle strip / triangle fan | ≥ 3 |
+| lines | 被 2 整除 |
+| triangles | 被 3 整除 |
+
+### 实现落点
+- 原生 5 种：走 `bindGraphicsPipeline` + `setPrimitiveTopology` 直接映射。
+- 非原生 2 种（LINE_LOOP / TRIANGLE_FAN）：在 `IModel` 加载阶段**强制转换**——fan 保绕序、loop 闭合，生成新的索引缓冲后按 LINES/TRIANGLES 提交，并 **`Logger::warn`** 说明发生了拓扑转换（文件、primitive、转换前后索引数）。**不报错拒绝，也不静默跳过**。
+
+---
+
+## 五、配套 / 新增 API 汇总
 
 ### GPU 抽象层
 | # | API | 类型 | 状态 |
@@ -144,7 +182,7 @@ IRenderer::withRawDraw(fn);
 
 ---
 
-## 五、数据流设计
+## 六、数据流设计
 
 ### 每帧绘制流程（IModelRenderer::draw 内部）
 ```
@@ -175,7 +213,7 @@ PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
 
 ---
 
-## 六、迁移步骤（里程碑）
+## 七、迁移步骤（里程碑）
 
 ### M0：准备工作
 - [ ] 确认 `IModel / IModelRenderer` 接口 UUID（`getInterfaceId` 特化）
@@ -188,6 +226,7 @@ PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
 
 ### M2：拆分 Model / ModelRenderer
 - [ ] `IModel` 实现：从 `Model_D3D11` 迁移加载 + 数据持有（缓冲、材质、local_matrix、纹理）
+- [ ] 加载期转换 LINE_LOOP / TRIANGLE_FAN（索引展开 + `Logger::warn`），移除 `assert(false)`（见 §四）
 - [ ] `IModelRenderer` 实现：迁移绘制循环到 PSO 路径
 - [ ] 移除 `Model_D3D11`（或保留一段兼容壳）
 - [ ] `Renderer_D3D11::createModel / drawModel` 改为委托给新接口
@@ -203,8 +242,9 @@ PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
 
 ---
 
-## 七、风险与注意事项
+## 八、风险与注意事项
 - **拓扑切换语义**：`setPrimitiveTopology` 与既有 PSO 烘焙 `primitive_type` 可能产生"两处真理"；需明确 PSO 内 `primitive_type` 不再参与判断或保持默认，避免二义性。
 - **PSO 缓存 hash**：`GraphicsPipelineState` 含指针数组（缓冲/元素列表），缓存键需对**解引用后的内容**哈希，而非指针值。
 - **兼容壳**：M2 移除旧类前，先确认 `Renderer_D3D11.hpp` / Lua 绑定无遗漏引用。
 - **批作用域**：模型绘制必须与 2D 批隔离（`withRawDraw` 包装 endBatch/beginBatch），避免状态泄漏。
+- **扇/环模拟的绕序**：triangle fan 展开需保持三角形绕序（CCW），否则面朝向 / 剔除错乱；line loop 闭合需处理首尾重复。
