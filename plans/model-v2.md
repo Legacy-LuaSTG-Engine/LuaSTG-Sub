@@ -5,6 +5,7 @@
 > 并拆分为 `Model`（数据）与 `ModelRenderer`（渲染）两部分。
 >
 > 关联审核报告：`reviews/model.md`
+> 图元拓扑改造为**前置落地项**，独立维护于 `plans/primitive-topology.md`（基本类型烘焙 PSO / 子类型动态切换）。
 > 状态：设计稿 / 待实现
 
 ---
@@ -27,7 +28,7 @@
 ### 抽象层缺口（迁移前需确认/补齐）
 | 缺口 | 说明 | 建议 |
 |------|------|------|
-| 绘制期图元拓扑切换 | `primitive_type` 烘焙进 PSO，命令缓冲无 `setPrimitiveTopology` | **必改** |
+| 绘制期图元拓扑切换 | `primitive_type` 烘焙进 PSO，命令缓冲无 `setPrimitiveTopology` | **必改**（提前落地于 `plans/primitive-topology.md`） |
 | 通用管线缓存 | 无 `state→hash→cache` 工具，只有硬编码 5 维矩阵 | **建议加** |
 | 模板参考值 | 无 `setStencilRef` | 可选，暂不需要 |
 
@@ -35,18 +36,15 @@
 
 ## 二、抽象层改造清单（问题一）
 
-### 2.1【必改】`IGraphicsCommandBuffer::setPrimitiveTopology`
-模型一个 gltf 场景内不同 primitive 可能混用 `TRIANGLES/STRIP/POINTS/LINES`。
-把图元拓扑烘焙进 PSO 会让每图元变化的拓扑逼出"PSO × 拓扑数"的组合爆炸。
+### 2.1【必改·前置落地】图元拓扑改造（已独立为 `plans/primitive-topology.md`）
+为 `IGraphicsCommandBuffer` 增加运行时子类型切换 `setPrimitiveTopology(GraphicsPrimitiveType)`，
+并把拓扑拆为 **基本类型（point/line/triangle，烘焙进 PSO）** + **具体子类型（list/strip，动态切）** 两个维度。
 
-```cpp
-// core/GraphicsDevice.hpp —— IGraphicsCommandBuffer 新增纯虚成员
-virtual void setPrimitiveTopology(GraphicsPrimitiveType topology) = 0;
-```
-- 与 D3D11 `IASetPrimitiveTopology` 语义一致，也贴合 `Mesh.cpp` 先例
-- PSO 里的 `primitive_type` 保留为默认值，或不再参与调用侧判断
-- `GraphicsPrimitiveType` 枚举位于 `core/GraphicsPipeline.hpp`
-- **注意**：`GraphicsPrimitiveType` 目前只有 `triangle_list / triangle_strip / line_list / line_strip / point_list`，**不含 LINE_LOOP / TRIANGLE_FAN**；此二者在 `IModel` 加载期**转换**为可表达拓扑（见 §四），不进入 `setPrimitiveTopology`
+- **基本类型**进入 `GraphicsPipelineState`（新增 `primitive_topology_type`，默认 triangles，兼容 2D）；
+- **子类型**经 `setPrimitiveTopology` 动态设置，**不烘焙进 PSO**，避免「PSO × 具体拓扑」爆炸；
+- D3D11 为软件约束：绑定 PSO 后记录基本类型，`setPrimitiveTopology` 校验 `toTopologyType(subtype)==bound_type`，不匹配按 debug assert + release warn 处理。
+
+> 详细设计（枚举、映射、PSO 字段、后端校验、里程碑）见 **`plans/primitive-topology.md`**，本计划以该文档为准。
 
 ### 2.2【建议】通用管线缓存
 2D 预生成 704 个 PSO；模型迁移 PSO 后，属性组合（pos + normal/uv/color 可选 → 8 组合）× 雾 × alpha × 单双面会再扩出几十上百个 PSO。
@@ -141,7 +139,7 @@ struct IModelRenderer : IReferenceCounted {
 | triangles | 被 3 整除 |
 
 ### 实现落点
-- 原生 5 种：走 `bindGraphicsPipeline` + `setPrimitiveTopology` 直接映射。
+- 原生 5 种：**基本类型**在 PSO 创建时烘焙（points/lines/triangles），绘制时经 `bindGraphicsPipeline` + `setPrimitiveTopology(子类型)` 提交（子类型切换见 `plans/primitive-topology.md`）。
 - 非原生 2 种（LINE_LOOP / TRIANGLE_FAN）：在 `IModel` 加载阶段**强制转换**——fan 保绕序、loop 闭合，生成新的索引缓冲后按 LINES/TRIANGLES 提交，并 **`Logger::warn`** 说明发生了拓扑转换（文件、primitive、转换前后索引数）。**不报错拒绝，也不静默跳过**。
 
 ---
@@ -232,8 +230,8 @@ Spec 定义的标准语义：
 
 ### 5.7 对管线缓存 / 输入布局的本质影响
 - **输入布局的格式由 accessor 的（componentType × type × normalized）共同决定，无法静态唯一**。
-  → PSO 需按 **「属性签名」**（存在哪些语义 + 各自格式）缓存；缓存键 = `属性签名 × fog × alpha × 单双面`。
-  - ⚠️ **拓扑不进入 PSO 缓存键**：拓扑经 `setPrimitiveTopology` 在 PSO 绑定后**动态**设置（见 §2.1 / 四 / §七），不烘焙进 PSO，因此也不进缓存键——避免 §2.1 所述的 "PSO × 拓扑数" 组合爆炸。
+  → PSO 需按 **「属性签名」**（存在哪些语义 + 各自格式）缓存；缓存键 = `属性签名 × 基本类型(≤3) × fog × alpha × 单双面`。
+  - **基本类型进缓存键、具体子类型不进**：基本类型烘焙进 PSO（`primitive_topology_type`），故纳入缓存键；子类型（list/strip）经 `setPrimitiveTopology` 动态切换（`plans/primitive-topology.md`），不进键、不产生「PSO × 具体拓扑」爆炸。
 - 索引格式由索引 accessor 组件类型决定：ubyte→扩 ushort / ushort→`r16_uint` / uint→`r32_uint`。
 
 ### 5.8 覆盖性排查结论（GPU 抽象层 VertexInput vs glTF 2.0）
@@ -348,7 +346,7 @@ struct ModelPrimitive {
 // 用槽位(0..3) + format 构造确定性签名，供 createGraphicsPipelineCached 复用
 uint64_t attr_sig = FNV1a(slot0_format) ^ FNV1a(slot1_format) ...;
 ```
-- PSO 缓存键 = `attribute_signature × fog × alpha_mode × double_sided`（见 §5.7；拓扑经 `setPrimitiveTopology` 动态设置，**不进缓存键**）。
+- PSO 缓存键 = `attribute_signature × 拓扑基本类型(≤3) × fog × alpha_mode × double_sided`（见 §5.7；子类型经 `setPrimitiveTopology` 动态设置不进键；基本类型烘焙 PSO 故进键）。
 - 纹理有无 / 顶点色有无天然编码在签名中（未声明该槽位即缺该属性）。
 
 #### 5.9.5 缺省/降级（basecolor 语义）
@@ -365,7 +363,7 @@ uint64_t attr_sig = FNV1a(slot0_format) ^ FNV1a(slot1_format) ...;
 ### GPU 抽象层
 | # | API | 类型 | 状态 |
 |---|-----|------|------|
-| 1 | `IGraphicsCommandBuffer::setPrimitiveTopology(GraphicsPrimitiveType)` | 必改 | 新增 |
+| 1 | `IGraphicsCommandBuffer::setPrimitiveTopology(GraphicsPrimitiveType)` | 必改 | **前置落地：见 `plans/primitive-topology.md`** |
 | 2 | `IGraphicsDevice::createGraphicsPipelineCached(state, out)` 或 `IGraphicsPipelineManager` | 建议 | 新增 |
 | 3 | `IGraphicsCommandBuffer::setStencilRef(uint8_t)` | 可选 | 暂缓 |
 
@@ -406,7 +404,7 @@ IRenderer::withRawDraw(fn);
 4. 用 createGraphicsPipelineCached 取 PSO（属性组合 × fog × alpha × 单双面）
 5. cmd->bindGraphicsPipeline(pso)
 6. 逐 primitive：
-   a. 若拓扑变化 → cmd->setPrimitiveTopology(...)
+   a. 若**子类型**变化（同一基本类型内）→ cmd->setPrimitiveTopology(...)；若**基本类型**变化 → 需换 PSO（不同 `primitive_topology_type`）+ setPrimitiveTopology（见 `plans/primitive-topology.md`；同模型混合 triangle/line 少见，可先按基本类型分组排序以减少 PSO 切换）
    b. 绑顶点/索引缓冲（可选属性对应槽位）
    c. 绑纹理 SRV + 采样器
    d. 上传/绑定本 prim 的 VS b1（local * world）
@@ -434,7 +432,7 @@ PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
 - [ ] 建立 `d3d11/shader/model/` 目录，从 `Model_Shader_D3D11.cpp` 提取 HLSL → 预编译 `.cso`
 
 ### M1：抽象层改造
-- [ ] `IGraphicsCommandBuffer::setPrimitiveTopology` + d3d11 实现
+- [ ] **前置（须先于本里程碑按 `plans/primitive-topology.md` 落地）**：`setPrimitiveTopology` + PSO 基本类型烘焙
 - [ ] `IGraphicsDevice::createGraphicsPipelineCached` + 缓存实现（或 `IGraphicsPipelineManager`）
 - [ ] `IRenderer` 暴露帧常量 + `withRawDraw` 批作用域（可选）
 
@@ -458,7 +456,7 @@ PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
 ---
 
 ## 九、风险与注意事项
-- **拓扑切换语义**：`setPrimitiveTopology` 与既有 PSO 烘焙 `primitive_type` 可能产生"两处真理"；需明确 PSO 内 `primitive_type` 不再参与判断或保持默认，避免二义性。
+- **拓扑：已由 `plans/primitive-topology.md` 解决「两处真理」**——基本类型归 PSO、子类型归 `setPrimitiveTopology`，分工无二义性；但 D3D11 为**软约束**，需依赖后端自校验（debug assert + release warn）捕获不匹配子类型。
 - **PSO 缓存 hash**：`GraphicsPipelineState` 含指针数组（缓冲/元素列表），缓存键需对**解引用后的内容**哈希，而非指针值。
 - **兼容壳**：M2 移除旧类前，先确认 `Renderer_D3D11.hpp` / Lua 绑定无遗漏引用。
 - **批作用域**：模型绘制必须与 2D 批隔离（`withRawDraw` 包装 endBatch/beginBatch），避免状态泄漏。
