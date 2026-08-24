@@ -268,6 +268,91 @@ Spec 定义的标准语义：
   2. 索引 ubyte 需扩展为 ushort（`r16`），并排除 primitive-restart 最大值。
   3. normalized 整型：「直接用 unorm 格式」或「展开为 float」二选一。
 
+### 5.9 加载层设计（normalized 整型直接使用 GPU 格式）
+
+**决策**：`TEXCOORD_n` / `COLOR_n` 的 normalized 整型**直接映射到对应的 unorm GPU 格式**，由 GPU 硬件完成 `[0,1]` 归一化；**不做 CPU 展开为 float**。
+当不存在匹配的 N 通道 unorm 格式时（VEC3 normalized），**扩展为 VEC4 unorm（补 alpha=1.0）**，**不转 float**——float 需 12 字节/元素，而 VEC4 unorm 仅 4（ubyte）/8（ushort）字节，避免体积过度膨胀。
+
+#### 5.9.1 格式选择表（加载期由 accessor 推导）
+
+| 语义（type） | componentType | normalized | → `GraphicsFormat` | 字节/elem | 备注 |
+|--------------|---------------|-----------|--------------------|-----------|------|
+| POSITION（VEC3） | 5126 float | — | `r32_g32_b32_float` | 12 | 必含 min/max |
+| NORMAL（VEC3） | 5126 float | — | `r32_g32_b32_float` | 12 | 可选 |
+| TEXCOORD_n（VEC2） | 5126 float | — | `r32_g32_float` | 8 | |
+| TEXCOORD_n（VEC2） | 5121 ubyte | true | `r8_g8_unorm` | 2 | 直接 GPU 归一化 |
+| TEXCOORD_n（VEC2） | 5123 ushort | true | `r16_g16_unorm` | 4 | 直接 GPU 归一化 |
+| COLOR_n（VEC3） | 5126 float | — | `r32_g32_b32_float` | 12 | |
+| COLOR_n（VEC4） | 5126 float | — | `r32_g32_b32_a32_float` | 16 | |
+| COLOR_n（VEC4） | 5121 ubyte | true | `r8_g8_b8_a8_unorm` | 4 | 直接 GPU 归一化 |
+| COLOR_n（VEC4） | 5123 ushort | true | `r16_g16_b16_a16_unorm` | 8 | 直接 GPU 归一化 |
+| COLOR_n（VEC3） | 5121 ubyte | true | `r8_g8_b8_a8_unorm` | 3→4 | 扩展 VEC4，补 alpha=1.0 |
+| COLOR_n（VEC3） | 5123 ushort | true | `r16_g16_b16_a16_unorm` | 6→8 | 扩展 VEC4，补 alpha=1.0 |
+
+> **VEC3 normalized 处理**：DXGI 无 3 通道 unorm 格式（`R8G8B8_UNORM` 不存在）。当 `COLOR_n` 为 `VEC3` + normalized 整型时，**按 VEC4 扩展**：拷贝 RGB，末尾补 alpha=1.0（ubyte→`0xFF`，ushort→`0xFFFF`），映射为 `r8_g8_b8_a8_unorm` / `r16_g16_b16_a16_unorm`（4/8 字节）。**不转 float**（12 字节）以免体积膨胀。加载时 `Logger::info` 记录扩展。basecolor 常见 `COLOR_0` 为 VEC4，直接命中，此路径为少见例。
+
+#### 5.9.2 加载数据模型（IModel 内部）
+
+```cpp
+// 每个属性一个 GPU 缓冲（去交错、紧密排列）；normalized 整型原样上传
+struct ModelAttribute {
+    std::string semantic;            // "POSITION" / "NORMAL" / "TEXCOORD_0" / "COLOR_0"...
+    core::GraphicsFormat format;     // 由 §5.9.1 推导
+    uint32_t buffer_slot;            // 0..3
+    uint32_t byte_offset;            // 独立布局时为 0
+    SmartReference<IGraphicsBuffer> buffer;  // 本属性缓冲
+};
+
+struct ModelPrimitive {
+    // 顶点输入
+    std::vector<ModelAttribute> attributes;   // 存在哪些属性、各槽位格式
+    SmartReference<IGraphicsBuffer> index_buffer;
+    core::GraphicsFormat index_format;        // r16_uint / r32_uint
+    uint32_t index_count;
+    bool has_index;                 // false → draw() 非索引
+    core::GraphicsPrimitiveType topology;     // LOOP/FAN 已转换
+    // 材质（basecolor）
+    DirectX::XMFLOAT4 base_color;
+    bool double_sided;
+    bool alpha_blend;
+    bool alpha_mask;
+    float alpha_cutoff;
+    SmartReference<ITexture2D> image;         // baseColorTexture SRV
+    SmartReference<IGraphicsSampler> sampler;
+    // 变换
+    DirectX::XMFLOAT4X4 local_matrix;
+    DirectX::XMFLOAT4X4 local_matrix_normal;
+    // 管线缓存键
+    uint64_t attribute_signature;
+};
+```
+
+#### 5.9.3 加载流程（每 primitive）
+1. **拓扑**：`mode` → `GraphicsPrimitiveType`；LINE_LOOP / TRIANGLE_FAN 走 §四索引展开 + `Logger::warn`。
+2. **解析属性**：遍历 `primitive.attributes`（POSITION 必在；NORMAL/TEXCOORD_0/COLOR_0 可选），按 §5.9.1 推导各属性 `format`。
+3. **去交错**：用 accessor 的 `byteStride` 把数据拆为**每属性紧密排列**的独立缓冲（复用现有 `getBufferFromAccessor` 思路，补越界校验）；
+   - `createVertexBuffer(elem_bytes * count, elem_bytes, ...)`（stride = 元素大小）。
+   - normalized 整型：**原始字节原样上传**（GPU 按 unorm 格式归一化）。
+   - VEC3 normalized：每元素拷贝 RGB，末尾补 alpha=1.0（ubyte→`0xFF`，ushort→`0xFFFF`）**扩展为 VEC4** 后按 `r8_g8_b8_a8_unorm` / `r16_g16_b16_a16_unorm` 上传（不做 float 展开，避免体积膨胀）。
+4. **索引**：无 `indices` → `has_index=false`，`index_count` = 属性 `count`；有则按组件类型 ushort→`r16_uint` / uint→`r32_uint` / ubyte→扩 ushort（排除 255）。
+5. **构建 `ModelPrimitive`**：材质块（base_color / alpha_mode / double_sided / 纹理）赋值；`local_matrix` = §四的 TRS + 右手→左手术式。
+6. **计算 `attribute_signature`**（见 5.9.4）。
+
+#### 5.9.4 属性签名（PSO 缓存键的一部分）
+- 签名由「存在哪些属性槽位 + 各自 `GraphicsFormat`」哈希得到：
+```cpp
+// 用槽位(0..3) + format 构造确定性签名，供 createGraphicsPipelineCached 复用
+uint64_t attr_sig = FNV1a(slot0_format) ^ FNV1a(slot1_format) ...;
+```
+- PSO 缓存键 = `attribute_signature × topology × fog × alpha_mode × double_sided`（见 §5.7）。
+- 纹理有无 / 顶点色有无天然编码在签名中（未声明该槽位即缺该属性）。
+
+#### 5.9.5 缺省/降级（basecolor 语义）
+- 无 `TEXCOORD_0` → shader 走 NoBaseTexture 变体，用 `base_color` 纯色。
+- 无 `COLOR_0` → 无顶点色变体（顶点色恒白）。
+- 无 `POSITION` → 跳过该 primitive + `Logger::warn`。
+- 无 `NORMAL` → basecolor 最简模式**豁免**（不计算法线，不做光照）；如需光照再补平面法线。
+
 ---
 
 ## 六、配套 / 新增 API 汇总
@@ -350,7 +435,7 @@ PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
 
 ### M2：拆分 Model / ModelRenderer
 - [ ] `IModel` 实现：从 `Model_D3D11` 迁移加载 + 数据持有（缓冲、材质、local_matrix、纹理）
-- [ ] 顶点输入：按 §五 处理组件类型 × normalized（整型 TEXCOORD/COLOR 展开为 float，或映射 DXGI 归一化格式）；索引 ubyte→ushort 扩展 / r16 / r32（见 §五）
+- [ ] 顶点输入：按 §5.9 处理 —— normalized 整型 TEXCOORD/COLOR **直接映射 unorm 格式**（VEC4 命中直接路径）；VEC3 normalized 少见例**扩展 VEC4 补 alpha=1.0**（ubyte→`r8_g8_b8_a8_unorm`，ushort→`r16_g16_b16_a16_unorm`），**非 float 展开**；索引 ubyte→ushort 扩展 / r16 / r32；若保留交错则用单缓冲多槽位+offset（缺省去交错）
 - [ ] 加载期转换 LINE_LOOP / TRIANGLE_FAN（索引展开 + `Logger::warn`），移除 `assert(false)`（见 §四）
 - [ ] `IModelRenderer` 实现：迁移绘制循环到 PSO 路径
 - [ ] 移除 `Model_D3D11`（或保留一段兼容壳）
