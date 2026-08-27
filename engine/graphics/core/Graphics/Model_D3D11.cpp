@@ -816,69 +816,257 @@ namespace core::Graphics
         }
     }
 
-    static bool getBufferFromAccessor(
+    static bool validate_accessor_range(
         tinygltf::Model const& model,
         tinygltf::Accessor const& accessor,
-        uint8_t*& output,
-        size_t& total_size_in_bytes,
-        std::vector<uint8_t>& intermediate_buffer
+        uint8_t const*& out_base, // buffer 数据基址
+        size_t& out_component_size,
+        size_t& out_element_size,
+        bool& out_has_stride,
+        size_t& out_byte_stride,
+        size_t& out_data_offset // bufferView.byteOffset + accessor.byteOffset
     ) {
-        // buffer view
-        if (accessor.bufferView < 0 || accessor.bufferView >= model.bufferViews.size()) {
+        int const acc_index = static_cast<int>(&accessor - model.accessors.data());
+
+        //  buffer view
+
+        if (accessor.bufferView < 0 || accessor.bufferView >= static_cast<int>(model.bufferViews.size())) {
             Logger::error(
                 "[core] [Model] gltf 2.0 loader -- accessor (index = {}) buffer view index out of bound (value = {})",
-                &accessor - model.accessors.data(),
+                acc_index,
                 accessor.bufferView
             );
+            return false;
         }
-        const auto& buffer_view = model.bufferViews[accessor.bufferView];
+        auto const& buffer_view = model.bufferViews[accessor.bufferView];
+
         // buffer
-        if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
+
+        if (buffer_view.buffer < 0 || buffer_view.buffer >= static_cast<int>(model.buffers.size())) {
             Logger::error(
                 "[core] [Model] gltf 2.0 loader -- buffer view (index = {}) buffer index out of bound (value = {})",
-                &buffer_view - model.bufferViews.data(),
+                accessor.bufferView,
                 buffer_view.buffer
             );
+            return false;
         }
-        const auto& buffer = model.buffers[buffer_view.buffer];
-        // total size
-        if (tinygltf::GetComponentSizeInBytes(accessor.componentType) < 0) {
+        auto const& buffer = model.buffers[buffer_view.buffer];
+
+        // component
+
+        int const comp_size_raw = tinygltf::GetComponentSizeInBytes(accessor.componentType);
+        int const num_comp_raw = tinygltf::GetNumComponentsInType(accessor.type);
+        if (comp_size_raw < 0) {
             Logger::error(
                 "[core] [Model] gltf 2.0 loader -- unknown accessor (index = {}) component type (value = {})",
-                &accessor - model.accessors.data(),
+                acc_index,
                 accessor.componentType
             );
             return false;
         }
-        if (tinygltf::GetNumComponentsInType(accessor.type) < 0) {
+        if (num_comp_raw < 0) {
             Logger::error(
                 "[core] [Model] gltf 2.0 loader -- unknown accessor (index = {}) type (value = {})",
-                &accessor - model.accessors.data(),
+                acc_index,
                 accessor.type
             );
             return false;
         }
-        total_size_in_bytes = static_cast<size_t>(tinygltf::GetComponentSizeInBytes(accessor.componentType))
-            * static_cast<size_t>(tinygltf::GetNumComponentsInType(accessor.type))
-            * accessor.count;
-        // no stride
-        if (buffer_view.byteStride == 0) {
-            output = const_cast<uint8_t*>(buffer.data.data()) + buffer_view.byteOffset + accessor.byteOffset;
+
+        size_t const component_size = static_cast<size_t>(comp_size_raw);
+        size_t const num_components = static_cast<size_t>(num_comp_raw);
+        size_t const element_size = component_size * num_components;
+        size_t const count = static_cast<size_t>(accessor.count);
+        size_t const view_end = static_cast<size_t>(buffer_view.byteOffset)
+            + static_cast<size_t>(buffer_view.byteLength);
+        bool const has_stride = buffer_view.byteStride > 0;
+        size_t const byte_stride = static_cast<size_t>(buffer_view.byteStride);
+        size_t const data_offset = static_cast<size_t>(buffer_view.byteOffset)
+            + static_cast<size_t>(accessor.byteOffset);
+
+        if (view_end > buffer.data.size()) {
+            Logger::error(
+                "[core] [Model] gltf 2.0 loader -- buffer view (index = {}) range out of bound "
+                "(offset = {}, length = {}, buffer size = {})",
+                accessor.bufferView,
+                buffer_view.byteOffset, buffer_view.byteLength, buffer.data.size()
+            );
+            return false;
+        }
+
+        if (has_stride) {
+            if (byte_stride % component_size != 0) {
+                Logger::error(
+                    "[core] [Model] gltf 2.0 loader -- accessor (index = {}) byteStride = {} not a multiple "
+                    "of component size ({})",
+                    acc_index, buffer_view.byteStride, component_size
+                );
+                return false;
+            }
+            size_t const element_count = count > 0 ? count - 1 : 0;
+            if (data_offset + byte_stride * element_count + element_size > buffer.data.size()) {
+                Logger::error(
+                    "[core] [Model] gltf 2.0 loader -- accessor (index = {}) strided span out of buffer "
+                    "(offset = {}, stride = {}, count = {}, element = {})",
+                    acc_index, data_offset, byte_stride, count, element_size
+                );
+                return false;
+            }
+        }
+        else {
+            if (data_offset + element_size * count > view_end) {
+                Logger::error(
+                    "[core] [Model] gltf 2.0 loader -- accessor (index = {}) span out of buffer view "
+                    "(offset = {}, span = {}, view length = {})",
+                    acc_index, data_offset, element_size * count, view_end
+                );
+                return false;
+            }
+        }
+
+        out_base = buffer.data.data();
+        out_component_size = component_size;
+        out_element_size = element_size;
+        out_has_stride = has_stride;
+        out_byte_stride = byte_stride;
+        out_data_offset = data_offset;
+        return true;
+    }
+
+    // M1：normalized 整型顶点属性 → float 展开（过渡实现，供旧路径使用；v2 迁移后改 unorm 硬件归一化）
+    // spec（accessor.schema.json `normalized`）：无符号整型 → [0,1]（除 2^n-1），
+    // 有符号整型 → [-1,1]（除 2^(n-1)-1）。仅 COLOR_n / TEXCOORD_n 生效。
+    static void expand_normalized_to_float(
+        int component_type,
+        uint8_t const* src,           // 指向第一元素（已含 data_offset）
+        size_t count,
+        size_t src_pitch,             // 相邻元素步长（byteStride 或 element_size）
+        size_t component_size,
+        size_t num_components,
+        std::vector<uint8_t>& intermediate_buffer,
+        size_t& out_size_bytes
+    ) {
+        bool is_signed = false;
+        int bits = 0;
+        switch (component_type) {
+            // 这些常量应该在 OpenGL 的头文件里，tinygltf 没有提供
+            case 5120: is_signed = true;  bits = 8;  break; // BYTE
+            case 5121: is_signed = false; bits = 8;  break; // UNSIGNED_BYTE
+            case 5122: is_signed = true;  bits = 16; break; // SHORT
+            case 5123: is_signed = false; bits = 16; break; // UNSIGNED_SHORT
+            default: return; // 不支持的整型：不展开，保留原始字节
+        }
+        float const signed_denom = static_cast<float>((1 << (bits - 1)) - 1);
+        float const unsigned_denom = static_cast<float>((1 << bits) - 1);
+        intermediate_buffer.resize(count * num_components * sizeof(float));
+        float* out = reinterpret_cast<float*>(intermediate_buffer.data());
+        for (size_t i = 0; i < count; ++i)
+        {
+            uint8_t const* elem = src + i * src_pitch;
+            for (size_t c = 0; c < num_components; ++c)
+            {
+                uint8_t const* byte_ptr = elem + c * component_size;
+                float value = 0.0f;
+                if (bits == 8)
+                {
+                    uint8_t const raw = *byte_ptr;
+                    value = is_signed
+                        ? static_cast<float>(static_cast<int8_t>(raw)) / signed_denom
+                        : static_cast<float>(raw) / unsigned_denom;
+                }
+                else
+                {
+                    uint16_t raw = 0;
+                    std::memcpy(&raw, byte_ptr, sizeof(raw));
+                    value = is_signed
+                        ? static_cast<float>(static_cast<int16_t>(raw)) / signed_denom
+                        : static_cast<float>(raw) / unsigned_denom;
+                }
+                out[i * num_components + c] = value;
+            }
+        }
+        out_size_bytes = intermediate_buffer.size();
+    }
+
+    static bool getBufferFromAccessor(
+        tinygltf::Model const& model,
+        tinygltf::Accessor const& accessor,
+        std::string_view const semantic,
+        uint8_t*& output,
+        size_t& total_size_in_bytes,
+        std::vector<uint8_t>& intermediate_buffer
+    ) {
+        uint8_t const* base = nullptr;
+        size_t component_size = 0;
+        size_t element_size = 0;
+        bool has_stride = false;
+        size_t byte_stride = 0;
+        size_t data_offset = 0;
+        if (!validate_accessor_range(
+            model, accessor, base, component_size, element_size, has_stride, byte_stride, data_offset
+        )) {
+            return false;
+        }
+
+        // M2：sparse accessor 降级 —— 本实现不应用 sparse 替换，仅警告后按基础（非 sparse）读取。
+        // 详见 plans/model-vertex-buffer-loader-fix.md §二 P1-2。
+        if (accessor.sparse.isSparse) {
+            Logger::warn(
+                "[core] [Model] accessor (index = {}) {} is a sparse accessor (count = {}): "
+                "sparse substitution is NOT applied, reading dense base data only",
+                &accessor - model.accessors.data(), semantic, accessor.sparse.count
+            );
+        }
+
+        size_t const count = static_cast<size_t>(accessor.count);
+        size_t const num_components = element_size / component_size;
+
+        // M1：normalized 整型 COLOR/TEXCOORD → float 展开（过渡实现）
+        bool const is_integer_component = accessor.componentType == 5120
+            || accessor.componentType == 5121
+            || accessor.componentType == 5122
+            || accessor.componentType == 5123;
+        bool const is_color_or_texcoord = semantic.starts_with("COLOR_") || semantic.starts_with("TEXCOORD_");
+        if (accessor.normalized && is_integer_component && is_color_or_texcoord) {
+            size_t const src_pitch = has_stride ? byte_stride : element_size;
+            size_t out_size = 0;
+            expand_normalized_to_float(
+                accessor.componentType,
+                base + data_offset,
+                count,
+                src_pitch,
+                component_size,
+                num_components,
+                intermediate_buffer,
+                out_size
+            );
+            total_size_in_bytes = out_size;
+            output = intermediate_buffer.data();
+            Logger::info(
+                "[core] [Model] accessor (index = {}) {} normalized integer (componentType = {}) "
+                "expanded to float ({} bytes)",
+                &accessor - model.accessors.data(), semantic, accessor.componentType, out_size
+            );
             return true;
         }
-        // prepare intermediate buffer
-        intermediate_buffer.resize(total_size_in_bytes);
-        // copy data
-        const auto size = static_cast<size_t>(tinygltf::GetComponentSizeInBytes(accessor.componentType))
-            * static_cast<size_t>(tinygltf::GetNumComponentsInType(accessor.type));
-        auto source = buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
-        auto target = intermediate_buffer.data();
-        for (size_t i = 0; i < accessor.count; i += 1) {
-            std::memcpy(target, source, size);
-            source += buffer_view.byteStride;
-            target += size;
+
+        total_size_in_bytes = element_size * count;
+
+        // 无 stride -> 紧排，零拷贝直指 buffer（已通过边界校验）
+        if (!has_stride) {
+            output = const_cast<uint8_t*>(base + data_offset);
+            return true;
         }
-        // using intermediate buffer
+
+        // 去交错 -> tight-packed 中间缓冲
+        intermediate_buffer.resize(total_size_in_bytes);
+        auto source = base + data_offset;
+        auto target = intermediate_buffer.data();
+        for (size_t i = 0; i < count; i += 1) {
+            std::memcpy(target, source, element_size);
+            source += byte_stride;
+            target += element_size;
+        }
         output = intermediate_buffer.data();
         return true;
     }
@@ -1063,7 +1251,7 @@ namespace core::Graphics
                     uint8_t* buffer_ptr{};
                     size_t total_size_in_bytes{};
                     std::vector<uint8_t> intermediate_buffer;
-                    if (!getBufferFromAccessor(model, accessor, buffer_ptr, total_size_in_bytes, intermediate_buffer))
+                    if (!getBufferFromAccessor(model, accessor, "POSITION", buffer_ptr, total_size_in_bytes, intermediate_buffer))
                         return false;
 
                     D3D11_BUFFER_DESC vbo_def = {
@@ -1094,7 +1282,7 @@ namespace core::Graphics
                     uint8_t* buffer_ptr{};
                     size_t total_size_in_bytes{};
                     std::vector<uint8_t> intermediate_buffer;
-                    if (!getBufferFromAccessor(model, accessor, buffer_ptr, total_size_in_bytes, intermediate_buffer))
+                    if (!getBufferFromAccessor(model, accessor, "NORMAL", buffer_ptr, total_size_in_bytes, intermediate_buffer))
                         return false;
 
                     D3D11_BUFFER_DESC vbo_def = {
@@ -1123,7 +1311,7 @@ namespace core::Graphics
                     uint8_t* buffer_ptr{};
                     size_t total_size_in_bytes{};
                     std::vector<uint8_t> intermediate_buffer;
-                    if (!getBufferFromAccessor(model, accessor, buffer_ptr, total_size_in_bytes, intermediate_buffer))
+                    if (!getBufferFromAccessor(model, accessor, "COLOR_0", buffer_ptr, total_size_in_bytes, intermediate_buffer))
                         return false;
 
                     D3D11_BUFFER_DESC vbo_def = {
@@ -1152,7 +1340,7 @@ namespace core::Graphics
                     uint8_t* buffer_ptr{};
                     size_t total_size_in_bytes{};
                     std::vector<uint8_t> intermediate_buffer;
-                    if (!getBufferFromAccessor(model, accessor, buffer_ptr, total_size_in_bytes, intermediate_buffer))
+                    if (!getBufferFromAccessor(model, accessor, "TEXCOORD_0", buffer_ptr, total_size_in_bytes, intermediate_buffer))
                         return false;
 
                     D3D11_BUFFER_DESC vbo_def = {
