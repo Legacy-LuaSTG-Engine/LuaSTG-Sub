@@ -425,13 +425,17 @@ IRenderer::withRawDraw(fn);
 
 ### 常量槽位约定（与 `d3d11/SlotConstants.hpp` 对齐，收敛单一来源）
 ```
-VS b0  view-projection          (Renderer，显式绑定）
-VS b1  local-world + normal-local-world  (本 prim，ModelRenderer)
-PS b0  camera-pos / camera-look  (Renderer，显式绑定)
-PS b1  fog                        (Renderer，显式绑定)
-PS b2  base_color + alpha         (ModelRenderer)
-PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
+VS b0  view-projection                    (Renderer，显式绑定)
+VS b1  local-world + normal-local-world   (本 prim，ModelRenderer)
+PS b0  camera-pos / camera-look           (Renderer，显式绑定)
+PS b1  fog                                (Renderer，显式绑定)
+PS b2  base_color + alpha                 (ModelRenderer)
+PS b3  light (ambient/pos/dir/color)      (ModelRenderer)
 ```
+
+> **当前 `SlotConstants.hpp` 覆盖情况**：仅 VS b0/b1、PS b0/b1 共 4 槽以常量形式声明；
+> PS b2/b3（`base_color + alpha` / `light`）仍以字面量硬编码在 `Model_D3D11::draw` 的
+> `PSSetConstantBuffers(2, 2, ps_cbo)` 中，需在 §八 M1 一并补齐以完成"单一来源"收敛。
 
 ---
 
@@ -439,7 +443,11 @@ PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
 
 ### M0：准备工作
 - [ ] 确认 `IModel / IModelRenderer` 接口 UUID（`getInterfaceId` 特化）
-- [ ] 建立 `d3d11/shader/model/` 目录，从 `Model_Shader_D3D11.cpp` 提取 HLSL → 预编译 `.cso`
+- [x] 建立 `d3d11/shader/model/` 目录，从 `Model_Shader_D3D11.cpp` 提取 HLSL
+      （`engine/graphics/d3d11/shader/model/gltf_2_0_shader.hlsl`、`screen_door.glsl` 已在仓库）
+- [ ] 补 `d3d11/shader/model/compile.bat` 与预编译 `.h` 产物（对齐 `d3d11/shader/mesh/` 现状）；
+      替换 `Model_D3D11.cpp` 中运行时 `g_d3dcompiler_loader.Compile(...)`（当前 `vs_4_0/ps_4_0`）为字节码；
+      完成后移除 `Model_Shader_D3D11.cpp`
 
 ### M1：抽象层改造
 - ~~**前置**：`setPrimitiveTopology` + PSO 基本类型烘焙~~ —— **撤销**：拓扑固定于 PSO 创建期，现有抽象层零改动即为最终设计（`plans/primitive-topology.md`）
@@ -449,7 +457,9 @@ PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
 ### M2：拆分 Model / ModelRenderer
 - [ ] `IModel` 实现：从 `Model_D3D11` 迁移加载 + 数据持有（缓冲、材质、local_matrix、纹理）
 - [ ] 顶点输入：按 §5.9 处理 —— normalized 整型 TEXCOORD/COLOR **直接映射 unorm 格式**（VEC4 命中直接路径）；VEC3 normalized 少见例**扩展 VEC4 补 alpha=1.0**（ubyte→`r8_g8_b8_a8_unorm`，ushort→`r16_g16_b16_a16_unorm`），**非 float 展开**；索引 ubyte→ushort 扩展 / r16 / r32；若保留交错则用单缓冲多槽位+offset（缺省去交错）
-- [ ] 加载期转换 LINE_LOOP / TRIANGLE_FAN（索引展开 + `Logger::warn`），移除 `assert(false)`（见 §四）
+- [x] 加载期转换 LINE_LOOP / TRIANGLE_FAN（索引展开 + `Logger::warn`），移除 `assert(false)`（见 §四）
+      —— 已在提交 `623ed5e` 完成：`Model_D3D11.cpp` 中 `expand_to_native_topology` 承担 LOOP/FAN 展开，
+         旧 `map_primitive_topology_to_d3d11` 的 `assert(false)` 分支已删除；迁移到 `IModel` 时**直接搬移该逻辑**
 - [ ] `IModelRenderer` 实现：迁移绘制循环到 PSO 路径
 - [ ] 移除 `Model_D3D11`（或保留一段兼容壳）
 - [ ] `Renderer_D3D11::createModel / drawModel` 改为委托给新接口
@@ -458,7 +468,12 @@ PS b3  light (ambient/pos/dir/color)  (ModelRenderer)
 - [ ] `lib_drawModel` 增加可选光照参数，接通 `setAmbient / setDirectionalLight`
 - [ ] 删除运行时 shader 编译 + 死代码（`inv_alpha` 族、`set_alpha_mode_blend`）
 - [ ] alphaMode BLEND 恢复真实透明混合（移除 screen-door 强替换）
-- [ ] `getBufferFromAccessor` 越界校验返回 false（P0）
+- [ ] 顶点属性路径 `getBufferFromAccessor` 越界校验返回 false（P0，`reviews/model.md` #七.1）
+      —— **索引路径已完成**：提交 `623ed5e` 独立重写为 `read_gltf_index_accessor`，
+         每一步（accessor / bufferView / buffer / span / 逐元素 value<vertex_count）均 `return false`；
+         `9da0ad0` 进一步强制忽略索引 bufferView 的 `byteStride`（spec：索引数据紧排）。
+         **剩余待修**：`Model_D3D11.cpp:820-881` 的顶点属性 `getBufferFromAccessor` 仅 `Logger::error` 未 `return false`，
+         随后仍解引用越界 `bufferViews[accessor.bufferView]` / `buffers[buffer_view.buffer]`。
 
 ### M4：收益项（可选）
 - [ ] `IModel` GPU 缓冲跨实例共享 + `drawIndexedInstanced`
