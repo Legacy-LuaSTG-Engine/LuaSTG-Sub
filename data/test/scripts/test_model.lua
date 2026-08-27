@@ -1,4 +1,5 @@
 local test = require("test")
+local imgui = require("imgui")
 
 local function Camera3D()
     ---@class kuanlan.Camera3D
@@ -95,26 +96,64 @@ camera3d.z  = -1
 ---@class test.Module.Model : test.Base
 local M = {}
 
-function M:onCreate()
+---@param search_path string
+---@param models string[]
+local function discoverModel(search_path, models)
+    local entries = lstg.FileManager.EnumFiles(search_path)
+    for _, entry in ipairs(entries) do
+        local path = entry[1]
+        local length = string.len(path)
+        if entry[2] then
+            -- directory
+            discoverModel(entry[1], models)
+        elseif string.sub(path, length - 4, length) == ".gltf" then
+            table.insert(models, path)
+        end
+    end
+end
+
+---@param path string
+local function loadModel(path)
+    lstg.RemoveResource("global", 10, "model:test")
     local old_pool = lstg.GetResourceStatus()
     lstg.SetResourceStatus("global")
-    --lstg.LoadModel("model:test", "D:\\Project\\th\\thzzs-res\\模型\\007云树（高面数）\\007云树循环（实心）.gltf")
-    --lstg.LoadModel("model:test_top", "D:\\Project\\th\\thzzs-res\\模型\\007云树（高面数）\\007云树顶部（实心）.gltf")
-    --lstg.LoadModel("model:test", "D:\\Project\\khr\\glTF-Sample-Assets\\Models\\AlphaBlendModeTest\\glTF-Embedded\\AlphaBlendModeTest.gltf")
-    --lstg.LoadModel("model:test", "D:\\Project\\khr\\glTF-Sample-Assets\\Models\\CompareAlphaCoverage\\glTF\\CompareAlphaCoverage.gltf")
-    --lstg.LoadModel("model:test", "D:\\Project\\khr\\glTF-Sample-Assets\\Models\\VertexColorTest\\glTF-Embedded\\VertexColorTest.gltf")
-    lstg.LoadModel("model:test", "D:\\Project\\khr\\glTF-Sample-Assets\\Models\\BoxVertexColors\\glTF-Embedded\\BoxVertexColors.gltf")
+    lstg.LoadModel("model:test", path)
     lstg.SetResourceStatus(old_pool)
+end
+
+function M:onCreate()
+    ---@type string[]
+    self.models = {}
+    discoverModel("assets/model/", self.models)
     self.timer = 0
+    self.model_scale = 1.0
 end
 
 function M:onDestroy()
     lstg.RemoveResource("global", 10, "model:test")
 end
 
+function M:layout()
+    ---@diagnostic disable-next-line: undefined-field
+    local ImGui = imgui.ImGui
+    if ImGui.Begin("Graphics: Models") then
+        for i, m in ipairs(self.models) do
+            if ImGui.Button(string.format("%d. %s", i, m)) then
+                loadModel(m)
+            end
+        end
+    end
+    ImGui.End()
+    if ImGui.Begin("Graphics: Model Renderer") then
+        _, self.model_scale = ImGui.SliderFloat("Scale", self.model_scale, 0.01, 10.0)
+    end
+    ImGui.End()
+end
+
 function M:onUpdate()
     camera3d:update()
     self.timer = self.timer + 1
+    self:layout()
 end
 
 function M:onRender()
@@ -123,7 +162,7 @@ function M:onRender()
     local g = math.pow(99 / 255, 2.2) * 255
     local b = math.pow(123 / 255, 2.2) * 255
     --lstg.SetFog(-1.0, 10, lstg.Color(255, r, g, b))
-    local scale = 0.1
+    local scale = self.model_scale
     --lstg.RenderClear(lstg.Color(255, 88, 99, 123))
     lstg.ClearZBuffer(1.0)
     local yaw = -30 * self.timer / 60
