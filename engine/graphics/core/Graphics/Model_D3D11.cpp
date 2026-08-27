@@ -521,38 +521,247 @@ namespace core::Graphics
             break;
         }
     }
-    static void map_primitive_topology_to_d3d11(tinygltf::Primitive& prim, D3D11_PRIMITIVE_TOPOLOGY& topo)
-    {
-        switch (prim.mode)
-        {
-        default:
-            topo = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-            break;
+
+    static D3D11_PRIMITIVE_TOPOLOGY map_primitive_mode_to_d3d11(const int mode) {
+        switch (mode) {
         case TINYGLTF_MODE_POINTS:
-            topo = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-            break;
+            return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
         case TINYGLTF_MODE_LINE:
-            topo = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-            break;
-        case TINYGLTF_MODE_LINE_LOOP:
-            assert(false);
-            break;
+        case TINYGLTF_MODE_LINE_LOOP: // 需要展开
+            return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
         case TINYGLTF_MODE_LINE_STRIP:
-            topo = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-            break;
-        case TINYGLTF_MODE_TRIANGLES:
-            topo = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-            break;
+            return D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
         case TINYGLTF_MODE_TRIANGLE_STRIP:
-            topo = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-            break;
-        case TINYGLTF_MODE_TRIANGLE_FAN:
-            assert(false);
-            break;
+            return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+        case TINYGLTF_MODE_TRIANGLE_FAN: // 需要展开
+        case TINYGLTF_MODE_TRIANGLES:
+        default:
+            return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
         }
     }
-    static DirectX::XMMATRIX XM_CALLCONV get_local_transfrom_from_node(tinygltf::Node& node)
-    {
+
+    static bool read_gltf_index_accessor(
+        tinygltf::Model const& model,
+        tinygltf::Primitive const& prim,
+        uint32_t vertex_count,
+        std::string const& prim_tag,
+        std::vector<uint32_t>& out
+    ) {
+        // accessor
+
+        if (prim.indices < 0 || prim.indices >= static_cast<int>(model.accessors.size())) {
+            Logger::error(
+                "[core] [Model] {} -- indices accessor index out of bound (value = {}, count = {})",
+                prim_tag, prim.indices, model.accessors.size()
+            );
+            return false;
+        }
+
+        auto const& accessor = model.accessors[prim.indices];
+        size_t elem_size = 0; // 单索引字节数：spec 要求 SCALAR + 无符号整型
+
+        switch (accessor.componentType) {
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+            elem_size = 1;
+            break;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+            elem_size = 2;
+            break;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+            elem_size = 4;
+            break;
+        default:
+            Logger::error(
+                "[core] [Model] {} -- indices accessor (index = {}) must be unsigned integer component (value = {})",
+                prim_tag, prim.indices, accessor.componentType
+            );
+            return false;
+        }
+
+        if (accessor.type != TINYGLTF_TYPE_SCALAR) {
+            Logger::error(
+                "[core] [Model] {} -- indices accessor (index = {}) must be SCALAR (type = {})",
+                prim_tag, prim.indices, accessor.type
+            );
+            return false;
+        }
+
+        if (accessor.bufferView < 0 || accessor.bufferView >= static_cast<int>(model.bufferViews.size())) {
+            Logger::error(
+                "[core] [Model] {} -- indices accessor (index = {}) buffer view index out of bound (value = {})",
+                prim_tag, prim.indices, accessor.bufferView
+            );
+            return false;
+        }
+
+        // buffer view
+
+        auto const& view = model.bufferViews[accessor.bufferView];
+
+        if (view.buffer < 0 || view.buffer >= static_cast<int>(model.buffers.size())) {
+            Logger::error(
+                "[core] [Model] {} -- buffer view (index = {}) buffer index out of bound (value = {})",
+                prim_tag, accessor.bufferView, view.buffer
+            );
+            return false;
+        }
+
+        // buffer
+
+        auto const& buffer = model.buffers[view.buffer];
+
+        if (view.byteOffset + view.byteLength > buffer.data.size()) {
+            Logger::error(
+                "[core] [Model] {} -- buffer view (index = {}) range out of bound (offset = {}, length = {}, buffer size = {})",
+                prim_tag, view.buffer, view.byteOffset, view.byteLength, buffer.data.size()
+            );
+            return false;
+        }
+
+        size_t const count = accessor.count;
+        size_t const stride = view.byteStride > 0 ? view.byteStride : elem_size;
+        size_t const span = count > 0 ? accessor.byteOffset + stride * (count - 1) + elem_size : 0;
+
+        if (span > view.byteLength) {
+            Logger::error(
+                "[core] [Model] {} -- indices accessor (index = {}) data span ({}) out of buffer view byte length ({})",
+                prim_tag, prim.indices, span, view.byteLength
+            );
+            return false;
+        }
+
+        auto const* base = buffer.data.data() + view.byteOffset + accessor.byteOffset;
+        out.resize(count);
+
+        for (size_t i = 0; i < count; i += 1) {
+            uint32_t value = 0;
+            std::memcpy(&value, base + stride * i, elem_size); // GLB 统一小端，目标架构同为小端
+            if (value >= vertex_count) {
+                Logger::error(
+                    "[core] [Model] {} -- index (value = {}) out of vertex count ({}) at accessor (index = {}), element {}",
+                    prim_tag, value, vertex_count, prim.indices, i
+                );
+                return false;
+            }
+            out[i] = value;
+        }
+
+        return true;
+    }
+
+    static bool expand_to_native_topology(
+        int mode,
+        std::vector<uint32_t> const& in_indices,
+        bool has_indices,
+        uint32_t vertex_count,
+        std::string const& prim_tag,
+        std::vector<uint32_t>& out_indices,
+        D3D11_PRIMITIVE_TOPOLOGY& out_topology
+    ) {
+        size_t const count = has_indices ? in_indices.size() : vertex_count;
+
+        char const* mode_name = "UNKNOWN";
+        switch (mode) {
+        case TINYGLTF_MODE_POINTS:
+            mode_name = "POINTS";
+            if (count < 1) {
+                Logger::error("[core] [Model] {} -- {} requires at least 1 element, got {}", prim_tag, mode_name, count);
+                return false;
+            }
+            break;
+        case TINYGLTF_MODE_LINE:
+            mode_name = "LINES";
+            if (count < 2 || count % 2 != 0) {
+                Logger::error("[core] [Model] {} -- {} requires >= 2 and even element count, got {}", prim_tag, mode_name, count);
+                return false;
+            }
+            break;
+        case TINYGLTF_MODE_LINE_LOOP:
+            mode_name = "LINE_LOOP";
+            if (count < 2) {
+                Logger::error("[core] [Model] {} -- {} requires at least 2 elements, got {}", prim_tag, mode_name, count);
+                return false;
+            }
+            break;
+        case TINYGLTF_MODE_LINE_STRIP:
+            mode_name = "LINE_STRIP";
+            if (count < 2) {
+                Logger::error("[core] [Model] {} -- {} requires at least 2 elements, got {}", prim_tag, mode_name, count);
+                return false;
+            }
+            break;
+        case TINYGLTF_MODE_TRIANGLES:
+            mode_name = "TRIANGLES";
+            if (count < 3 || count % 3 != 0) {
+                Logger::error("[core] [Model] {} -- {} requires >= 3 and multiple-of-3 element count, got {}", prim_tag, mode_name, count);
+                return false;
+            }
+            break;
+        case TINYGLTF_MODE_TRIANGLE_STRIP:
+            mode_name = "TRIANGLE_STRIP";
+            if (count < 3) {
+                Logger::error("[core] [Model] {} -- {} requires at least 3 elements, got {}", prim_tag, mode_name, count);
+                return false;
+            }
+            break;
+        case TINYGLTF_MODE_TRIANGLE_FAN:
+            mode_name = "TRIANGLE_FAN";
+            if (count < 3) {
+                Logger::error("[core] [Model] {} -- {} requires at least 3 elements, got {}", prim_tag, mode_name, count);
+                return false;
+            }
+            break;
+        default:
+            Logger::error("[core] [Model] {} -- unknown primitive mode {}", prim_tag, mode);
+            return false;
+        }
+
+        out_topology = map_primitive_mode_to_d3d11(mode);
+
+        bool const expand_loop = mode == TINYGLTF_MODE_LINE_LOOP;
+        bool const expand_fan = mode == TINYGLTF_MODE_TRIANGLE_FAN;
+        if (!expand_loop && !expand_fan) {
+            out_indices = in_indices;
+            return true;
+        }
+
+    #define GET_INDEX(i) (has_indices ? in_indices[( i )] : static_cast<uint32_t>( i ))
+
+        if (expand_loop) {
+            // N 条边 -> 2N 索引，首尾闭合
+            out_indices.clear();
+            out_indices.reserve(count * 2);
+            for (size_t i = 0; i < count; i += 1) {
+                out_indices.push_back(GET_INDEX(i));
+                out_indices.push_back(GET_INDEX((i + 1) % count));
+            }
+        }
+        else {
+            // 扇心 0，三角形 (0, i, i + 1)，保留绕序
+            out_indices.clear();
+            out_indices.reserve((count - 2) * 3);
+            for (size_t i = 1; i + 1 < count; i += 1) {
+                out_indices.push_back(GET_INDEX(0));
+                out_indices.push_back(GET_INDEX(i));
+                out_indices.push_back(GET_INDEX(i + 1));
+            }
+        }
+
+    #undef GET_INDEX
+
+        Logger::warn(
+            "[core] [Model] {} -- topology {} not native to D3D11, expanded to {} (indices {} -> {})",
+            prim_tag,
+            mode_name,
+            expand_loop ? "LINES" : "TRIANGLES",
+            count,
+            out_indices.size()
+        );
+
+        return true;
+    }
+
+    static DirectX::XMMATRIX XM_CALLCONV get_local_transfrom_from_node(tinygltf::Node& node) {
         if (!node.matrix.empty())
         {
         #pragma warning(disable:4244)
@@ -595,6 +804,7 @@ namespace core::Graphics
             return DirectX::XMMatrixMultiply(DirectX::XMMatrixMultiply(mS, mR), mT);
         }
     }
+
     static bool getBufferFromAccessor(
         tinygltf::Model const& model,
         tinygltf::Accessor const& accessor,
@@ -807,9 +1017,26 @@ namespace core::Graphics
 
         if (node.mesh >= 0)
         {
-            tinygltf::Mesh& mesh = model.meshes[node.mesh];
-            for (tinygltf::Primitive& prim : mesh.primitives)
-            {
+            const auto& mesh = model.meshes[node.mesh];
+            for (size_t prim_idx = 0; prim_idx < mesh.primitives.size(); prim_idx += 1) {
+                const auto& prim = mesh.primitives[prim_idx];
+                const std::string prim_tag{std::format("mesh {} primitive {}", node.mesh, prim_idx)};
+
+                if (!prim.attributes.contains("POSITION")) {
+                    Logger::warn("[core] [Model] {} -- no POSITION attribute, primitive skipped", prim_tag);
+                    continue;
+                }
+
+                const int position_accessor_index = prim.attributes.at("POSITION");
+                if (position_accessor_index < 0 || position_accessor_index >= static_cast<int>(model.accessors.size())) {
+                    Logger::error(
+                        "[core] [Model] {} -- POSITION accessor index out of bound (value = {})",
+                        prim_tag, position_accessor_index
+                    );
+                    return false;
+                }
+                const uint32_t vertex_count = static_cast<uint32_t>(model.accessors[position_accessor_index].count);
+
                 ModelBlock mblock;
                 DirectX::XMMATRIX mTRSw = mTRS;
                 for (auto it = mTRS_stack.crbegin(); it != mTRS_stack.crend(); it++)
@@ -821,7 +1048,7 @@ namespace core::Graphics
                 DirectX::XMStoreFloat4x4(&mblock.local_matrix_normal, DirectX::XMMatrixInverseTranspose(mTRSw)); // face normal
                 if (prim.attributes.contains("POSITION"))
                 {
-                    tinygltf::Accessor& accessor = model.accessors[prim.attributes["POSITION"]];
+                    tinygltf::Accessor& accessor = model.accessors[prim.attributes.at("POSITION")];
                     uint8_t* buffer_ptr{};
                     size_t total_size_in_bytes{};
                     std::vector<uint8_t> intermediate_buffer;
@@ -852,7 +1079,7 @@ namespace core::Graphics
                 }
                 if (prim.attributes.contains("NORMAL"))
                 {
-                    tinygltf::Accessor& accessor = model.accessors[prim.attributes["NORMAL"]];
+                    tinygltf::Accessor& accessor = model.accessors[prim.attributes.at("NORMAL")];
                     uint8_t* buffer_ptr{};
                     size_t total_size_in_bytes{};
                     std::vector<uint8_t> intermediate_buffer;
@@ -881,7 +1108,7 @@ namespace core::Graphics
                 }
                 if (prim.attributes.contains("COLOR_0"))
                 {
-                    tinygltf::Accessor& accessor = model.accessors[prim.attributes["COLOR_0"]];
+                    tinygltf::Accessor& accessor = model.accessors[prim.attributes.at("COLOR_0")];
                     uint8_t* buffer_ptr{};
                     size_t total_size_in_bytes{};
                     std::vector<uint8_t> intermediate_buffer;
@@ -910,7 +1137,7 @@ namespace core::Graphics
                 }
                 if (prim.attributes.contains("TEXCOORD_0"))
                 {
-                    tinygltf::Accessor& accessor = model.accessors[prim.attributes["TEXCOORD_0"]];
+                    tinygltf::Accessor& accessor = model.accessors[prim.attributes.at("TEXCOORD_0")];
                     uint8_t* buffer_ptr{};
                     size_t total_size_in_bytes{};
                     std::vector<uint8_t> intermediate_buffer;
@@ -937,55 +1164,78 @@ namespace core::Graphics
                         return false;
                     }
                 }
-                if (prim.indices >= 0)
-                {
-                    tinygltf::Accessor& accessor = model.accessors[prim.indices];
-                    tinygltf::BufferView& bufferview = model.bufferViews[accessor.bufferView];
-                    tinygltf::Buffer& buffer = model.buffers[bufferview.buffer];
-                    if (bufferview.byteStride > 0) {
-                        std::ignore = nullptr;
-                    }
 
+                std::vector<uint32_t> native_indices;
+                bool use_indices = prim.indices >= 0;
+                {
+                    std::vector<uint32_t> decoded;
+                    if (use_indices) {
+                        if (!read_gltf_index_accessor(model, prim, vertex_count, prim_tag, decoded)) {
+                            return false;
+                        }
+                    }
+                    int const mode = prim.mode < 0 ? TINYGLTF_MODE_TRIANGLES : prim.mode; // spec 默认 TRIANGLES
+                    if (!expand_to_native_topology(
+                            mode,
+                            decoded,
+                            use_indices,
+                            vertex_count,
+                            prim_tag,
+                            native_indices,
+                            mblock.primitive_topology
+                    )) {
+                        return false;
+                    }
+                    // 无索引的 LOOP/FAN 合成展开后，改为经索引缓冲按 LINES/TRIANGLES 提交
+                    if (!use_indices && !native_indices.empty()) {
+                        use_indices = true;
+                    }
+                }
+
+                if (use_indices) {
+                    uint32_t max_index = 0;
+                    for (const uint32_t value : native_indices) {
+                        if (value > max_index) {
+                            max_index = value;
+                        }
+                    }
+                    const bool wide = max_index > 0xFFFE; // 超 16 位容量时用 R32，否则使用 R16，0xFFFF 是特殊值需要避开
+                    std::vector<uint16_t> narrow;
                     D3D11_BUFFER_DESC ibo_def = {
-                        .ByteWidth = (UINT)tinygltf::GetComponentSizeInBytes(accessor.componentType) * (UINT)tinygltf::GetNumComponentsInType(accessor.type) * (UINT)accessor.count,
+                        .ByteWidth = static_cast<UINT>(native_indices.size() * (wide ? 4 : 2)),
                         .Usage = D3D11_USAGE_DEFAULT,
                         .BindFlags = D3D11_BIND_INDEX_BUFFER,
                         .CPUAccessFlags = 0,
                         .MiscFlags = 0,
                         .StructureByteStride = 0,
                     };
-                    D3D11_SUBRESOURCE_DATA dat_def = {
-                        .pSysMem = buffer.data.data() + bufferview.byteOffset + accessor.byteOffset,
+                    D3D11_SUBRESOURCE_DATA ibo_dat = {
+                        .pSysMem = NULL,
                         .SysMemPitch = 0,
                         .SysMemSlicePitch = 0,
                     };
-
-                    int32_t index_size = tinygltf::GetComponentSizeInBytes(accessor.componentType);
-                    std::vector<uint16_t> index_work;
-                    if (index_size == 1)
-                    {
-                        index_work.resize(ibo_def.ByteWidth);
-                        uint8_t* ptr = (uint8_t*)dat_def.pSysMem;
-                        for (size_t i = 0; i < ibo_def.ByteWidth; i += 1)
-                        {
-                            index_work[i] = ptr[i];
-                        }
-                        index_size = 2;
-                        ibo_def.ByteWidth *= 2;
-                        dat_def.pSysMem = index_work.data();
+                    if (wide) {
+                        mblock.index_format = DXGI_FORMAT_R32_UINT;
+                        ibo_dat.pSysMem = native_indices.data();
                     }
-                    assert(index_size == 2 || index_size == 4);
-                    mblock.index_format = index_size == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-
-                    hr = device->CreateBuffer(&ibo_def, &dat_def, mblock.index_buffer.put());
-                    if (FAILED(hr))
-                    {
+                    else {
+                        narrow.resize(native_indices.size());
+                        for (size_t i = 0; i < native_indices.size(); i += 1)
+                            narrow[i] = (uint16_t)native_indices[i];
+                        mblock.index_format = DXGI_FORMAT_R16_UINT;
+                        ibo_dat.pSysMem = narrow.data();
+                    }
+                    hr = device->CreateBuffer(&ibo_def, &ibo_dat, mblock.index_buffer.put());
+                    if (FAILED(hr)) {
                         assert(false);
                         return false;
                     }
-
-                    mblock.draw_count = (UINT)accessor.count;
+                    mblock.draw_count = (UINT)native_indices.size();
                 }
+                else {
+                    mblock.draw_count = vertex_count;
+                }
+
                 if (prim.material >= 0)
                 {
                     tinygltf::Material& material = model.materials[prim.material];
@@ -1027,7 +1277,6 @@ namespace core::Graphics
                 #pragma warning(default:4244)
                     mblock.double_side = material.doubleSided;
                 }
-                map_primitive_topology_to_d3d11(prim, mblock.primitive_topology);
                 model_block.emplace_back(mblock);
             }
         }
