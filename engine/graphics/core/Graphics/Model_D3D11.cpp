@@ -606,6 +606,17 @@ namespace core::Graphics
             return false;
         }
 
+        if (view.byteStride > 0) {
+            // Spec: "If the accessor is used for vertex indices, its data elements are tightly packed."
+            //       "Buffer views with other types of data MUST NOT define byteStride."
+            // Index data is always tightly packed — ignore byteStride unconditionally.
+            Logger::warn(
+                "[core] [Model] {} -- indices bufferView (index = {}) has byteStride = {} "
+                "(spec requires tightly packed indices), ignoring",
+                prim_tag, accessor.bufferView, view.byteStride
+            );
+        }
+
         // buffer
 
         auto const& buffer = model.buffers[view.buffer];
@@ -618,9 +629,9 @@ namespace core::Graphics
             return false;
         }
 
-        size_t const count = accessor.count;
-        size_t const stride = view.byteStride > 0 ? view.byteStride : elem_size;
-        size_t const span = count > 0 ? accessor.byteOffset + stride * (count - 1) + elem_size : 0;
+        // span
+
+        size_t const span = accessor.count > 0 ? accessor.byteOffset + elem_size * accessor.count : 0;
 
         if (span > view.byteLength) {
             Logger::error(
@@ -631,11 +642,11 @@ namespace core::Graphics
         }
 
         auto const* base = buffer.data.data() + view.byteOffset + accessor.byteOffset;
-        out.resize(count);
+        out.resize(accessor.count);
 
-        for (size_t i = 0; i < count; i += 1) {
+        for (size_t i = 0; i < accessor.count; i += 1) {
             uint32_t value = 0;
-            std::memcpy(&value, base + stride * i, elem_size); // GLB 统一小端，目标架构同为小端
+            std::memcpy(&value, base + elem_size * i, elem_size); // GLB 统一小端，目标架构同为小端
             if (value >= vertex_count) {
                 Logger::error(
                     "[core] [Model] {} -- index (value = {}) out of vertex count ({}) at accessor (index = {}), element {}",
