@@ -211,6 +211,43 @@ namespace luastg::binding
 				p->handle->SetAllWidth((float)luaL_checknumber(L, 2));
 				return 0;
 			}
+			static int Cut(lua_State* L)noexcept // u(laser) x y radius -> count, positions
+			{
+				GETUDATA(p, 1);
+				CHECKUDATA(p);
+				std::vector<core::Vector2F> cut_positions;
+				size_t const count = p->handle->CutByPoint(
+					(float)luaL_checknumber(L, 2),
+					(float)luaL_checknumber(L, 3),
+					(float)luaL_checknumber(L, 4),
+					&cut_positions);
+				lua_pushinteger(L, (lua_Integer)count);
+				lua_newtable(L); // count t
+				for (size_t i = 0; i < cut_positions.size(); i += 1)
+				{
+					core::Vector2F const& pos = cut_positions[i];
+					lua_newtable(L); // count t t(node)
+					lua_pushnumber(L, pos.x);
+					lua_setfield(L, -2, "x");
+					lua_pushnumber(L, pos.y);
+					lua_setfield(L, -2, "y");
+					lua_rawseti(L, -2, (int)i + 1); // count t
+				}
+				return 2;
+			}
+			static int GetActiveNodeCount(lua_State* L)noexcept
+			{
+				GETUDATA(p, 1);
+				CHECKUDATA(p);
+				lua_pushinteger(L, (lua_Integer)p->handle->GetActiveNodeCount());
+				return 1;
+			}
+			static int GetActiveNodes(lua_State* L)noexcept
+			{
+				GETUDATA(p, 1);
+				CHECKUDATA(p);
+				return p->handle->api_GetActiveNodes(L);
+			}
 			static int SetEnvelope(lua_State* L)noexcept
 			{
 				GETUDATA(p, 1);
@@ -277,6 +314,9 @@ namespace luastg::binding
 			{ "UpdatePositionByList", &Function::UpdatePositionByList },
 			{ "UpdateAllNode", &Function::UpdateAllNodeByList },
 			{ "SetAllWidth", &Function::SetAllWidth },
+			{ "Cut", &Function::Cut },
+			{ "GetActiveNodeCount", &Function::GetActiveNodeCount },
+			{ "GetActiveNodes", &Function::GetActiveNodes },
 			{ "SetEnvelope", &Function::SetEnvelope },
 			{ "GetEnvelope", &Function::GetEnvelope },
 			{ NULL, NULL }
