@@ -20,6 +20,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # the module scanning process runs during every build, this increases the build time.
 # See: https://cmake.org/cmake/help/latest/manual/cmake-cxxmodules.7.html#scanning-without-modules
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+# MSVC: Compile with /ZI flag (Visual Studio C++ debugger hot-reload feature).
+set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>")
 
 include(cmake/architecture.cmake)
 include(cmake/luastg-options.cmake)

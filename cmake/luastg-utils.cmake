@@ -2,7 +2,6 @@ function(luastg_target_common_options __TARGET__)
     target_compile_options(${__TARGET__} PRIVATE
         "/MP"
         "/utf-8"
-        "$<$<CONFIG:Debug>:/ZI>"
     )
     #target_link_options(${__TARGET__} PRIVATE
     #    "/DEPENDENTLOADFLAG:0x800" # Windows 10 1607+ 强制 DLL 搜索目录为系统目录
