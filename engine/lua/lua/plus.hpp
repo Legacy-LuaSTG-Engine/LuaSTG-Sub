@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <string_view>
 #include <optional>
@@ -11,8 +12,10 @@ namespace lua {
 
 		stack_index_t() = default;
 		constexpr stack_index_t(int32_t const index) : value(index) {}
-		constexpr stack_index_t(size_t const index) : value(static_cast<int32_t>(index)) {}
+#if SIZE_MAX > UINT32_MAX
 		constexpr stack_index_t(uint32_t const index) : value(static_cast<int32_t>(index)) {}
+#endif
+		constexpr stack_index_t(size_t const index) : value(static_cast<int32_t>(index)) {}
 
 		bool operator>(int32_t const right) const {
 			return value > right;
